@@ -99,6 +99,7 @@ void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::calc(
     d->f_copy = d->f;
     d->fext_copy = d->fext;
     // rotate if not local 
+    std::cout << "[DAM soft 3D calc] hello from calc ! " << std::endl;
     if(ref_ != pinocchio::LOCAL){
         d->f = -Kp_ * ( d->pinocchio.oMf[frameId_].translation() - oPc_ ) - Kv_ * d->oRf * d->lv;
         d->pinForce = pinocchio::ForceTpl<Scalar>(d->oRf.transpose() * d->f, Vector3s::Zero());
@@ -191,6 +192,7 @@ void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::calcDiff(
   
   // If contact is active, compute ABA derivatives + force
   if(active_contact_){
+    std::cout << "[DAM soft 3D calc] hello from calcDiff ! " << std::endl;
     // Compute spring damper force derivatives in LOCAL
     // pinocchio::computeJointJacobians(this->get_pinocchio(), d->pinocchio, q);
     // pinocchio::computeForwardKinematicsDerivatives(this->get_pinocchio(), d->pinocchio, q, v, d->xout);
@@ -301,6 +303,78 @@ void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::set_Kv(const Sc
                  << "Damping should be positive");
   }
   Kv_ = inKv;
+}
+
+template <typename Scalar>
+void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::set_oPc(const Vector3s& inoPc) {
+  if (inoPc.size() != 3) {
+    throw_pretty("Invalid argument: "
+                 << "Anchor point position should have size 3");
+  }
+  oPc_ = inoPc;
+}
+
+template <typename Scalar>
+void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::set_force_des(const Vector3s& inForceDes) {
+  if (inForceDes.size() != 3) {
+    throw_pretty("Invalid argument: "
+                 << "Desired force should have size 3");
+  }
+  force_des_ = inForceDes;
+}
+
+template <typename Scalar>
+void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::set_force_weight(const Scalar inForceWeight) {
+  if (inForceWeight < 0.) {
+    throw_pretty("Invalid argument: "
+                 << "Force cost weight should be positive");
+  }
+  force_weight_ = inForceWeight;
+}
+
+template <typename Scalar>
+void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::set_ref(const pinocchio::ReferenceFrame inRef) {
+  ref_ = inRef;
+}
+
+template <typename Scalar>
+void DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::set_id(const pinocchio::FrameIndex inId) {
+  frameId_ = inId;
+}
+
+template <typename Scalar>
+const Scalar DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::get_Kp() const {
+  return Kp_;
+}
+
+template <typename Scalar>
+const Scalar DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::get_Kv() const {
+  return Kv_;
+}
+
+template <typename Scalar>
+const typename MathBaseTpl<Scalar>::Vector3s& DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::get_oPc() const {
+  return oPc_;
+}
+
+template <typename Scalar>
+const typename MathBaseTpl<Scalar>::Vector3s& DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::get_force_des() const {
+  return force_des_;
+}
+
+template <typename Scalar>
+const Scalar DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::get_force_weight() const {
+  return force_weight_;
+}
+
+template <typename Scalar>
+const pinocchio::ReferenceFrame DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::get_ref() const {
+  return ref_;
+}
+
+template <typename Scalar>
+const pinocchio::FrameIndex DifferentialActionModelSoftContact3DFwdDynamicsTpl<Scalar>::get_id() const {
+  return frameId_;
 }
 
 }  // namespace sobec

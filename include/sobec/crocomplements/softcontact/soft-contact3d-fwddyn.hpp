@@ -45,7 +45,7 @@ class DifferentialActionModelSoftContact3DFwdDynamicsTpl
   typedef crocoddyl::StateMultibodyTpl<Scalar> StateMultibody;
   typedef crocoddyl::ActuationModelAbstractTpl<Scalar> ActuationModelAbstract;
   typedef crocoddyl::DifferentialActionDataAbstractTpl<Scalar> DifferentialActionDataAbstract;
-  // typedef crocoddyl::DifferentialActionDataFreeFwdDynamicsTpl<Scalar> DifferentialActionDataFreeFwdDynamics;
+  typedef crocoddyl::DifferentialActionDataFreeFwdDynamicsTpl<Scalar> DifferentialActionDataFreeFwdDynamics;
   typedef typename MathBase::VectorXs VectorXs;
   typedef typename MathBase::Vector3s Vector3s;
   typedef typename MathBase::MatrixXs MatrixXs;
@@ -132,9 +132,33 @@ class DifferentialActionModelSoftContact3DFwdDynamicsTpl
   
   void set_force_cost(const Vector3s& force_des, const Scalar force_weight);
 
+  void set_force_des(const Vector3s& inForceDes);
+
+  void set_force_weight(const Scalar inForceWeight);
+
   void set_Kp(const Scalar inKp);
 
   void set_Kv(const Scalar inKv);
+
+  void set_oPc(const Vector3s& oPc);
+
+  void set_ref(const pinocchio::ReferenceFrame inRef);
+  
+  void set_id(const pinocchio::FrameIndex inId);
+
+  const Scalar get_Kp() const;
+
+  const Scalar get_Kv() const;
+
+  const Vector3s& get_oPc() const;
+
+  const Vector3s& get_force_des() const;
+
+  const Scalar get_force_weight() const;
+
+  const pinocchio::ReferenceFrame get_ref() const;
+  
+  const pinocchio::FrameIndex get_id() const;
 
   std::size_t get_nc() {return nc_;};
 
@@ -178,8 +202,6 @@ struct DifferentialActionDataSoftContact3DFwdDynamicsTpl : public crocoddyl::Dif
         aba_dtau(model->get_state()->get_nv(), model->get_state()->get_nv()),
         df_dx(model->get_nc(), model->get_state()->get_ndx()),
         df_dx_copy(model->get_nc(), model->get_state()->get_ndx()),
-        // f(model->get_nc(), model->get_state()->get_ndx()),
-        // f_copy(model->get_nc(), model->get_state()->get_ndx()),
         pinForce(pinocchio::ForceTpl<Scalar>::Zero()),
         fext(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()),
         fext_copy(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()) {
