@@ -18,6 +18,7 @@ from .sobec_pywrap import (
     ContactModelMultiple,
     DifferentialActionModelContactFwdDynamics,
     DifferentialActionModelSoftContact3DFwdDynamics,
+    DAMSoftContact3DAugmentedFwdDynamics,
     ResidualModelContactForce,
     WBC,
     OCPRobotWrapper,
