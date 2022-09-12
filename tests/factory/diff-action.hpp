@@ -18,6 +18,7 @@
 #include "contact3d.hpp"
 #include "sobec/crocomplements/contact/contact-fwddyn.hpp"
 #include "sobec/crocomplements/softcontact/dam3d.hpp"
+#include "sobec/crocomplements/softcontact/dam1d.hpp"
 #include "state.hpp"
 
 namespace sobec {
@@ -30,9 +31,11 @@ struct DifferentialActionModelTypes {
     DifferentialActionModelContact1DFwdDynamics_TalosArm,
     DifferentialActionModelContact3DFwdDynamics_TalosArm,
     DifferentialActionModelSoftContact3DFwdDynamics_TalosArm,
-    DifferentialActionModelSoftContact3DFwdDynamics_HyQ,
+    DifferentialActionModelSoftContact1DFwdDynamics_TalosArm,
     DifferentialActionModelContact1DFwdDynamics_HyQ,
     DifferentialActionModelContact3DFwdDynamics_HyQ,
+    DifferentialActionModelSoftContact3DFwdDynamics_HyQ,
+    DifferentialActionModelSoftContact1DFwdDynamics_HyQ,
     NbDifferentialActionModelTypes
   };
   static std::vector<Type> init_all() {
@@ -48,7 +51,7 @@ struct DifferentialActionModelTypes {
 
 std::ostream& operator<<(std::ostream& os,
                          DifferentialActionModelTypes::Type type);
-
+        
 class DifferentialActionModelFactory {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -84,6 +87,12 @@ class DifferentialActionModelFactory {
   create_softContact3DFwdDynamics(StateModelTypes::Type state_type,
                                   ActuationModelTypes::Type actuation_type,
                                   PinocchioReferenceTypes::Type ref_type) const;
+  // Soft contact 1D dynamics
+  boost::shared_ptr<sobec::DifferentialActionModelSoftContact1DFwdDynamics>
+  create_softContact1DFwdDynamics(StateModelTypes::Type state_type,
+                                  ActuationModelTypes::Type actuation_type,
+                                  PinocchioReferenceTypes::Type ref_type, 
+                                  ContactModelMaskTypes::Type mask_type) const;
 };
 
 }  // namespace unittest

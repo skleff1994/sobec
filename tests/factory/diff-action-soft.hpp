@@ -16,6 +16,7 @@
 #include "actuation.hpp"
 #include "contact1d.hpp"
 #include "sobec/crocomplements/softcontact/dam3d-augmented.hpp"
+#include "sobec/crocomplements/softcontact/dam1d-augmented.hpp"
 #include "state.hpp"
 
 namespace sobec {
@@ -27,6 +28,8 @@ struct DAMSoftContactTypes {
     DAMSoftContact3DAugmentedFwdDynamics_HyQ,
     DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid,
     DAMSoftContact3DAugmentedFwdDynamics_Talos,
+    DAMSoftContact1DAugmentedFwdDynamics_TalosArm,
+    // DAMSoftContact1DAugmentedFwdDynamics_HyQ,
     NbDAMSoftContactTypes
   };
   static std::vector<Type> init_all() {
@@ -50,15 +53,26 @@ class DAMSoftContactFactory {
   explicit DAMSoftContactFactory();
   ~DAMSoftContactFactory();
 
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> create(
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> create3D(
       DAMSoftContactTypes::Type type,
       PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) const;
-  
+
+  boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> create1D(
+      DAMSoftContactTypes::Type type,
+      PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
+      ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Z) const;
+
   // Soft contact 3D dynamics
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics>
   create_augmentedDAMSoft3D(StateModelTypes::Type state_type,
                             ActuationModelTypes::Type actuation_type,
                             PinocchioReferenceTypes::Type ref_type) const;
+  // Soft contact 1D dynamics
+  boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics>
+  create_augmentedDAMSoft1D(StateModelTypes::Type state_type,
+                            ActuationModelTypes::Type actuation_type,
+                            PinocchioReferenceTypes::Type ref_type,
+                            ContactModelMaskTypes::Type mask_type) const;
 };
 
 }  // namespace unittest
