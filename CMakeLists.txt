@@ -74,6 +74,7 @@ set(${PROJECT_NAME}_HEADERS
   include/${PROJECT_NAME}/crocomplements/contact/contact-fwddyn.hpp
   include/${PROJECT_NAME}/crocomplements/contact/contact-force.hpp
   include/${PROJECT_NAME}/crocomplements/softcontact/dam3d.hpp
+  include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hpp
   include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hpp
   include/${PROJECT_NAME}/crocomplements/softcontact/iam3d-augmented.hpp
   include/${PROJECT_NAME}/crocomplements/softcontact/state.hpp
@@ -88,6 +89,7 @@ set(${PROJECT_NAME}_HEADERS
   include/${PROJECT_NAME}/crocomplements/contact/contact-force.hxx
   include/${PROJECT_NAME}/crocomplements/residual-fly-high.hxx
   include/${PROJECT_NAME}/crocomplements/softcontact/dam3d.hxx
+  include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hxx
   include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hxx
   include/${PROJECT_NAME}/crocomplements/softcontact/iam3d-augmented.hxx
   include/${PROJECT_NAME}/crocomplements/softcontact/state.hxx

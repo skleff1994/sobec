@@ -141,13 +141,22 @@ class OCPWalk;
 class MPCWalk;
 
 
-// Soft contact3D DAM
+// Soft contact3D DAM  
+    // 3D
 template <typename Scalar>
 class DifferentialActionModelSoftContact3DFwdDynamicsTpl;
 typedef DifferentialActionModelSoftContact3DFwdDynamicsTpl<double> DifferentialActionModelSoftContact3DFwdDynamics;
 template <typename Scalar>
 class DifferentialActionDataSoftContact3DFwdDynamicsTpl;
 typedef DifferentialActionDataSoftContact3DFwdDynamicsTpl<double> DifferentialActionDataSoftContact3DFwdDynamics;
+    // 1D
+template <typename Scalar>
+class DifferentialActionModelSoftContact1DFwdDynamicsTpl;
+typedef DifferentialActionModelSoftContact1DFwdDynamicsTpl<double> DifferentialActionModelSoftContact1DFwdDynamics;
+template <typename Scalar>
+class DifferentialActionDataSoftContact1DFwdDynamicsTpl;
+typedef DifferentialActionDataSoftContact1DFwdDynamicsTpl<double> DifferentialActionDataSoftContact1DFwdDynamics;
+
 
 // Soft contact3D DAM (augmented state)
 template <typename Scalar>

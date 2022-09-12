@@ -252,12 +252,16 @@ struct DifferentialActionDataSoftContact1DFwdDynamicsTpl : public crocoddyl::Dif
   MatrixXs aba_dv;
   MatrixXs aba_dtau;
   // force cost & derivatives
+  Vector3s fLOCAL;
+  Vector3s fWORLD;
   Vector3s f_residual;
   MatrixXs df_dx; 
+  MatrixXs df3d_dx; 
   MatrixXs df_dx_copy;
   Vector3s f3d;
   Vector3s f3d_copy;
   Scalar f;
+  Scalar f_copy;
   pinocchio::ForceTpl<Scalar> pinForce;
   pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext;  //!< External spatial forces in body coordinates (joint level)
   pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext_copy;  //!< External spatial forces in body coordinates (joint level)

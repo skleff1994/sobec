@@ -91,17 +91,24 @@ void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::calc(
   if(active_contact_){
     // Compute spring damper force expressed at joint level 
     d->lv = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();
-    d->f3d = -Kp_ * d->oRf.transpose() * ( d->pinocchio.oMf[frameId_].translation() - oPc_ ) - Kv_*d->lv;
+    d->f3d = -Kp_ * d->oRf.transpose() * ( d->pinocchio.oMf[frameId_].translation() - oPc_ ) - Kv_*d->lv
     d->f = d->f3d(this->get_type());
-    d->pinForce = pinocchio::ForceTpl<Scalar>(d->f3d, Vector3s::Zero());
+    d->fLOCAL = Vector3s::Zero();
+    d->fLOCAL(this->get_type()) = d->f;
+    d->pinForce = pinocchio::ForceTpl<Scalar>(d->fLOCAL, Vector3s::Zero());
+    // d->pinForce.linear()(this->get_type()) = d->f;
     d->fext[parentId_] = jMf_.act(d->pinForce);
     // Save local force for later
-    d->f_copy = d->f3d;
+    d->f3d_copy = d->f3d;
+    d->f_copy = d->f;
     d->fext_copy = d->fext;
     // rotate if not local 
     if(ref_ != pinocchio::LOCAL){
         d->f3d = -Kp_ * ( d->pinocchio.oMf[frameId_].translation() - oPc_ ) - Kv_ * d->oRf * d->lv;
-        d->pinForce = pinocchio::ForceTpl<Scalar>(d->oRf.transpose() * d->f3d, Vector3s::Zero());
+        d->f = d->f3d(this->get_type());
+        d->fWORLD = Vector3s::Zero();
+        d->fWORLD(this->get_type()) = d->f;
+        d->pinForce = pinocchio::ForceTpl<Scalar>(d->oRf.transpose() * d->fWORLD, Vector3s::Zero());
         d->fext[parentId_] = jMf_.act(d->pinForce);
     }
     d->xout = pinocchio::aba(this->get_pinocchio(), d->pinocchio, q, v, d->multibody.actuation->tau, d->fext);
@@ -181,28 +188,31 @@ void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::calcDiff(
   
   // If contact is active, compute ABA derivatives + force
   if(active_contact_){
-    // std::cout << "[DAM soft 1D calc] hello from calcDiff ! " << std::endl;
     // Compute spring damper force derivatives in LOCAL
     pinocchio::framesForwardKinematics(this->get_pinocchio(), d->pinocchio, q);
     pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL, d->lJ);
     pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, d->oJ);
     pinocchio::getFrameVelocityDerivatives(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL, d->lv_partial_dq, d->lv_partial_dv);
-    d->df_dx.leftCols(nv) = 
-        -Kp_ * (d->lJ.topRows(3) + pinocchio::skew(d->oRf.transpose() * (d->pinocchio.oMf[frameId_].translation() - oPc_)) * d->lJ.bottomRows(3)) - Kv_* d->lv_partial_dq.topRows(3);
-    d->df_dx.rightCols(nv) = 
-        -Kv_ * d->lv_partial_dv.topRows(3);
-    // copy for later
+    d->df3d_dx.leftCols(nv) = -Kp_ * (d->lJ.topRows(3) + pinocchio::skew(d->oRf.transpose() * (d->pinocchio.oMf[frameId_].translation() - oPc_)) * d->lJ.bottomRows(3)) - Kv_* d->lv_partial_dq.topRows(3);
+    d->df3d_dx.rightCols(nv) = -Kv_ * d->lv_partial_dv.row(this->get_type());
+    d->df3d_dx_copy = d->df3d_dx;
+    d->df_dx = d->df3d_dx(this->get_type());
     d->df_dx_copy = d->df_dx;
     // rotate force derivatives if not local 
     if(ref_ != pinocchio::LOCAL){
-        d->df_dx.leftCols(nv) = d->oRf * d->df_dx_copy.leftCols(nv) - pinocchio::skew(d->oRf * d->f_copy) * d->oJ.bottomRows(3);
-        d->df_dx.rightCols(nv) = d->oRf * d->df_dx_copy.rightCols(nv);
+        d->df3d_dx.leftCols(nv) = d->oRf * d->df3d_dx_copy.leftCols(nv) - pinocchio::skew(d->oRf * d->f3d_copy) * d->oJ.bottomRows(3);
+        d->df3d_dx.rightCols(nv) = d->oRf * d->df3d_dx_copy.rightCols(nv);
     }
     // Compute ABA derivatives (same in LOCAL and LWA for 1D contact)
-    pinocchio::computeABADerivatives(this->get_pinocchio(), d->pinocchio, q, v, d->multibody.actuation->tau, d->fext_copy, 
+    pinocchio::computeABADerivatives(this->get_pinocchio(), d->pinocchio, q, v, d->multibody.actuation->tau, d->fext, 
                                                               d->aba_dq, d->aba_dv, d->aba_dtau);
-    d->Fx.leftCols(nv) = d->aba_dq + d->aba_dtau * d->lJ.topRows(3).transpose() * d->df_dx_copy.leftCols(nv);
-    d->Fx.rightCols(nv) = d->aba_dv + d->aba_dtau * d->lJ.topRows(3).transpose() * d->df_dx_copy.rightCols(nv);
+    if(ref_ != pinocchio::LOCAL){
+        d->Fx.leftCols(nv) = d->aba_dq + d->aba_dtau * d->lJ.topRows(3).transpose().col(this->get_type()) * d->df_dx_copy.leftCols(nv);
+        d->Fx.rightCols(nv) = d->aba_dv + d->aba_dtau * d->lJ.topRows(3).transpose().col(this->get_type()) * d->df_dx_copy.rightCols(nv);    
+    } else {
+        d->Fx.leftCols(nv) = d->aba_dq + d->aba_dtau * d->lJ.topRows(3).transpose() * (d->oRf.transpose().col(this->get_type()) * d->df_dx.leftCols(nv) + pinocchio::skew(d->oRf.transpose() * d->fWORLD) * d->lJ.bottomRows(3)); 
+        d->Fx.rightCols(nv) = d->aba_dv + d->aba_dtau * d->lJ.topRows(3).transpose()* (d->oRf.transpose().col(this->get_type()) * d->df_dx.rightCols(nv) ;   
+    }
     d->Fx += d->aba_dtau * d->multibody.actuation->dtau_dx;
     d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
   }
