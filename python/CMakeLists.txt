@@ -1,5 +1,4 @@
 set(${PY_NAME}_SOURCES
-<<<<<<< HEAD
   main.cpp
   std-containers.cpp
   flexibility_compensation.cpp
@@ -28,31 +27,6 @@ set(${PY_NAME}_SOURCES
   walk-without-think/ocp.cpp
   walk-without-think/mpc.cpp
   )
-=======
-    main.cpp
-    std-containers.cpp
-    flexibility_compensation.cpp
-    crocomplements/residual-com-velocity.cpp
-    crocomplements/residual-vel-collision.cpp
-    crocomplements/residual-cop.cpp
-    crocomplements/residual-center-of-friction.cpp
-    crocomplements/residual-feet-collision.cpp
-    crocomplements/residual-fly-high.cpp
-    crocomplements/activation-quad-ref.cpp
-    crocomplements/lowpassfilter/action.cpp
-    crocomplements/lowpassfilter/state.cpp
-    crocomplements/contact/contact3d.cpp
-    crocomplements/contact/contact1d.cpp
-    crocomplements/contact/multiple-contacts.cpp
-    crocomplements/contact/contact-fwddyn.cpp
-    crocomplements/contact/contact-force.cpp
-    walk-with-traj/designer.cpp
-    walk-with-traj/horizon_manager.cpp
-    walk-with-traj/model_factory.cpp
-    walk-with-traj/wbc.cpp
-    walk-without-think/ocp.cpp
-    walk-without-think/mpc.cpp)
->>>>>>> befd06dbcf5a104d68c5a68a4eb4f861ad794d79
 
 add_library(${PY_NAME}_pywrap SHARED ${${PY_NAME}_SOURCES})
 target_link_libraries(${PY_NAME}_pywrap PUBLIC ${PROJECT_NAME} eigenpy::eigenpy)
