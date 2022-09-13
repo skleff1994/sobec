@@ -28,6 +28,7 @@ void exposeMPCWalk();
 void exposeDAMSoftContact3DFwdDyn();
 void exposeDAMSoftContact1DFwdDyn();
 void exposeDAMSoftContact3DAugmentedFwdDyn();
+void exposeDAMSoftContact1DAugmentedFwdDyn();
 void exposeStateSoftContact();
 void exposeIAMSoftContact3DAugmented();
 
