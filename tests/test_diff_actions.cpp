@@ -318,6 +318,14 @@ void register_action_model_unit_tests(
         DifferentialActionModelSoftContact3DFwdDynamics_HyQ:
       test_name << "test_" << action_type << "_" << ref_type;
       break;
+    case DifferentialActionModelTypes::
+        DifferentialActionModelSoftContact1DFwdDynamics_TalosArm:
+      test_name << "test_" << action_type << "_" << ref_type << "_" << mask_type;
+      break;
+    case DifferentialActionModelTypes::
+        DifferentialActionModelSoftContact1DFwdDynamics_HyQ:
+      test_name << "test_" << action_type << "_" << ref_type << "_" << mask_type;
+      break;
     default:
       throw_pretty(__FILE__ ": Wrong DifferentialActionModelTypes::Type given");
       break;
@@ -328,14 +336,18 @@ void register_action_model_unit_tests(
   ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_state, action_type, ref_type, mask_type)));
   ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_a_cost, action_type, ref_type, mask_type)));
   ts->add(BOOST_TEST_CASE(boost::bind(&test_partial_derivatives_against_numdiff, action_type, ref_type, mask_type)));
-  // Exclude 1D rigid contact floating base and 3D soft contact models from this test
-  // because quasiStatic not implemented yet  
+  // Exclude from quasistatic tests
+  //  - 1D rigid contact floating base 
+  //  - 1D & 3D soft contact models
+  // because not implemented yet (tricky)
   if(action_type != DifferentialActionModelTypes::DifferentialActionModelContact1DFwdDynamics_HyQ &&
      action_type != DifferentialActionModelTypes::DifferentialActionModelSoftContact3DFwdDynamics_HyQ &&
-     action_type != DifferentialActionModelTypes::DifferentialActionModelSoftContact3DFwdDynamics_TalosArm){
+     action_type != DifferentialActionModelTypes::DifferentialActionModelSoftContact3DFwdDynamics_TalosArm &&
+     action_type != DifferentialActionModelTypes::DifferentialActionModelSoftContact1DFwdDynamics_TalosArm &&
+     action_type != DifferentialActionModelTypes::DifferentialActionModelSoftContact1DFwdDynamics_HyQ){
     ts->add(BOOST_TEST_CASE(boost::bind(&test_quasi_static, action_type, ref_type, mask_type)));
   }
-  // Test equivalence with Euler for soft contact when Kp, Kv = 0
+  // Add soft contact specific test for equivalence with Euler when Kp, Kv = 0
   if(action_type == DifferentialActionModelTypes::DifferentialActionModelSoftContact3DFwdDynamics_TalosArm ||
      action_type == DifferentialActionModelTypes::DifferentialActionModelSoftContact3DFwdDynamics_HyQ){
     ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_equivalent_free, action_type, ref_type, mask_type)));
@@ -374,13 +386,16 @@ bool init_function() {
     }
   }
 
-  // 1D contact (rigid)
+  // 1D contact (rigid + soft)
   for (size_t i = 0; i < DifferentialActionModelTypes::all.size(); ++i) {
     if (DifferentialActionModelTypes::all[i] ==
         DifferentialActionModelTypes::DifferentialActionModelContact1DFwdDynamics_TalosArm ||
         DifferentialActionModelTypes::all[i] ==
-        DifferentialActionModelTypes::DifferentialActionModelContact1DFwdDynamics_HyQ)
-      {
+        DifferentialActionModelTypes::DifferentialActionModelContact1DFwdDynamics_HyQ ||
+        DifferentialActionModelTypes::all[i] ==
+        DifferentialActionModelTypes::DifferentialActionModelSoftContact1DFwdDynamics_TalosArm ||
+        DifferentialActionModelTypes::all[i] ==
+        DifferentialActionModelTypes::DifferentialActionModelSoftContact1DFwdDynamics_HyQ) {
       for (size_t j = 0; j < PinocchioReferenceTypes::all.size(); ++j) {
         for (size_t k = 0; k < ContactModelMaskTypes::all.size(); ++k) {
           register_action_model_unit_tests(DifferentialActionModelTypes::all[i],

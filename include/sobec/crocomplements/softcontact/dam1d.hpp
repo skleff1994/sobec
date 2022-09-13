@@ -22,6 +22,8 @@
 
 namespace sobec {
 
+enum Vector3MaskType { x = 0, y = 1, z = 2 };
+
 /**
  * @brief Differential action model for visco-elastic contact forward dynamics in multibody
  * systems.
@@ -49,7 +51,7 @@ class DifferentialActionModelSoftContact1DFwdDynamicsTpl
   typedef typename MathBase::VectorXs VectorXs;
   typedef typename MathBase::Vector3s Vector3s;
   typedef typename MathBase::MatrixXs MatrixXs;
-  typedef typename Vector3MaskType sobec::newcontacts::Vector3MaskType;
+  // typedef typename Vector3MaskType = sobec::newcontacts::Vector3MaskType; // Vector3MaskType;
 
   /**
    * @brief Initialize the soft contact forward-dynamics action model
@@ -76,7 +78,7 @@ class DifferentialActionModelSoftContact1DFwdDynamicsTpl
       const double Kv,
       const Vector3s& oPc,
       const pinocchio::ReferenceFrame ref = pinocchio::LOCAL,
-      const Vector3MaskType& type = Vector3MaskType::Z);
+      const Vector3MaskType& type = Vector3MaskType::z);
   virtual ~DifferentialActionModelSoftContact1DFwdDynamicsTpl();
 
   /**
@@ -210,6 +212,12 @@ struct DifferentialActionDataSoftContact1DFwdDynamicsTpl : public crocoddyl::Dif
         aba_dtau(model->get_state()->get_nv(), model->get_state()->get_nv()),
         df_dx(model->get_nc(), model->get_state()->get_ndx()),
         df_dx_copy(model->get_nc(), model->get_state()->get_ndx()),
+        fWORLD(3),
+        fLOCAL(3),
+        f3d(3),
+        f3d_copy(3),
+        df3d_dx(3, model->get_state()->get_ndx()),
+        df3d_dx_copy(3, model->get_state()->get_ndx()),
         pinForce(pinocchio::ForceTpl<Scalar>::Zero()),
         fext(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()),
         fext_copy(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()) {
@@ -218,20 +226,23 @@ struct DifferentialActionDataSoftContact1DFwdDynamicsTpl : public crocoddyl::Dif
     u_drift.setZero();
     dtau_dx.setZero();
     tmp_xstatic.setZero();
-    df_dx.setZero();
-    df_dx_copy.setZero();
-    f.setZero();
-    f_copy.setZero();
     oRf.setZero();
     lv.setZero();
-    f_residual.setZero();
+    lJ.setZero();
+    oJ.setZero();
+    lv_partial_dv.setZero();
+    lv_partial_dq.setZero();
     aba_dq.setZero();
     aba_dv.setZero();
     aba_dtau.setZero();
-    lv_partial_dv.setZero();
-    lv_partial_dq.setZero();
-    lJ.setZero();
-    oJ.setZero();
+    df_dx.setZero();
+    df_dx_copy.setZero();
+    fWORLD.setZero();
+    fLOCAL.setZero();
+    f3d.setZero();
+    f3d_copy.setZero();
+    df3d_dx.setZero();
+    df3d_dx_copy.setZero();
   }
 
   using Base::pinocchio;
@@ -252,16 +263,19 @@ struct DifferentialActionDataSoftContact1DFwdDynamicsTpl : public crocoddyl::Dif
   MatrixXs aba_dv;
   MatrixXs aba_dtau;
   // force cost & derivatives
-  Vector3s fLOCAL;
-  Vector3s fWORLD;
-  Vector3s f_residual;
-  MatrixXs df_dx; 
-  MatrixXs df3d_dx; 
-  MatrixXs df_dx_copy;
-  Vector3s f3d;
-  Vector3s f3d_copy;
+  Scalar f_residual;
   Scalar f;
   Scalar f_copy;
+  MatrixXs df_dx; 
+  MatrixXs df_dx_copy;
+
+  Vector3s fLOCAL;
+  Vector3s fWORLD;
+  Vector3s f3d;
+  Vector3s f3d_copy;
+  MatrixXs df3d_dx; 
+  MatrixXs df3d_dx_copy; 
+
   pinocchio::ForceTpl<Scalar> pinForce;
   pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext;  //!< External spatial forces in body coordinates (joint level)
   pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext_copy;  //!< External spatial forces in body coordinates (joint level)

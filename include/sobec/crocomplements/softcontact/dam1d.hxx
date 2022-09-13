@@ -17,6 +17,7 @@
 #include <pinocchio/algorithm/rnea.hpp>
 
 #include "dam1d.hpp"
+// #include "sobec/crocomplements/contact/contact1d.hpp"
 
 namespace sobec {
 
@@ -30,7 +31,7 @@ DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::DifferentialActionMo
     const double Kv,
     const Vector3s& oPc,
     const pinocchio::ReferenceFrame ref,
-    const std::size_t type)
+    const Vector3MaskType& type)
     : Base(state, actuation, costs) {
   if (this->get_costs()->get_nu() != this->get_nu()) {
     throw_pretty("Invalid argument: "
@@ -91,7 +92,7 @@ void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::calc(
   if(active_contact_){
     // Compute spring damper force expressed at joint level 
     d->lv = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();
-    d->f3d = -Kp_ * d->oRf.transpose() * ( d->pinocchio.oMf[frameId_].translation() - oPc_ ) - Kv_*d->lv
+    d->f3d = -Kp_ * d->oRf.transpose() * ( d->pinocchio.oMf[frameId_].translation() - oPc_ ) - Kv_*d->lv;
     d->f = d->f3d(this->get_type());
     d->fLOCAL = Vector3s::Zero();
     d->fLOCAL(this->get_type()) = d->f;
@@ -138,7 +139,7 @@ void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::calc(
   // Add hard-coded cost on contact force
   if(active_contact_ && with_force_cost_){
     d->f_residual = d->f - force_des_;
-    d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
+    d->cost += 0.5* force_weight_ * d->f_residual * d->f_residual;
   }
 }
 
@@ -194,24 +195,25 @@ void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::calcDiff(
     pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, d->oJ);
     pinocchio::getFrameVelocityDerivatives(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL, d->lv_partial_dq, d->lv_partial_dv);
     d->df3d_dx.leftCols(nv) = -Kp_ * (d->lJ.topRows(3) + pinocchio::skew(d->oRf.transpose() * (d->pinocchio.oMf[frameId_].translation() - oPc_)) * d->lJ.bottomRows(3)) - Kv_* d->lv_partial_dq.topRows(3);
-    d->df3d_dx.rightCols(nv) = -Kv_ * d->lv_partial_dv.row(this->get_type());
+    d->df3d_dx.rightCols(nv) = -Kv_ * d->lv_partial_dv.topRows(3);
+    d->df_dx = d->df3d_dx.row(this->get_type());
     d->df3d_dx_copy = d->df3d_dx;
-    d->df_dx = d->df3d_dx(this->get_type());
     d->df_dx_copy = d->df_dx;
     // rotate force derivatives if not local 
     if(ref_ != pinocchio::LOCAL){
         d->df3d_dx.leftCols(nv) = d->oRf * d->df3d_dx_copy.leftCols(nv) - pinocchio::skew(d->oRf * d->f3d_copy) * d->oJ.bottomRows(3);
         d->df3d_dx.rightCols(nv) = d->oRf * d->df3d_dx_copy.rightCols(nv);
+        d->df_dx = d->df3d_dx.row(this->get_type());
     }
     // Compute ABA derivatives (same in LOCAL and LWA for 1D contact)
     pinocchio::computeABADerivatives(this->get_pinocchio(), d->pinocchio, q, v, d->multibody.actuation->tau, d->fext, 
                                                               d->aba_dq, d->aba_dv, d->aba_dtau);
-    if(ref_ != pinocchio::LOCAL){
+    if(ref_ == pinocchio::LOCAL){
         d->Fx.leftCols(nv) = d->aba_dq + d->aba_dtau * d->lJ.topRows(3).transpose().col(this->get_type()) * d->df_dx_copy.leftCols(nv);
         d->Fx.rightCols(nv) = d->aba_dv + d->aba_dtau * d->lJ.topRows(3).transpose().col(this->get_type()) * d->df_dx_copy.rightCols(nv);    
     } else {
         d->Fx.leftCols(nv) = d->aba_dq + d->aba_dtau * d->lJ.topRows(3).transpose() * (d->oRf.transpose().col(this->get_type()) * d->df_dx.leftCols(nv) + pinocchio::skew(d->oRf.transpose() * d->fWORLD) * d->lJ.bottomRows(3)); 
-        d->Fx.rightCols(nv) = d->aba_dv + d->aba_dtau * d->lJ.topRows(3).transpose()* (d->oRf.transpose().col(this->get_type()) * d->df_dx.rightCols(nv) ;   
+        d->Fx.rightCols(nv) = d->aba_dv + d->aba_dtau * d->lJ.topRows(3).transpose()* d->oRf.transpose().col(this->get_type()) * d->df_dx.rightCols(nv) ;   
     }
     d->Fx += d->aba_dtau * d->multibody.actuation->dtau_dx;
     d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
@@ -246,7 +248,7 @@ void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::calcDiff(
   d->Luu = d->costs->Luu;
   if(active_contact_ && with_force_cost_){
       d->f_residual = d->f - force_des_;
-      d->Lx += force_weight_ * d->f_residual.transpose() * d->df_dx;
+      d->Lx += force_weight_ * d->f_residual * d->df_dx;
       d->Lxx += force_weight_ * d->df_dx.transpose() * d->df_dx;
   }
 }
@@ -312,10 +314,6 @@ void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::set_oPc(const V
 
 template <typename Scalar>
 void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::set_force_des(const Scalar inForceDes) {
-  if (inForceDes.size() != 3) {
-    throw_pretty("Invalid argument: "
-                 << "Desired force should have size 3");
-  }
   force_des_ = inForceDes;
 }
 
@@ -354,7 +352,7 @@ const typename MathBaseTpl<Scalar>::Vector3s& DifferentialActionModelSoftContact
 }
 
 template <typename Scalar>
-const typename MathBaseTpl<Scalar>::Scalar DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::get_force_des() const {
+const Scalar DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::get_force_des() const {
   return force_des_;
 }
 
@@ -374,7 +372,7 @@ const pinocchio::FrameIndex& DifferentialActionModelSoftContact1DFwdDynamicsTpl<
 }
 
 template <typename Scalar>
-void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::set_type(const Vector3MaskType inType) {
+void DifferentialActionModelSoftContact1DFwdDynamicsTpl<Scalar>::set_type(const Vector3MaskType& inType) {
   type_ = inType;
 }
 

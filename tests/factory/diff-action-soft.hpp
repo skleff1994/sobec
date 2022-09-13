@@ -27,6 +27,8 @@ struct DAMSoftContactTypes {
     DAMSoftContact3DAugmentedFwdDynamics_HyQ,
     DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid,
     DAMSoftContact3DAugmentedFwdDynamics_Talos,
+    // DAMSoftContact1DAugmentedFwdDynamics_TalosArm,
+    // DAMSoftContact1DAugmentedFwdDynamics_HyQ,
     NbDAMSoftContactTypes
   };
   static std::vector<Type> init_all() {
@@ -59,6 +61,11 @@ class DAMSoftContactFactory {
   create_augmentedDAMSoft3D(StateModelTypes::Type state_type,
                             ActuationModelTypes::Type actuation_type,
                             PinocchioReferenceTypes::Type ref_type) const;
+  // // Soft contact 1D dynamics
+  // boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics>
+  // create_augmentedDAMSoft1D(StateModelTypes::Type state_type,
+  //                           ActuationModelTypes::Type actuation_type,
+  //                           PinocchioReferenceTypes::Type ref_type) const;
 };
 
 }  // namespace unittest
