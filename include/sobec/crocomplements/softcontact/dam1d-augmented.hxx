@@ -69,15 +69,11 @@ template <typename Scalar>
 void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
             const boost::shared_ptr<DifferentialActionDataAbstract>& data, 
             const Eigen::Ref<const VectorXs>& x,
-            const Eigen::Ref<const VectorXs>& f,
+            const Scalar& f,
             const Eigen::Ref<const VectorXs>& u) {
   if (static_cast<std::size_t>(x.size()) != this->get_state()->get_nx()) {
     throw_pretty("Invalid argument: "
                  << "x has wrong dimension (it should be " + std::to_string(this->get_state()->get_nx()) + ")");
-  }
-  if (static_cast<std::size_t>(f.size()) != 3) {
-    throw_pretty("Invalid argument: "
-                 << "f has wrong dimension (it should be 3)");
   }
   if (static_cast<std::size_t>(u.size()) != this->get_nu()) {
     throw_pretty("Invalid argument: "
@@ -126,13 +122,16 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
     pinocchio::forwardKinematics(this->get_pinocchio(), d->pinocchio, q, v, d->xout);
     d->la = pinocchio::getFrameAcceleration(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();     
     d->lv = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();
-    d->fout = -Kp_ * d->lv - Kv_ * d->la;
+    d->fout3d = -Kp_ * d->lv - Kv_ * d->la;
+    d->fout = d->fout3d(this->get_type());
+    d->fout3d_copy = d->fout3d;
     d->fout_copy = d->fout;
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->oa = pinocchio::getFrameAcceleration(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).linear();
         d->ov = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).linear();
-        d->fout = -Kp_* d->ov - Kv_ * d->oa;
+        d->fout3d = -Kp_* d->ov - Kv_ * d->oa;
+        d->fout = d->fout3d(this->get_type());
     } 
   }
 
@@ -160,7 +159,7 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
   // Add hard-coded cost on contact force
   if(with_force_cost_){
     d->f_residual = f - force_des_;
-    d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
+    d->cost += 0.5* force_weight_ * d->f_residual * d->f_residual;
   }
 }
 
@@ -169,14 +168,10 @@ template <typename Scalar>
 void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
             const boost::shared_ptr<DifferentialActionDataAbstract>& data, 
             const Eigen::Ref<const VectorXs>& x,
-            const Eigen::Ref<const VectorXs>& f) {
+            const Scalar& f) {
   if (static_cast<std::size_t>(x.size()) != this->get_state()->get_nx()) {
     throw_pretty("Invalid argument: "
                  << "x has wrong dimension (it should be " + std::to_string(this->get_state()->get_nx()) + ")");
-  }
-  if (static_cast<std::size_t>(f.size()) != 3) {
-    throw_pretty("Invalid argument: "
-                 << "f has wrong dimension (it should be 3)");
   }
   Data* d = static_cast<Data*>(data.get());
   const Eigen::VectorBlock<const Eigen::Ref<const VectorXs>, Eigen::Dynamic> q = x.head(this->get_state()->get_nq());
@@ -193,15 +188,11 @@ template <typename Scalar>
 void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     const boost::shared_ptr<DifferentialActionDataAbstract>& data, 
     const Eigen::Ref<const VectorXs>& x,
-    const Eigen::Ref<const VectorXs>& f,
+    const Scalar& f,
     const Eigen::Ref<const VectorXs>& u) {
   if (static_cast<std::size_t>(x.size()) != this->get_state()->get_nx()) {
     throw_pretty("Invalid argument: "
                  << "x has wrong dimension (it should be " + std::to_string(this->get_state()->get_nx()) + ")");
-  }
-  if (static_cast<std::size_t>(f.size()) != 3) {
-    throw_pretty("Invalid argument: "
-                 << "f has wrong dimension (it should be 3)");
   }
   if (static_cast<std::size_t>(u.size()) != this->get_nu()) {
     throw_pretty("Invalid argument: "
@@ -232,12 +223,15 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Fx += d->aba_dtau * d->multibody.actuation->dtau_dx;
       d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
       // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
-      d->aba_df = d->aba_dtau * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
+      d->aba_df3d = d->aba_dtau * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
+      d->aba_df3d_copy = d->aba_df3d;
+      d->aba_df = d->aba_df3d.col(this->get_type());
       // Skew term added to RNEA derivatives when force is expressed in LWA
       if(ref_ != pinocchio::LOCAL){
-          d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+          d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d_copy) * d->lJ.bottomRows(3);
           // Rotate dABA/df
-          d->aba_df = d->aba_df * d->oRf.transpose();
+          d->aba_df3d = d->aba_df3d_copy * d->oRf.transpose();
+          d->aba_df = d->aba_df3d.col(this->get_type());
       }
     // With armature
     } else {
@@ -247,12 +241,15 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
         d->Fx.noalias() = d->Minv * d->dtau_dx;
         d->Fu.noalias() = d->Minv * d->multibody.actuation->dtau_du;
         // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
-        d->aba_df = d->Minv * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
+        d->aba_df3d = d->Minv * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
+        d->aba_df3d_copy = d->aba_df3d;
+        d->aba_df = d->aba_df3d.col(this->get_type());
         // Skew term added to RNEA derivatives when force is expressed in LWA
         if(ref_ != pinocchio::LOCAL){
-            d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+            d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d_copy) * d->lJ.bottomRows(3);
             // Rotate dABA/df
-            d->aba_df = d->aba_df * d->oRf.transpose();
+          d->aba_df3d = d->aba_df3d_copy * d->oRf.transpose();
+          d->aba_df = d->aba_df3d.col(this->get_type());
         }
       }
 
@@ -267,21 +264,28 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     d->da_dx.topRows(3).leftCols(nv) = d->a_dq.topRows(3) + d->a_da.topRows(3) * d->Fx.leftCols(nv); 
     d->da_dx.topRows(3).rightCols(nv) = d->a_dv.topRows(3) + d->a_da.topRows(3) * d->Fx.rightCols(nv); 
     d->da_du.topRows(3) = d->a_da.topRows(3) * d->Fu;
-    d->da_df.topRows(3) = d->a_da.topRows(3) * d->aba_df;
+    d->da_df3d.topRows(3) = d->a_da.topRows(3) * d->aba_df3d;
+    d->da_df.topRows(3) = d->da_df3d.topRows(3).col(this->get_type());
     // Derivatives of fdot w.r.t. (x,f,u)
-    d->dfdt_dx = -Kp_*d->lv_dx.topRows(3) - Kv_*d->da_dx.topRows(3);
-    d->dfdt_du = -Kv_*d->da_du.topRows(3);
-    d->dfdt_df = -Kv_*d->da_df.topRows(3);
-    d->dfdt_dx_copy = d->dfdt_dx;
-    d->dfdt_du_copy = d->dfdt_du;
-    d->dfdt_df_copy = d->dfdt_df;
+    d->dfdt3d_dx = -Kp_*d->lv_dx.topRows(3) - Kv_*d->da_dx.topRows(3);
+    d->dfdt3d_du = -Kv_*d->da_du.topRows(3);
+    d->dfdt3d_df = -Kv_*d->aba_df3d.topRows(3);
+    d->dfdt_dx = d->dfdt3d_dx.row(this->get_type());
+    d->dfdt_du = d->dfdt3d_du.row(this->get_type());
+    d->dfdt_df = d->dfdt3d_df.row(this->get_type());
+    d->dfdt3d_dx_copy = d->dfdt3d_dx;
+    d->dfdt3d_du_copy = d->dfdt3d_du;
+    d->dfdt3d_df_copy = d->dfdt3d_df;
     //Rotate dfout_dx if not LOCAL 
     if(ref_ != pinocchio::LOCAL){
         pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, d->oJ);
-        d->dfdt_dx.leftCols(nv) = d->oRf * d->dfdt_dx_copy.leftCols(nv)- pinocchio::skew(d->oRf * d->fout_copy) * d->oJ.bottomRows(3);
-        d->dfdt_dx.rightCols(nv) = d->oRf * d->dfdt_dx_copy.rightCols(nv);
-        d->dfdt_du = d->oRf * d->dfdt_du_copy;
-        d->dfdt_df = d->oRf * d->dfdt_df_copy;
+        d->dfdt3d_dx.leftCols(nv) = d->oRf * d->dfdt3d_dx_copy.leftCols(nv)- pinocchio::skew(d->oRf * d->fout3d_copy) * d->oJ.bottomRows(3);
+        d->dfdt3d_dx.rightCols(nv) = d->oRf * d->dfdt3d_dx_copy.rightCols(nv);
+        d->dfdt3d_du = d->oRf * d->dfdt3d_du_copy;
+        d->dfdt3d_df = d->oRf * d->dfdt3d_df_copy;
+        d->dfdt_dx = d->dfdt3d_dx.row(this->get_type());
+        d->dfdt_du = d->dfdt3d_du.row(this->get_type());
+        d->dfdt_df = d->dfdt3d_df.row(this->get_type());
     }
   }
   else {
@@ -312,8 +316,8 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   // add hard-coded cost
   if(active_contact_ && with_force_cost_){
       d->f_residual = f - force_des_;
-      d->Lf = force_weight_ * d->f_residual.transpose();
-      d->Lff = force_weight_ * Matrix3s::Identity();
+      d->Lf = force_weight_ * d->f_residual;
+      d->Lff = force_weight_;
   }
 }
 
@@ -322,14 +326,10 @@ template <typename Scalar>
 void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     const boost::shared_ptr<DifferentialActionDataAbstract>& data, 
     const Eigen::Ref<const VectorXs>& x,
-    const Eigen::Ref<const VectorXs>& f) {
+    const Scalar& f) {
   if (static_cast<std::size_t>(x.size()) != this->get_state()->get_nx()) {
     throw_pretty("Invalid argument: "
                  << "x has wrong dimension (it should be " + std::to_string(this->get_state()->get_nx()) + ")");
-  }
-  if (static_cast<std::size_t>(f.size()) != 3) {
-    throw_pretty("Invalid argument: "
-                 << "f has wrong dimension (it should be 3)");
   }
   Data* d = static_cast<Data*>(data.get());
   this->get_costs()->calcDiff(d->costs, x);
@@ -344,7 +344,7 @@ DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::createData() {
 }
 
 template <typename Scalar>
-void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_force_cost(const Vector3s& force_des, 
+void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_force_cost(const Scalar force_des, 
                                                                      const Scalar force_weight) {
   if (force_weight < 0.) {
     throw_pretty("Invalid argument: "
@@ -383,11 +383,7 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_oPc(const Vector3s& in
 }
 
 template <typename Scalar>
-void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_force_des(const Vector3s& inForceDes) {
-  if (inForceDes.size() != 3) {
-    throw_pretty("Invalid argument: "
-                 << "Desired force should have size 3");
-  }
+void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_force_des(const Scalar inForceDes) {
   force_des_ = inForceDes;
 }
 
@@ -426,7 +422,7 @@ const typename MathBaseTpl<Scalar>::Vector3s& DAMSoftContact1DAugmentedFwdDynami
 }
 
 template <typename Scalar>
-const typename MathBaseTpl<Scalar>::Vector3s& DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_force_des() const {
+const Scalar DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_force_des() const {
   return force_des_;
 }
 

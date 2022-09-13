@@ -41,7 +41,7 @@ void exposeDAMSoftContact1DAugmentedFwdDyn() {
       .def<void (DAMSoftContact1DAugmentedFwdDynamics::*)(
           const boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract>&,
           const Eigen::Ref<const Eigen::VectorXd>&,
-          const Eigen::Ref<const Eigen::VectorXd>&,
+          const double&,
           const Eigen::Ref<const Eigen::VectorXd>&)>(
           "calc", &DAMSoftContact1DAugmentedFwdDynamics::calc,
           bp::args("self", "data", "x", "f", "u"),
@@ -55,13 +55,13 @@ void exposeDAMSoftContact1DAugmentedFwdDyn() {
       .def<void (DAMSoftContact1DAugmentedFwdDynamics::*)(
           const boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract>&,
           const Eigen::Ref<const Eigen::VectorXd>&, 
-          const Eigen::Ref<const Eigen::VectorXd>&)>(
+          const double&)>(
           "calc", &DAMSoftContact1DAugmentedFwdDynamics::calc, bp::args("self", "data", "x", "f"))
       
       .def<void (DAMSoftContact1DAugmentedFwdDynamics::*)(
           const boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract>&,
           const Eigen::Ref<const Eigen::VectorXd>&,
-          const Eigen::Ref<const Eigen::VectorXd>&,
+          const double&,
           const Eigen::Ref<const Eigen::VectorXd>&)>(
           "calcDiff", &DAMSoftContact1DAugmentedFwdDynamics::calcDiff,
           bp::args("self", "data", "x", "f", "u"),
@@ -78,7 +78,7 @@ void exposeDAMSoftContact1DAugmentedFwdDyn() {
       .def<void (DAMSoftContact1DAugmentedFwdDynamics::*)(
           const boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract>&, 
           const Eigen::Ref<const Eigen::VectorXd>&, 
-          const Eigen::Ref<const Eigen::VectorXd>&)>(
+          const double&)>(
           "calcDiff", &DAMSoftContact1DAugmentedFwdDynamics::calcDiff, bp::args("self", "data", "x", "f"))
       .def("createData", &DAMSoftContact1DAugmentedFwdDynamics::createData,
            bp::args("self"), "Create the Euler integrator data.")

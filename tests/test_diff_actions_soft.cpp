@@ -23,7 +23,7 @@ void test_check_data(DAMSoftContactTypes::Type action_type,
   // create the model
   DAMSoftContactFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model =
-      factory.create(action_type, ref_type);
+      factory.create3D(action_type, ref_type);
   // Run the print function
   std::ostringstream tmp;
   tmp << *model;
@@ -37,7 +37,7 @@ void test_calc_returns_state(DAMSoftContactTypes::Type action_type,
                              PinocchioReferenceTypes::Type ref_type) {
   // create the model
   DAMSoftContactFactory factory;
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create(action_type, ref_type);
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create3D(action_type, ref_type);
   // create the corresponding data object
   boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data = model->createData();
   // Generating random state and control vectors
@@ -54,7 +54,7 @@ void test_calc_returns_a_cost(DAMSoftContactTypes::Type action_type,
   // create the model
   DAMSoftContactFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model =
-      factory.create(action_type, ref_type);
+      factory.create3D(action_type, ref_type);
   // create the corresponding data object and set the cost to nan
   boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data =
       model->createData();
@@ -177,7 +177,7 @@ void test_partial_derivatives_against_numdiff(
     PinocchioReferenceTypes::Type ref_type) {
   // create the model
   DAMSoftContactFactory factory;
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create(action_type, ref_type);
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create3D(action_type, ref_type);
   test_partials_numdiff(model);
 }
 
@@ -186,7 +186,7 @@ void test_partial_derivatives_against_numdiff_armature(
     PinocchioReferenceTypes::Type ref_type) {
   // create the model
   DAMSoftContactFactory factory;
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create(action_type, ref_type);
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create3D(action_type, ref_type);
   Eigen::VectorXd armature = Eigen::VectorXd::Random(model->get_state()->get_nv());
   model->set_armature(armature);
   test_partials_numdiff(model);
@@ -228,7 +228,7 @@ void test_calc_equivalent_free(DAMSoftContactTypes::Type action_type,
   // create the model
   DAMSoftContactFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create(action_type, ref_type);
+      factory.create3D(action_type, ref_type);
   test_calc_free(modelsoft, Eigen::VectorXd::Zero(modelsoft->get_state()->get_nv()));
 }
 
@@ -237,7 +237,7 @@ void test_calc_equivalent_free_armature(DAMSoftContactTypes::Type action_type,
   // create the model
   DAMSoftContactFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create(action_type, ref_type);
+      factory.create3D(action_type, ref_type);
   Eigen::VectorXd armature = Eigen::VectorXd::Random(modelsoft->get_state()->get_nv());
   test_calc_free(modelsoft, armature);
 }
@@ -287,7 +287,7 @@ void test_calcDiff_equivalent_free(DAMSoftContactTypes::Type action_type,
   // create the model
   DAMSoftContactFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create(action_type, ref_type);
+      factory.create3D(action_type, ref_type);
   test_calcDiff_free(modelsoft, Eigen::VectorXd::Zero(modelsoft->get_state()->get_nv()));
 }
 
@@ -296,7 +296,7 @@ void test_calcDiff_equivalent_free_armature(DAMSoftContactTypes::Type action_typ
   // create the model
   DAMSoftContactFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create(action_type, ref_type);
+      factory.create3D(action_type, ref_type);
   Eigen::VectorXd armature = Eigen::VectorXd::Random(modelsoft->get_state()->get_nv());
   test_calcDiff_free(modelsoft, armature);
 }

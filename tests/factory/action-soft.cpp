@@ -36,7 +36,7 @@ IAMSoftContactFactory::create(IAMSoftContactTypes::Type iam_type,
                               PinocchioReferenceTypes::Type ref_type) const {
   boost::shared_ptr<sobec::IAMSoftContact3DAugmented> iam;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> dam =
-      DAMSoftContactFactory().create(dam_type, ref_type);
+      DAMSoftContactFactory().create3D(dam_type, ref_type);
   switch (iam_type) {
     case IAMSoftContactTypes::IAMSoftContact3DAugmented: {
       double time_step = 1e-3;
