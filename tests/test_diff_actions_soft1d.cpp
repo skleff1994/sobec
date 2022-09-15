@@ -167,6 +167,12 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwd
   BOOST_CHECK((datacast->aba_df - data_num_diff_cast->aba_df).isZero(NUMDIFF_MODIFIER * tol));
 // //   BOOST_CHECK((datacast->aba_dtau - data_num_diff_cast->aba_dtau).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->dfdt_dx - data_num_diff_cast->dfdt_dx).isZero(NUMDIFF_MODIFIER * tol));
+  if(!(datacast->dfdt_df - data_num_diff_cast->dfdt_df).isZero(NUMDIFF_MODIFIER * tol)){
+    std::cout << "dfdt_df : " << std::endl;
+    std::cout << datacast->dfdt_df << std::endl;
+    std::cout << "dfdt_df (ND) : " << std::endl;
+    std::cout << data_num_diff_cast->dfdt_df << std::endl;
+  }
   BOOST_CHECK((datacast->dfdt_df - data_num_diff_cast->dfdt_df).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->dfdt_du - data_num_diff_cast->dfdt_du).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER * tol));
