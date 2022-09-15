@@ -272,7 +272,7 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     // Derivatives of fdot w.r.t. (x,f,u)
     d->dfdt3d_dx = -Kp_*d->lv_dx.topRows(3) - Kv_*d->da_dx.topRows(3);
     d->dfdt3d_du = -Kv_*d->da_du.topRows(3);
-    d->dfdt3d_df = -Kv_*d->da_df3d.topRows(3);
+    d->dfdt3d_df = -Kv_*d->da_df3d.topRows(3).col(this->get_type());
     d->dfdt_dx = d->dfdt3d_dx.row(this->get_type());
     d->dfdt_du = d->dfdt3d_du.row(this->get_type());
     d->dfdt_df = d->dfdt3d_df.row(this->get_type());
