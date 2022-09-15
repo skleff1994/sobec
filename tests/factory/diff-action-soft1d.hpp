@@ -15,27 +15,24 @@
 
 #include "actuation.hpp"
 #include "contact1d.hpp"
-#include "sobec/crocomplements/softcontact/dam3d-augmented.hpp"
 #include "sobec/crocomplements/softcontact/dam1d-augmented.hpp"
 #include "state.hpp"
 
 namespace sobec {
 namespace unittest {
 
-struct DAMSoftContactTypes {
+struct DAMSoftContact1DTypes {
   enum Type {
-    DAMSoftContact3DAugmentedFwdDynamics_TalosArm,
-    DAMSoftContact3DAugmentedFwdDynamics_HyQ,
-    DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid,
-    DAMSoftContact3DAugmentedFwdDynamics_Talos,
     DAMSoftContact1DAugmentedFwdDynamics_TalosArm,
-    // DAMSoftContact1DAugmentedFwdDynamics_HyQ,
-    NbDAMSoftContactTypes
+    DAMSoftContact1DAugmentedFwdDynamics_HyQ,
+    DAMSoftContact1DAugmentedFwdDynamics_RandomHumanoid,
+    DAMSoftContact1DAugmentedFwdDynamics_Talos,
+    NbDAMSoftContact1DTypes
   };
   static std::vector<Type> init_all() {
     std::vector<Type> v;
     v.clear();
-    for (int i = 0; i < NbDAMSoftContactTypes; ++i) {
+    for (int i = 0; i < NbDAMSoftContact1DTypes; ++i) {
       v.push_back((Type)i);
     }
     return v;
@@ -44,56 +41,20 @@ struct DAMSoftContactTypes {
 };
 
 std::ostream& operator<<(std::ostream& os,
-                         DAMSoftContactTypes::Type type);
+                         DAMSoftContact1DTypes::Type type);
 
-
-// // Map DAMSoftContactTypes to sobec types
-// template <DAMSoftContactTypes::Type> struct MapToDataType_t;
-// template <> struct MapToDataType_t<DAMSoftContactTypes::Type::DAMSoftContact3DAugmentedFwdDynamics_TalosArm> 
-//   { using type = boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics>; };
-// template <> struct MapToDataType_t<DAMSoftContactTypes::Type::DAMSoftContact3DAugmentedFwdDynamics_HyQ> 
-//   { using type = boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics>; };
-// template <> struct MapToDataType_t<DAMSoftContactTypes::Type::DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid> 
-//   { using type = boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics>; };
-// template <> struct MapToDataType_t<DAMSoftContactTypes::Type::DAMSoftContact3DAugmentedFwdDynamics_Talos> 
-//   { using type = boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics>; };
-// template <> struct MapToDataType_t<DAMSoftContactTypes::Type::DAMSoftContact1DAugmentedFwdDynamics_TalosArm> 
-//   { using type = boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics>; };
-// template <DAMSoftContactTypes::Type T>
-// using MapToDataType = typename MapToDataType_t<T>::type;
-
-class DAMSoftContactFactory {
+class DAMSoftContact1DFactory {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  explicit DAMSoftContactFactory();
-  ~DAMSoftContactFactory();
+  explicit DAMSoftContact1DFactory();
+  ~DAMSoftContact1DFactory();
 
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> create3D(
-      DAMSoftContactTypes::Type type,
-      PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) const;
-
-  boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> create1D(
-      DAMSoftContactTypes::Type type,
+  boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> create(
+      DAMSoftContact1DTypes::Type type,
       PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
-      ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Z) const;
-  
-  template <typename T> 
-  T create(DAMSoftContactTypes::Type type,
-          PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
-          ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Z) const;
+      ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) const;
 
-  // template <typename T>
-  // T create_augmentedDAMSoft(StateModelTypes::Type state_type,
-  //                           ActuationModelTypes::Type actuation_type,
-  //                           PinocchioReferenceTypes::Type ref_type,
-  //                           ContactModelMaskTypes::Type mask_type) const;
-
-  // Soft contact 3D dynamics
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics>
-  create_augmentedDAMSoft3D(StateModelTypes::Type state_type,
-                            ActuationModelTypes::Type actuation_type,
-                            PinocchioReferenceTypes::Type ref_type) const;
   // Soft contact 1D dynamics
   boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics>
   create_augmentedDAMSoft1D(StateModelTypes::Type state_type,

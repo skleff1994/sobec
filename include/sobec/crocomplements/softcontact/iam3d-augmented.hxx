@@ -30,7 +30,7 @@ IAMSoftContact3DAugmentedTpl<Scalar>::IAMSoftContact3DAugmentedTpl(
       boost::static_pointer_cast<StateMultibody>(model->get_state());
   pin_model_ = state->get_pinocchio();
   // Instantiate stateLPF using pinocchio model of DAM state
-  nc_ = 3;
+  nc_ = model->get_nc();
   state_ = boost::make_shared<StateSoftContact>(pin_model_, nc_);
   ny_ = boost::static_pointer_cast<StateSoftContact>(state_)->get_ny();
   // Check stuff

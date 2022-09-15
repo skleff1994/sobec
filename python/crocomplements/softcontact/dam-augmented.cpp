@@ -6,8 +6,8 @@
 // individual files. All rights reserved.
 ///////////////////////////////////////////////////////////////////////////////
 
-// #include "sobec/crocomplements/softcontact/dam-augmented.hpp"
-#include "dam-augmented.hpp"
+#include "sobec/crocomplements/softcontact/dam-augmented.hpp"
+// #include "dam-augmented.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/enum.hpp>
@@ -161,19 +161,19 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
     // //       "Force cost weight")
       .add_property(
           "ref",
-          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics_wrap::get_ref,
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_ref,
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_ref,
           "Pinocchio reference frame")
       .add_property(
           "id",
-          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics_wrap::get_id,
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_id,
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_id,
           "Contact frame id")
       .add_property(
           "armature",
-          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics_wrap::get_armature,
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_armature,
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_armature,
           "Armature");

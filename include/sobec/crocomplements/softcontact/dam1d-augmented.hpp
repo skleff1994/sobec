@@ -47,7 +47,6 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
   typedef crocoddyl::StateMultibodyTpl<Scalar> StateMultibody;
   typedef crocoddyl::ActuationModelAbstractTpl<Scalar> ActuationModelAbstract;
   typedef crocoddyl::DifferentialActionDataAbstractTpl<Scalar> DifferentialActionDataAbstract;
-  // typedef crocoddyl::DifferentialActionDataFreeFwdDynamicsTpl<Scalar> DifferentialActionDataFreeFwdDynamics;
   typedef typename MathBase::VectorXs VectorXs;
   typedef typename MathBase::Vector3s Vector3s;
   typedef typename MathBase::MatrixXs MatrixXs;
@@ -148,39 +147,13 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
 
   void set_force_weight(const Scalar inForceWeight);
 
-  // void set_Kp(const Scalar inKp);
-
-  // void set_Kv(const Scalar inKv);
-
-  // void set_oPc(const Vector3s& oPc);
-
-  // void set_ref(const pinocchio::ReferenceFrame inRef);
-  
-  // void set_id(const pinocchio::FrameIndex inId);
-
-  // const Scalar get_Kp() const;
-
-  // const Scalar get_Kv() const;
-
-  // const Vector3s& get_oPc() const;
-
   const VectorXs& get_force_des() const;
 
   const Scalar get_force_weight() const;
 
-  // const pinocchio::ReferenceFrame& get_ref() const;
-  
-  // const pinocchio::FrameIndex& get_id() const;
-
-  // std::size_t get_nc() {return nc_;};
-
   const Vector3MaskType& get_type() const;
 
   void set_type(const Vector3MaskType& inType);
-
-  // // armature 
-  // const VectorXs& get_armature() const;
-  // void set_armature(const VectorXs& armature);
 
   protected:
     using Base::Kp_;
@@ -195,20 +168,8 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
     using Base::jMf_;
     using Base::with_armature_;
     using Base::armature_;
-    // Scalar Kp_;                             //!< Contact model stiffness
-    // Scalar Kv_;                             //!< Contact model damping
-    // Vector3s oPc_;                          //!< Contact model anchor point
-    // pinocchio::FrameIndex frameId_;         //!< Frame id of the contact
-    // pinocchio::FrameIndex parentId_;        //!< Parent id of the contact
-    // pinocchio::ReferenceFrame ref_;         //!< Pinocchio reference frame
-    // bool with_force_cost_;                  //!< Force cost ?
-    // bool active_contact_;                   //!< Active contact ?
-    // std::size_t nc_;                        //!< Contact model dimension = 3
     VectorXs force_des_;                    //!< Desired force 3D
     Scalar force_weight_;                   //!< Force cost weight
-    // pinocchio::SE3Tpl<Scalar> jMf_;         //!< Placement of contact frame w.r.t. parent frame
-    // bool with_armature_;                    //!< Indicate if we have defined an armature
-    // VectorXs armature_;                     //!< Armature vector
     sobec::Vector3MaskType type_;           //!< 1D contact mask type 
 };
 
@@ -226,96 +187,29 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   template <template <typename Scalar> class Model>
   explicit DADSoftContact1DAugmentedFwdDynamicsTpl(Model<Scalar>* const model)
       : Base(model),
-        // dtau_dx(model->get_state()->get_nv(), model->get_state()->get_ndx()),
-        // lJ(6, model->get_state()->get_nv()),
-        // oJ(6, model->get_state()->get_nv()),
-        // aba_dq(model->get_state()->get_nv(), model->get_state()->get_nv()),
-        // aba_dv(model->get_state()->get_nv(), model->get_state()->get_nv()),
-        // aba_dx(model->get_state()->get_nv(), model->get_state()->get_ndx()),
-        // aba_dtau(model->get_state()->get_nv(), model->get_state()->get_nv()),
-        // aba_df(model->get_state()->get_nv(), 1),
         aba_df3d(model->get_state()->get_nv(), 3),
         aba_df3d_copy(model->get_state()->get_nv(), 3),
-        // lv_dq(6, model->get_state()->get_nv()),
-        // lv_dv(6, model->get_state()->get_nv()),
-        // lv_dx(6, model->get_state()->get_ndx()),
-        // v_dv(6, model->get_state()->get_nv()),
-        // a_dq(6, model->get_state()->get_nv()),
-        // a_dv(6, model->get_state()->get_nv()),
-        // a_da(6, model->get_state()->get_nv()),
-        // da_dx(6,model->get_state()->get_ndx()),
-        // da_du(6,model->get_nu()),
-        // da_df(6,1),
         da_df3d(6,3),
-        // pinForce(pinocchio::ForceTpl<Scalar>::Zero()),
-        // fext(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()),
-        // fext_copy(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()),
-        // dfdt_dx(1, model->get_state()->get_ndx()),
-        // dfdt_du(1, model->get_nu()),
-        // dfdt_df(1, 1),
-        // dfdt_dx_copy(1, model->get_state()->get_ndx()),
-        // dfdt_du_copy(1, model->get_nu()),
-        // dfdt_df_copy(1, 1),
         dfdt3d_dx(3, model->get_state()->get_ndx()),
         dfdt3d_du(3, model->get_nu()),
         dfdt3d_df(3, 1),
         dfdt3d_dx_copy(3, model->get_state()->get_ndx()),
         dfdt3d_du_copy(3, model->get_nu()),
         dfdt3d_df_copy(3, 1)
-        // dfdt_dx(1, model->get_state()->get_ndx()),
-        // dfdt_du(1, model->get_nu()),
-        // dfdt_df(3, 1) 
         {
-    // costs->shareMemory(this);
-    // Minv.setZero();
-    // u_drift.setZero();
-    // dtau_dx.setZero();
-    // tmp_xstatic.setZero();
-    // oRf.setZero();
-    // lJ.setZero();
-    // oJ.setZero();
-    // aba_dq.setZero();
-    // aba_dv.setZero();
-    // aba_dx.setZero();
-    // aba_dtau.setZero();
-    // aba_df.setZero();
     aba_df3d.setZero();
     aba_df3d_copy.setZero();
-    // lv.setZero();
-    // la.setZero();
-    // ov.setZero();
-    // oa.setZero();
-    // lv_dq.setZero();
-    // lv_dv.setZero();
-    // lv_dx.setZero();
-    // v_dv.setZero();
-    // a_dq.setZero();
-    // a_dv.setZero();
-    // a_da.setZero();
-    // da_dx.setZero();
-    // da_du.setZero();
-    // da_df.setZero();
     da_df3d.setZero();
     f3d.setZero();
     f3d_copy.setZero();
     fout3d.setZero();
     fout3d_copy.setZero();
-    dfdt_dx.setZero();
-    dfdt_du.setZero();
-    dfdt_df.setZero();
-    dfdt_dx_copy.setZero();
-    dfdt_du_copy.setZero();
-    dfdt_df_copy.setZero();
     dfdt3d_dx.setZero();
     dfdt3d_du.setZero();
     dfdt3d_df.setZero();
     dfdt3d_dx_copy.setZero();
     dfdt3d_du_copy.setZero();
     dfdt3d_df_copy.setZero();
-    // Lf.setZero();
-    // Lff.setZero();
-    // f_residual.setZero();
-    // JtF.setZero();
   }
 
   using Base::pinocchio;

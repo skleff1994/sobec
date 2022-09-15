@@ -139,12 +139,6 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
    * @return soft contact forward-dynamics data
    */
   virtual boost::shared_ptr<DifferentialActionDataAbstract> createData();
-  
-  // virtual void set_force_cost(const Vector3s& force_des, const Scalar force_weight);
-
-  // virtual void set_force_des(const Vector3s& inForceDes);
-
-  // void set_force_weight(const Scalar inForceWeight);
 
   void set_Kp(const Scalar inKp);
 
@@ -161,10 +155,6 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   const Scalar get_Kv() const;
 
   const Vector3s& get_oPc() const;
-
-  // const Vector3s& get_force_des() const;
-
-  // const Scalar get_force_weight() const;
 
   const pinocchio::ReferenceFrame& get_ref() const;
   
@@ -186,8 +176,6 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
     bool with_force_cost_;                  //!< Force cost ?
     bool active_contact_;                   //!< Active contact ?
     std::size_t nc_;                        //!< Contact model dimension
-    // Vector3s force_des_;                    //!< Desired force 
-    // Scalar force_weight_;                   //!< Force cost weight
     pinocchio::SE3Tpl<Scalar> jMf_;         //!< Placement of contact frame w.r.t. parent frame
     bool with_armature_;                    //!< Indicate if we have defined an armature
     VectorXs armature_;                     //!< Armature vector
@@ -288,7 +276,6 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   using Base::costs;
   using Base::Minv;
   using Base::u_drift;
-  // using Base::dtau_dx;
   using Base::tmp_xstatic;
 
   MatrixXs dtau_dx;

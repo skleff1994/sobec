@@ -227,13 +227,13 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
       // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
       d->aba_df3d = d->aba_dtau * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
-      d->aba_df3d_copy = d->aba_df3d;
+      // d->aba_df3d_copy = d->aba_df3d;
       d->aba_df = d->aba_df3d.col(this->get_type());
       // Skew term added to RNEA derivatives when force is expressed in LWA
       if(ref_ != pinocchio::LOCAL){
           d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d_copy) * d->lJ.bottomRows(3);
           // Rotate dABA/df
-          d->aba_df3d = d->aba_df3d_copy * d->oRf.transpose();
+          d->aba_df3d = d->aba_df3d * d->oRf.transpose();
           d->aba_df = d->aba_df3d.col(this->get_type());
       }
     // With armature
@@ -245,13 +245,13 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
         d->Fu.noalias() = d->Minv * d->multibody.actuation->dtau_du;
         // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
         d->aba_df3d = d->Minv * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
-        d->aba_df3d_copy = d->aba_df3d;
+        // d->aba_df3d_copy = d->aba_df3d;
         d->aba_df = d->aba_df3d.col(this->get_type());
         // Skew term added to RNEA derivatives when force is expressed in LWA
         if(ref_ != pinocchio::LOCAL){
             d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d_copy) * d->lJ.bottomRows(3);
             // Rotate dABA/df
-          d->aba_df3d = d->aba_df3d_copy * d->oRf.transpose();
+          d->aba_df3d = d->aba_df3d * d->oRf.transpose();
           d->aba_df = d->aba_df3d.col(this->get_type());
         }
       }
@@ -272,7 +272,7 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     // Derivatives of fdot w.r.t. (x,f,u)
     d->dfdt3d_dx = -Kp_*d->lv_dx.topRows(3) - Kv_*d->da_dx.topRows(3);
     d->dfdt3d_du = -Kv_*d->da_du.topRows(3);
-    d->dfdt3d_df = -Kv_*d->aba_df3d.topRows(3);
+    d->dfdt3d_df = -Kv_*d->da_df3d.topRows(3);
     d->dfdt_dx = d->dfdt3d_dx.row(this->get_type());
     d->dfdt_du = d->dfdt3d_du.row(this->get_type());
     d->dfdt_df = d->dfdt3d_df.row(this->get_type());
@@ -319,7 +319,7 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   // add hard-coded cost
   if(active_contact_ && with_force_cost_){
       d->f_residual = f - force_des_;
-      d->Lf = force_weight_ * d->f_residual;
+      d->Lf = force_weight_ * d->f_residual.transpose();
       d->Lff(0,0) = force_weight_;
   }
 }
@@ -366,33 +366,6 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_force_cost(const Vecto
   with_force_cost_ = true;
 }
 
-// template <typename Scalar>
-// void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_Kp(const Scalar inKp) {
-//   if (inKp < 0.) {
-//     throw_pretty("Invalid argument: "
-//                  << "Stiffness should be positive");
-//   }
-//   Kp_ = inKp;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_Kv(const Scalar inKv) {
-//   if (inKv < 0.) {
-//     throw_pretty("Invalid argument: "
-//                  << "Damping should be positive");
-//   }
-//   Kv_ = inKv;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_oPc(const Vector3s& inoPc) {
-//   if (inoPc.size() != 3) {
-//     throw_pretty("Invalid argument: "
-//                  << "Anchor point position should have size 3");
-//   }
-//   oPc_ = inoPc;
-// }
-
 template <typename Scalar>
 void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_force_des(const VectorXs& inForceDes) {
   if (static_cast<std::size_t>(inForceDes.size()) != this->get_nc()) {
@@ -410,31 +383,6 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_force_weight(const Sca
   }
   force_weight_ = inForceWeight;
 }
-
-// template <typename Scalar>
-// void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_ref(const pinocchio::ReferenceFrame inRef) {
-//   ref_ = inRef;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_id(const pinocchio::FrameIndex inId) {
-//   frameId_ = inId;
-// }
-
-// template <typename Scalar>
-// const Scalar DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_Kp() const {
-//   return Kp_;
-// }
-
-// template <typename Scalar>
-// const Scalar DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_Kv() const {
-//   return Kv_;
-// }
-
-// template <typename Scalar>
-// const typename MathBaseTpl<Scalar>::Vector3s& DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_oPc() const {
-//   return oPc_;
-// }
 
 template <typename Scalar>
 const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_force_des() const {
@@ -455,33 +403,5 @@ template <typename Scalar>
 void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_type(const Vector3MaskType& inType) {
   type_ = inType;
 }
-
-// template <typename Scalar>
-// const pinocchio::ReferenceFrame& DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_ref() const {
-//   return ref_;
-// }
-
-// template <typename Scalar>
-// const pinocchio::FrameIndex& DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_id() const {
-//   return frameId_;
-// }
-
-
-// // armature
-// template <typename Scalar>
-// const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::get_armature() const {
-//   return armature_;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::set_armature(const VectorXs& armature) {
-//   if (static_cast<std::size_t>(armature.size()) != this->get_state()->get_nv()) {
-//     throw_pretty("Invalid argument: "
-//                  << "The armature dimension is wrong (it should be " + std::to_string(this->get_state()->get_nv()) + ")");
-//   }
-//   armature_ = armature;
-//   with_armature_ = true;
-// }
-
 
 }  // namespace sobec

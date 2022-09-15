@@ -15,8 +15,9 @@
 #include <crocoddyl/multibody/actuations/full.hpp>
 #include <crocoddyl/multibody/states/multibody.hpp>
 
-#include "contact3d.hpp"
+#include "contact1d.hpp"
 #include "cost.hpp"
+// #include "sobec/crocomplements/softcontact/dam1d.hpp"
 
 namespace sobec {
 namespace unittest {
@@ -27,24 +28,16 @@ const std::vector<DAMSoftContact1DTypes::Type>
 std::ostream& operator<<(std::ostream& os,
                          DAMSoftContact1DTypes::Type dam_type) {
   switch (dam_type) {
-    case DAMSoftContact1DTypes::
-        DAMSoftContact3DAugmentedFwdDynamics_TalosArm:
-      os << "DAMSoftContact3DAugmentedFwdDynamics_TalosArm";
+    case DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_TalosArm:
+      os << "DAMSoftContact1DAugmentedFwdDynamics_TalosArm";
       break;
-    case DAMSoftContact1DTypes::
-        DAMSoftContact3DAugmentedFwdDynamics_HyQ:
-      os << "DAMSoftContact3DAugmentedFwdDynamics_HyQ";
+    case DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_HyQ:
+      os << "DAMSoftContact1DAugmentedFwdDynamics_HyQ";
       break;
-    case DAMSoftContact1DTypes::
-        DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid:
-      os << "DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid";
+    case DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_RandomHumanoid:
+      os << "DAMSoftContact1DAugmentedFwdDynamics_RandomHumanoid";
       break;
-    case DAMSoftContact1DTypes::
-        DAMSoftContact3DAugmentedFwdDynamics_Talos:
-      os << "DAMSoftContact3DAugmentedFwdDynamics_Talos";
-      break;
-    case DAMSoftContact1DTypes::
-        DAMSoftContact1DAugmentedFwdDynamics_TalosArm:
+    case DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_Talos:
       os << "DAMSoftContact1DAugmentedFwdDynamics_Talos";
       break;
     default:
@@ -53,12 +46,12 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 
-DAMSoftContactFactory::DAMSoftContactFactory() {}
-DAMSoftContactFactory::~DAMSoftContactFactory() {}
+DAMSoftContact1DFactory::DAMSoftContact1DFactory() {}
+DAMSoftContact1DFactory::~DAMSoftContact1DFactory() {}
 
 
 boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics>
-DAMSoftContactFactory::create(DAMSoftContact1DTypes::Type dam_type,
+DAMSoftContact1DFactory::create(DAMSoftContact1DTypes::Type dam_type,
                               PinocchioReferenceTypes::Type ref_type,
                               ContactModelMaskTypes::Type mask_type) const {
   boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> action;
@@ -70,6 +63,27 @@ DAMSoftContactFactory::create(DAMSoftContact1DTypes::Type dam_type,
           StateModelTypes::StateMultibody_TalosArm,
           ActuationModelTypes::ActuationModelFull, ref_type, mask_type);
       break;
+    // HyQ  
+    case DAMSoftContact1DTypes::
+        DAMSoftContact1DAugmentedFwdDynamics_HyQ:
+      action = create_augmentedDAMSoft1D(
+          StateModelTypes::StateMultibody_HyQ,
+          ActuationModelTypes::ActuationModelFloatingBase, ref_type, mask_type);
+      break;
+    // RandmHumanoid  
+    case DAMSoftContact1DTypes::
+        DAMSoftContact1DAugmentedFwdDynamics_RandomHumanoid:
+      action = create_augmentedDAMSoft1D(
+          StateModelTypes::StateMultibody_RandomHumanoid,
+          ActuationModelTypes::ActuationModelFloatingBase, ref_type, mask_type);
+      break;
+    // Talos  
+    case DAMSoftContact1DTypes::
+        DAMSoftContact1DAugmentedFwdDynamics_Talos:
+      action = create_augmentedDAMSoft1D(
+          StateModelTypes::StateMultibody_Talos,
+          ActuationModelTypes::ActuationModelFloatingBase, ref_type, mask_type);
+      break;
     default:
       throw_pretty(__FILE__ ": Wrong DAMSoftContact1DTypes::Type given");
       break;
@@ -79,7 +93,7 @@ DAMSoftContactFactory::create(DAMSoftContact1DTypes::Type dam_type,
 
 
 boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics>
-DAMSoftContactFactory::create_augmentedDAMSoft1D(StateModelTypes::Type state_type,
+DAMSoftContact1DFactory::create_augmentedDAMSoft1D(StateModelTypes::Type state_type,
                                                  ActuationModelTypes::Type actuation_type,
                                                  PinocchioReferenceTypes::Type ref_type,
                                                  ContactModelMaskTypes::Type mask_type) const {
@@ -164,7 +178,7 @@ DAMSoftContactFactory::create_augmentedDAMSoft1D(StateModelTypes::Type state_typ
       cost, 
       state->get_pinocchio()->getFrameId(frameName), 
       Kp, Kv, oPc, pinRefFrame, mask);
-  action->set_force_cost(0., 0.01);
+  action->set_force_cost(Eigen::VectorXd::Zero(1), 0.01);
 
   return action;
 }
