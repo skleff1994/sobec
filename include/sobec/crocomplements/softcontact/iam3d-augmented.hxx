@@ -16,7 +16,7 @@ namespace sobec {
 using namespace crocoddyl;
 template <typename Scalar>
 IAMSoftContact3DAugmentedTpl<Scalar>::IAMSoftContact3DAugmentedTpl(
-    boost::shared_ptr<DAMSoftContact3DAugmentedFwdDynamics> model,
+    boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamics> model,
     const Scalar& time_step,
     const bool& with_cost_residual)
     : Base(model->get_state(), model->get_nu(),
@@ -66,7 +66,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calc(
 
   // Static casting the data
   boost::shared_ptr<Data> d = boost::static_pointer_cast<Data>(data);
-  boost::shared_ptr<DADSoftContact3DAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContact3DAugmentedFwdDynamics>(d->differential);
+  boost::shared_ptr<DADSoftContactAbstractAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContactAbstractAugmentedFwdDynamics>(d->differential);
   // Extract x=(q,v) and f from augmented state y
   const Eigen::Ref<const VectorXs>& x = y.head(nx);   // get q,v_q
   const Eigen::Ref<const VectorXs>& f = y.tail(nc_);  // get f
@@ -148,7 +148,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calc(
   }
   // Static casting the data
   boost::shared_ptr<Data> d = boost::static_pointer_cast<Data>(data);
-  boost::shared_ptr<DADSoftContact3DAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContact3DAugmentedFwdDynamics>(d->differential);
+  boost::shared_ptr<DADSoftContactAbstractAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContactAbstractAugmentedFwdDynamics>(d->differential);
   // Extract x=(q,v) and tau from augmented state y
   const Eigen::Ref<const VectorXs>& x = y.head(nx);  // get q,v_q
   const Eigen::Ref<const VectorXs>& f = y.tail(nc_);  // get q,v_q
@@ -187,7 +187,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calcDiff(
 
   // Static casting the data
   boost::shared_ptr<Data> d = boost::static_pointer_cast<Data>(data);
-  boost::shared_ptr<DADSoftContact3DAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContact3DAugmentedFwdDynamics>(d->differential);
+  boost::shared_ptr<DADSoftContactAbstractAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContactAbstractAugmentedFwdDynamics>(d->differential);
   // Extract x=(q,v) and f from augmented state y
   const Eigen::Ref<const VectorXs>& x = y.head(nx);   // get q,v_q
   const Eigen::Ref<const VectorXs>& f = y.tail(nc_);  // get f
@@ -244,7 +244,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calcDiff(
   }
   // Static casting the data
   boost::shared_ptr<Data> d = boost::static_pointer_cast<Data>(data);
-  boost::shared_ptr<DADSoftContact3DAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContact3DAugmentedFwdDynamics>(d->differential);
+  boost::shared_ptr<DADSoftContactAbstractAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContactAbstractAugmentedFwdDynamics>(d->differential);
   // Extract x=(q,v) and f from augmented state y
   const Eigen::Ref<const VectorXs>& x = y.head(nx);   // get q,v_q
   const Eigen::Ref<const VectorXs>& f = y.tail(nc_);  // get f
@@ -269,7 +269,7 @@ template <typename Scalar>
 bool IAMSoftContact3DAugmentedTpl<Scalar>::checkData(
     const boost::shared_ptr<ActionDataAbstract>& data) {
   boost::shared_ptr<Data> d = boost::dynamic_pointer_cast<Data>(data);
-  boost::shared_ptr<DADSoftContact3DAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContact3DAugmentedFwdDynamics>(d->differential);
+  boost::shared_ptr<DADSoftContactAbstractAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContactAbstractAugmentedFwdDynamics>(d->differential);
   if (data != NULL) {
     return differential_->checkData(diff_data_soft);
   } else {
@@ -278,7 +278,7 @@ bool IAMSoftContact3DAugmentedTpl<Scalar>::checkData(
 }
 
 template <typename Scalar>
-const boost::shared_ptr<DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar> >&
+const boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar> >&
 IAMSoftContact3DAugmentedTpl<Scalar>::get_differential() const {
   return differential_;
 }
@@ -302,7 +302,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::set_dt(const Scalar& dt) {
 
 template <typename Scalar>
 void IAMSoftContact3DAugmentedTpl<Scalar>::set_differential(
-    boost::shared_ptr<DAMSoftContact3DAugmentedFwdDynamics> model) {
+    boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamics> model) {
   const std::size_t& nu = model->get_nu();
   if (nu_ != nu) {
     nu_ = nu;

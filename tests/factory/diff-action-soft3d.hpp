@@ -6,8 +6,8 @@
 // All rights reserved.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef SOBEC_DIFF_ACTION_SOFT_FACTORY_HPP_
-#define SOBEC_DIFF_ACTION_SOFT_FACTORY_HPP_
+#ifndef SOBEC_DIFF_ACTION_SOFT3D_FACTORY_HPP_
+#define SOBEC_DIFF_ACTION_SOFT3D_FACTORY_HPP_
 
 #include <crocoddyl/core/diff-action-base.hpp>
 #include <crocoddyl/core/numdiff/diff-action.hpp>
@@ -16,26 +16,24 @@
 #include "actuation.hpp"
 #include "contact1d.hpp"
 #include "sobec/crocomplements/softcontact/dam3d-augmented.hpp"
-#include "sobec/crocomplements/softcontact/dam1d-augmented.hpp"
+// #include "sobec/crocomplements/softcontact/dam1d-augmented.hpp"
 #include "state.hpp"
 
 namespace sobec {
 namespace unittest {
 
-struct DAMSoftContactTypes {
+struct DAMSoftContact3DTypes {
   enum Type {
     DAMSoftContact3DAugmentedFwdDynamics_TalosArm,
     DAMSoftContact3DAugmentedFwdDynamics_HyQ,
     DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid,
     DAMSoftContact3DAugmentedFwdDynamics_Talos,
-    DAMSoftContact1DAugmentedFwdDynamics_TalosArm,
-    // DAMSoftContact1DAugmentedFwdDynamics_HyQ,
-    NbDAMSoftContactTypes
+    NbDAMSoftContact3DTypes
   };
   static std::vector<Type> init_all() {
     std::vector<Type> v;
     v.clear();
-    for (int i = 0; i < NbDAMSoftContactTypes; ++i) {
+    for (int i = 0; i < NbDAMSoftContact3DTypes; ++i) {
       v.push_back((Type)i);
     }
     return v;
@@ -44,38 +42,27 @@ struct DAMSoftContactTypes {
 };
 
 std::ostream& operator<<(std::ostream& os,
-                         DAMSoftContactTypes::Type type);
+                         DAMSoftContact3DTypes::Type type);
 
-class DAMSoftContactFactory {
+class DAMSoftContact3DFactory {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  explicit DAMSoftContactFactory();
-  ~DAMSoftContactFactory();
+  explicit DAMSoftContact3DFactory();
+  ~DAMSoftContact3DFactory();
 
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> create3D(
-      DAMSoftContactTypes::Type type,
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> create(
+      DAMSoftContact3DTypes::Type type,
       PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) const;
-
-  boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> create1D(
-      DAMSoftContactTypes::Type type,
-      PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
-      ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Z) const;
 
   // Soft contact 3D dynamics
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics>
   create_augmentedDAMSoft3D(StateModelTypes::Type state_type,
                             ActuationModelTypes::Type actuation_type,
                             PinocchioReferenceTypes::Type ref_type) const;
-  // Soft contact 1D dynamics
-  boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics>
-  create_augmentedDAMSoft1D(StateModelTypes::Type state_type,
-                            ActuationModelTypes::Type actuation_type,
-                            PinocchioReferenceTypes::Type ref_type,
-                            ContactModelMaskTypes::Type mask_type) const;
 };
 
 }  // namespace unittest
 }  // namespace sobec
 
-#endif  // SOBEC_DIFF_ACTION_SOFT_FACTORY_HPP_
+#endif  // SOBEC_DIFF_ACTION_SOFT3D_FACTORY_HPP_

@@ -7,9 +7,9 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/statelpf.hpp
   factory/statesoft.hpp
   factory/lpf.hpp
-  factory/diff-action-soft.hpp
+  factory/diff-action-soft3d.hpp
   factory/diff-action.hpp
-  factory/action-soft.hpp
+  # factory/action-soft.hpp
   factory/actuation.hpp
   factory/contact3d.hpp
   factory/contact1d.hpp
@@ -21,8 +21,8 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/statesoft.cpp
   factory/lpf.cpp
   factory/diff-action.cpp
-  factory/diff-action-soft.cpp
-  factory/action-soft.cpp
+  factory/diff-action-soft3d.cpp
+  # factory/action-soft.cpp
   factory/actuation.cpp
   factory/contact3d.cpp
   factory/contact1d.cpp
@@ -56,11 +56,11 @@ target_link_libraries(test_contact1d PUBLIC ${PROJECT_NAME}_unittest)
 add_unit_test(test_diff_actions test_diff_actions.cpp)
 target_link_libraries(test_diff_actions PUBLIC ${PROJECT_NAME}_unittest)
 
-ADD_UNIT_TEST(test_diff_actions_soft test_diff_actions_soft.cpp)
-target_link_libraries(test_diff_actions_soft PUBLIC ${PROJECT_NAME}_unittest)
+ADD_UNIT_TEST(test_diff_actions_soft3d test_diff_actions_soft3d.cpp)
+target_link_libraries(test_diff_actions_soft3d PUBLIC ${PROJECT_NAME}_unittest)
 
-ADD_UNIT_TEST(test_actions_soft test_actions_soft.cpp)
-target_link_libraries(test_actions_soft PUBLIC ${PROJECT_NAME}_unittest)
+# ADD_UNIT_TEST(test_actions_soft test_actions_soft.cpp)
+# target_link_libraries(test_actions_soft PUBLIC ${PROJECT_NAME}_unittest)
 
 ADD_UNIT_TEST(test_walk_params test_walk_params.cpp)
 target_link_libraries(test_walk_params PUBLIC ${PROJECT_NAME}_unittest)

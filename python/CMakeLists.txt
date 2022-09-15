@@ -18,6 +18,8 @@ set(${PY_NAME}_SOURCES
   crocomplements/contact/contact-force.cpp
   crocomplements/softcontact/dam3d.cpp
   crocomplements/softcontact/dam1d.cpp
+  crocomplements/softcontact/dam-augmented.cpp
+  # crocomplements/softcontact/dam-augmented.hpp
   crocomplements/softcontact/dam3d-augmented.cpp
   crocomplements/softcontact/dam1d-augmented.cpp
   crocomplements/softcontact/iam3d-augmented.cpp

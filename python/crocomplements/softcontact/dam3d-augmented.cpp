@@ -6,6 +6,8 @@
 // individual files. All rights reserved.
 ///////////////////////////////////////////////////////////////////////////////
 
+// #include "dam-augmented.cpp"
+// #include "sobec/crocomplements/softcontact/dam-augmented.hpp"
 #include "sobec/crocomplements/softcontact/dam3d-augmented.hpp"
 
 #include <boost/python.hpp>
@@ -20,7 +22,7 @@ void exposeDAMSoftContact3DAugmentedFwdDyn() {
 
   bp::register_ptr_to_python<boost::shared_ptr<DAMSoftContact3DAugmentedFwdDynamics>>();
 
-  bp::class_<DAMSoftContact3DAugmentedFwdDynamics, bp::bases<crocoddyl::DifferentialActionModelFreeFwdDynamics>>(
+  bp::class_<DAMSoftContact3DAugmentedFwdDynamics, bp::bases<sobec::DAMSoftContactAbstractAugmentedFwdDynamics>>(
       "DAMSoftContact3DAugmentedFwdDynamics", 
       "Differential action model for visco-elastic contact forward dynamics in multibody systems.",
       bp::init<boost::shared_ptr<crocoddyl::StateMultibody>,
@@ -84,24 +86,24 @@ void exposeDAMSoftContact3DAugmentedFwdDyn() {
       .def("set_force_cost", &DAMSoftContact3DAugmentedFwdDynamics::set_force_cost,
            bp::args("self", "force_des", "force_weight"),
            "Initialize force reference and cost weight ")
-      .add_property(
-          "Kp",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_Kp,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_Kp,
-          "Stiffness of the contact model")
-      .add_property(
-          "Kv",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_Kv,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_Kv,
-          "Damping of the contact model")
-      .add_property(
-          "oPc",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_oPc,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_oPc,
-          "Anchor point of the contact model")
+    //   .add_property(
+    //       "Kp",
+    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_Kp,
+    //                         bp::return_value_policy<bp::return_by_value>()),
+    //       &DAMSoftContact3DAugmentedFwdDynamics::set_Kp,
+    //       "Stiffness of the contact model")
+    //   .add_property(
+    //       "Kv",
+    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_Kv,
+    //                         bp::return_value_policy<bp::return_by_value>()),
+    //       &DAMSoftContact3DAugmentedFwdDynamics::set_Kv,
+    //       "Damping of the contact model")
+    //   .add_property(
+    //       "oPc",
+    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_oPc,
+    //                         bp::return_value_policy<bp::return_by_value>()),
+    //       &DAMSoftContact3DAugmentedFwdDynamics::set_oPc,
+    //       "Anchor point of the contact model")
       .add_property(
           "f_des",
           bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_force_des,
@@ -113,44 +115,44 @@ void exposeDAMSoftContact3DAugmentedFwdDyn() {
           bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_force_weight,
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContact3DAugmentedFwdDynamics::set_force_weight,
-          "Force cost weight")
-      .add_property(
-          "ref",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_ref,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_ref,
-          "Pinocchio reference frame")
-      .add_property(
-          "id",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_id,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_id,
-          "Contact frame id")
-      .add_property(
-          "armature",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_armature,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_armature,
-          "Armature");
+          "Force cost weight");
+    //   .add_property(
+    //       "ref",
+    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_ref,
+    //                         bp::return_value_policy<bp::return_by_value>()),
+    //       &DAMSoftContact3DAugmentedFwdDynamics::set_ref,
+    //       "Pinocchio reference frame")
+    //   .add_property(
+    //       "id",
+    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_id,
+    //                         bp::return_value_policy<bp::return_by_value>()),
+    //       &DAMSoftContact3DAugmentedFwdDynamics::set_id,
+    //       "Contact frame id")
+    //   .add_property(
+    //       "armature",
+    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_armature,
+    //                         bp::return_value_policy<bp::return_by_value>()),
+    //       &DAMSoftContact3DAugmentedFwdDynamics::set_armature,
+    //       "Armature");
 
   bp::register_ptr_to_python<boost::shared_ptr<DADSoftContact3DAugmentedFwdDynamics> >();
 
-  bp::class_<DADSoftContact3DAugmentedFwdDynamics, bp::bases<crocoddyl::DifferentialActionDataFreeFwdDynamics> >(
+  bp::class_<DADSoftContact3DAugmentedFwdDynamics, bp::bases<sobec::DADSoftContactAbstractAugmentedFwdDynamics> >(
       "DADSoftContact3DAugmentedFwdDynamics", "Action data for the soft contact 3D forward dynamics system",
       bp::init<DAMSoftContact3DAugmentedFwdDynamics*>(
           bp::args("self", "model"),
           "Create soft contact 3D forward-dynamics action data.\n\n"
-          ":param model: soft contact 3D model"))
-      .add_property(
-          "lJ",
-          bp::make_getter(&sobec::DADSoftContact3DAugmentedFwdDynamics::lJ,
-                          bp::return_internal_reference<>()),
-          "Jacobian of the contact frame in LOCAL")
-      .add_property(
-          "oJ",
-          bp::make_getter(&sobec::DADSoftContact3DAugmentedFwdDynamics::oJ,
-                          bp::return_internal_reference<>()),
-          "Jacobian of the contact frame in LOCAL_WORLD_ALIGNED");
+          ":param model: soft contact 3D model"));
+    //   .add_property(
+    //       "lJ",
+    //       bp::make_getter(&sobec::DADSoftContact3DAugmentedFwdDynamics::lJ,
+    //                       bp::return_internal_reference<>()),
+    //       "Jacobian of the contact frame in LOCAL")
+    //   .add_property(
+    //       "oJ",
+    //       bp::make_getter(&sobec::DADSoftContact3DAugmentedFwdDynamics::oJ,
+    //                       bp::return_internal_reference<>()),
+    //       "Jacobian of the contact frame in LOCAL_WORLD_ALIGNED");
     //   .add_property(
     //       "lv_partial_dq",
     //       bp::make_getter(&sobec::DADSoftContact3DAugmentedFwdDynamics::lv_partial_dq,
