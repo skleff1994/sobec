@@ -27,6 +27,7 @@ BOOST_PYTHON_MODULE(sobec_pywrap) {
   sobec::python::exposeMPCWalk();
   sobec::python::exposeDAMSoftContact3DFwdDyn();
   sobec::python::exposeDAMSoftContact1DFwdDyn();
+  sobec::python::exposeDAMSoftContactAbstractAugmentedFwdDyn();
   sobec::python::exposeDAMSoftContact3DAugmentedFwdDyn();
   sobec::python::exposeDAMSoftContact1DAugmentedFwdDyn();
   sobec::python::exposeStateSoftContact();

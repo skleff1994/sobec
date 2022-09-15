@@ -159,6 +159,13 @@ typedef DifferentialActionDataSoftContact1DFwdDynamicsTpl<double> DifferentialAc
 
 
 // Soft contact3D DAM (augmented state)
+    // Abstract
+template <typename Scalar>
+class DAMSoftContactAbstractAugmentedFwdDynamicsTpl;
+typedef DAMSoftContactAbstractAugmentedFwdDynamicsTpl<double> DAMSoftContactAbstractAugmentedFwdDynamics;
+template <typename Scalar>
+class DADSoftContactAbstractAugmentedFwdDynamicsTpl;
+typedef DADSoftContactAbstractAugmentedFwdDynamicsTpl<double> DADSoftContactAbstractAugmentedFwdDynamics;
     // 3D
 template <typename Scalar>
 class DAMSoftContact3DAugmentedFwdDynamicsTpl;

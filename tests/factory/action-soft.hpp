@@ -16,7 +16,7 @@
 
 #include "sobec/crocomplements/softcontact/iam3d-augmented.hpp"
 #include "statesoft.hpp"
-#include "diff-action-soft.hpp"
+#include "diff-action-soft3d.hpp"
 
 namespace sobec {
 namespace unittest {
@@ -49,7 +49,7 @@ class IAMSoftContactFactory {
 
   boost::shared_ptr<sobec::IAMSoftContact3DAugmented> create(
       IAMSoftContactTypes::Type iam_type,
-      DAMSoftContactTypes::Type dam_type,
+      DAMSoftContact3DTypes::Type dam_type,
       PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) const;
 };
 

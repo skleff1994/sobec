@@ -15,7 +15,7 @@
 
 #include "common.hpp"
 #include "factory/action-soft.hpp"
-#include "factory/diff-action-soft.hpp"
+#include "factory/diff-action-soft3d.hpp"
 // #include "factory/contact1d.hpp"
 
 using namespace boost::unit_test;
@@ -25,7 +25,7 @@ using namespace sobec::unittest;
 
 void test_check_data(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   // create the model
   IAMSoftContactFactory factory_iam;
@@ -44,7 +44,7 @@ void test_check_data(
 
 void test_calc_returns_state(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   // create the model
   IAMSoftContactFactory factory_iam;
@@ -64,7 +64,7 @@ void test_calc_returns_state(
 
 void test_calc_returns_a_cost(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   // create the model
   IAMSoftContactFactory factory_iam;
@@ -125,7 +125,7 @@ void test_partial_derivatives_against_numdiff(
 
 void test_partial_derivatives_action_model(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   // create the model
   IAMSoftContactFactory factory;
@@ -176,7 +176,7 @@ void test_partial_derivatives_against_numdiff_terminal(
 
 void test_partial_derivatives_action_model_terminal(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   // create the model
   IAMSoftContactFactory factory;
@@ -191,7 +191,7 @@ void test_partial_derivatives_action_model_terminal(
 
 void test_calc_equivalent_euler(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   // Create IAM soft from DAMSoft
   IAMSoftContactFactory factory_iam;
@@ -224,7 +224,7 @@ void test_calc_equivalent_euler(
 
 void test_calcDiff_equivalent_euler(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   // Create IAM soft from DAMSoft
   IAMSoftContactFactory factory_iam;
@@ -279,7 +279,7 @@ void test_calcDiff_equivalent_euler(
 
 void register_action_model_unit_tests(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContactTypes::Type dam_type,
+    DAMSoftContact3DTypes::Type dam_type,
     PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   boost::test_tools::output_test_stream test_name;
   test_name << "test_" << iam_type << "_" << dam_type << "_" << ref_type;
@@ -301,10 +301,10 @@ bool init_function() {
 
   // 3D contact
   for (size_t i = 0; i < IAMSoftContactTypes::all.size(); ++i) {
-    for (size_t j = 0; j < DAMSoftContactTypes::all.size(); ++j) {
+    for (size_t j = 0; j < DAMSoftContact3DTypes::all.size(); ++j) {
       for (size_t k = 0; k < PinocchioReferenceTypes::all.size(); ++k) {
         register_action_model_unit_tests(IAMSoftContactTypes::all[i],
-                                         DAMSoftContactTypes::all[j],
+                                         DAMSoftContact3DTypes::all[j],
                                          PinocchioReferenceTypes::all[k]);
       }
     }

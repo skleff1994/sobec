@@ -10,20 +10,19 @@
 #define BOOST_TEST_ALTERNATIVE_INIT_API
 
 #include "common.hpp"
-#include "factory/diff-action-soft.hpp"
-// #include "sobec/crocomplements/softcontact/state-soft-contact.hpp"
+#include "factory/diff-action-soft3d.hpp"
 
 using namespace boost::unit_test;
 using namespace sobec::unittest;
 
 //----------------------------------------------------------------------------//
 
-void test_check_data(DAMSoftContactTypes::Type action_type,
+void test_check_data(DAMSoftContact3DTypes::Type action_type,
                      PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
+  DAMSoftContact3DFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model =
-      factory.create3D(action_type, ref_type);
+      factory.create(action_type, ref_type);
   // Run the print function
   std::ostringstream tmp;
   tmp << *model;
@@ -33,11 +32,11 @@ void test_check_data(DAMSoftContactTypes::Type action_type,
   BOOST_CHECK(model->checkData(data));
 }
 
-void test_calc_returns_state(DAMSoftContactTypes::Type action_type,
+void test_calc_returns_state(DAMSoftContact3DTypes::Type action_type,
                              PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create3D(action_type, ref_type);
+  DAMSoftContact3DFactory factory;
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create(action_type, ref_type);
   // create the corresponding data object
   boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data = model->createData();
   // Generating random state and control vectors
@@ -49,12 +48,12 @@ void test_calc_returns_state(DAMSoftContactTypes::Type action_type,
   BOOST_CHECK(static_cast<std::size_t>(data->xout.size()) == model->get_state()->get_nv());
 }
 
-void test_calc_returns_a_cost(DAMSoftContactTypes::Type action_type,
+void test_calc_returns_a_cost(DAMSoftContact3DTypes::Type action_type,
                               PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
+  DAMSoftContact3DFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model =
-      factory.create3D(action_type, ref_type);
+      factory.create(action_type, ref_type);
   // create the corresponding data object and set the cost to nan
   boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data =
       model->createData();
@@ -173,20 +172,20 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
 }
 
 void test_partial_derivatives_against_numdiff(
-    DAMSoftContactTypes::Type action_type,
+    DAMSoftContact3DTypes::Type action_type,
     PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create3D(action_type, ref_type);
+  DAMSoftContact3DFactory factory;
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create(action_type, ref_type);
   test_partials_numdiff(model);
 }
 
 void test_partial_derivatives_against_numdiff_armature(
-    DAMSoftContactTypes::Type action_type,
+    DAMSoftContact3DTypes::Type action_type,
     PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create3D(action_type, ref_type);
+  DAMSoftContact3DFactory factory;
+  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create(action_type, ref_type);
   Eigen::VectorXd armature = Eigen::VectorXd::Random(model->get_state()->get_nv());
   model->set_armature(armature);
   test_partials_numdiff(model);
@@ -223,21 +222,21 @@ void test_calc_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamic
   BOOST_CHECK((data->xout - datafree->xout).isZero(1e-6));
 }
 
-void test_calc_equivalent_free(DAMSoftContactTypes::Type action_type,
+void test_calc_equivalent_free(DAMSoftContact3DTypes::Type action_type,
                                PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
+  DAMSoftContact3DFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create3D(action_type, ref_type);
+      factory.create(action_type, ref_type);
   test_calc_free(modelsoft, Eigen::VectorXd::Zero(modelsoft->get_state()->get_nv()));
 }
 
-void test_calc_equivalent_free_armature(DAMSoftContactTypes::Type action_type,
+void test_calc_equivalent_free_armature(DAMSoftContact3DTypes::Type action_type,
                                       PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
+  DAMSoftContact3DFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create3D(action_type, ref_type);
+      factory.create(action_type, ref_type);
   Eigen::VectorXd armature = Eigen::VectorXd::Random(modelsoft->get_state()->get_nv());
   test_calc_free(modelsoft, armature);
 }
@@ -282,28 +281,28 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
   BOOST_CHECK((data->Luu - datafree->Luu).isZero(tol));
 }
 
-void test_calcDiff_equivalent_free(DAMSoftContactTypes::Type action_type,
+void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
                                PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
+  DAMSoftContact3DFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create3D(action_type, ref_type);
+      factory.create(action_type, ref_type);
   test_calcDiff_free(modelsoft, Eigen::VectorXd::Zero(modelsoft->get_state()->get_nv()));
 }
 
-void test_calcDiff_equivalent_free_armature(DAMSoftContactTypes::Type action_type,
+void test_calcDiff_equivalent_free_armature(DAMSoftContact3DTypes::Type action_type,
                                             PinocchioReferenceTypes::Type ref_type) {
   // create the model
-  DAMSoftContactFactory factory;
+  DAMSoftContact3DFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-      factory.create3D(action_type, ref_type);
+      factory.create(action_type, ref_type);
   Eigen::VectorXd armature = Eigen::VectorXd::Random(modelsoft->get_state()->get_nv());
   test_calcDiff_free(modelsoft, armature);
 }
 
 //----------------------------------------------------------------------------//
 
-void register_action_model_unit_tests(DAMSoftContactTypes::Type action_type,
+void register_action_model_unit_tests(DAMSoftContact3DTypes::Type action_type,
                                       PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
   boost::test_tools::output_test_stream test_name;
   test_name << "test_" << action_type << "_" << ref_type;
@@ -327,9 +326,9 @@ void register_action_model_unit_tests(DAMSoftContactTypes::Type action_type,
 
 bool init_function() {
 
-  for (size_t i = 0; i < DAMSoftContactTypes::all.size(); ++i) {
+  for (size_t i = 0; i < DAMSoftContact3DTypes::all.size(); ++i) {
     for (size_t j = 0; j < PinocchioReferenceTypes::all.size(); ++j) {
-    register_action_model_unit_tests(DAMSoftContactTypes::all[i], PinocchioReferenceTypes::all[j]);
+    register_action_model_unit_tests(DAMSoftContact3DTypes::all[i], PinocchioReferenceTypes::all[j]);
     }
   }
 

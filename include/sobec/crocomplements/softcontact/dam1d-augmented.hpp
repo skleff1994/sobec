@@ -19,6 +19,7 @@
 #include "crocoddyl/multibody/actions/free-fwddyn.hpp"
 
 #include "sobec/fwd.hpp"
+#include "dam-augmented.hpp"
 #include "dam1d.hpp"
 
 namespace sobec {
@@ -29,29 +30,28 @@ namespace sobec {
  *
  * Maths here : https://www.overleaf.com/read/xdpymjfhqqhn
  *
- * \sa `DifferentialActionModelFreeFwdDynamicsTpl`, `calc()`, `calcDiff()`,
+ * \sa `DAMSoftContact1DAugmentedFwdDynamicsTpl`, `calc()`, `calcDiff()`,
  * `createData()`
  */
 template <typename _Scalar>
 class DAMSoftContact1DAugmentedFwdDynamicsTpl
-    : public crocoddyl::DifferentialActionModelFreeFwdDynamicsTpl<_Scalar> {
+    : public sobec::DAMSoftContactAbstractAugmentedFwdDynamicsTpl<_Scalar> {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   typedef _Scalar Scalar;
-  typedef crocoddyl::DifferentialActionModelFreeFwdDynamicsTpl<Scalar> Base;
+  typedef sobec::DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar> Base;
   typedef DADSoftContact1DAugmentedFwdDynamicsTpl<Scalar> Data;
   typedef crocoddyl::MathBaseTpl<Scalar> MathBase;
   typedef crocoddyl::CostModelSumTpl<Scalar> CostModelSum;
   typedef crocoddyl::StateMultibodyTpl<Scalar> StateMultibody;
   typedef crocoddyl::ActuationModelAbstractTpl<Scalar> ActuationModelAbstract;
   typedef crocoddyl::DifferentialActionDataAbstractTpl<Scalar> DifferentialActionDataAbstract;
-  typedef crocoddyl::DifferentialActionDataFreeFwdDynamicsTpl<Scalar> DifferentialActionDataFreeFwdDynamics;
   typedef typename MathBase::VectorXs VectorXs;
   typedef typename MathBase::Vector3s Vector3s;
   typedef typename MathBase::MatrixXs MatrixXs;
   typedef typename MathBase::Matrix3s Matrix3s;
-
+  typedef typename sobec::Vector3MaskType Vector3MaskType;
   /**
    * @brief Initialize the soft contact forward-dynamics action model
    *
@@ -77,7 +77,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
       const double Kv,
       const Vector3s& oPc,
       const pinocchio::ReferenceFrame ref = pinocchio::LOCAL,
-      const sobec::Vector3MaskType& type = sobec::Vector3MaskType::z);
+      const Vector3MaskType& type = Vector3MaskType::z);
   virtual ~DAMSoftContact1DAugmentedFwdDynamicsTpl();
 
   /**
@@ -92,7 +92,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
    */
   virtual void calc(const boost::shared_ptr<DifferentialActionDataAbstract>& data, 
                     const Eigen::Ref<const VectorXs>& x,
-                    const Scalar& f,
+                    const Eigen::Ref<const VectorXs>& f,
                     const Eigen::Ref<const VectorXs>& u);
 
   /**
@@ -106,7 +106,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
    */
   virtual void calc(const boost::shared_ptr<DifferentialActionDataAbstract>& data, 
                     const Eigen::Ref<const VectorXs>& x,
-                    const Scalar& f);
+                    const Eigen::Ref<const VectorXs>& f);
 
   /**
    * @brief Compute the derivatives of the contact dynamics, and cost function
@@ -119,7 +119,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
   virtual void calcDiff(
       const boost::shared_ptr<DifferentialActionDataAbstract>& data,
       const Eigen::Ref<const VectorXs>& x, 
-      const Scalar& f, 
+      const Eigen::Ref<const VectorXs>& f, 
       const Eigen::Ref<const VectorXs>& u);
 
   /**
@@ -132,7 +132,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
   virtual void calcDiff(
       const boost::shared_ptr<DifferentialActionDataAbstract>& data,
       const Eigen::Ref<const VectorXs>& x,
-      const Scalar& f);
+      const Eigen::Ref<const VectorXs>& f);
   
     /**
    * @brief Create the soft contact forward-dynamics data
@@ -141,70 +141,44 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
    */
   virtual boost::shared_ptr<DifferentialActionDataAbstract> createData();
   
-  void set_force_cost(const Scalar force_des, const Scalar force_weight);
+  void set_force_cost(const VectorXs& force_des, const Scalar force_weight);
 
-  void set_force_des(const Scalar inForceDes);
+  void set_force_des(const VectorXs& inForceDes);
 
   void set_force_weight(const Scalar inForceWeight);
 
-  void set_Kp(const Scalar inKp);
-
-  void set_Kv(const Scalar inKv);
-
-  void set_oPc(const Vector3s& oPc);
-
-  void set_ref(const pinocchio::ReferenceFrame inRef);
-  
-  void set_id(const pinocchio::FrameIndex inId);
-
-  const Scalar get_Kp() const;
-
-  const Scalar get_Kv() const;
-
-  const Vector3s& get_oPc() const;
-
-  const Scalar get_force_des() const;
+  const VectorXs& get_force_des() const;
 
   const Scalar get_force_weight() const;
 
-  const pinocchio::ReferenceFrame& get_ref() const;
-  
-  const pinocchio::FrameIndex& get_id() const;
-
-  std::size_t get_nc() {return nc_;};
-
-  const Vector3MaskType& get_type() {return type_;};
+  const Vector3MaskType& get_type() const;
 
   void set_type(const Vector3MaskType& inType);
 
-  // armature 
-  const VectorXs& get_armature() const;
-  void set_armature(const VectorXs& armature);
-
   protected:
-    Scalar Kp_;                             //!< Contact model stiffness
-    Scalar Kv_;                             //!< Contact model damping
-    Vector3s oPc_;                          //!< Contact model anchor point
-    pinocchio::FrameIndex frameId_;         //!< Frame id of the contact
-    pinocchio::FrameIndex parentId_;        //!< Parent id of the contact
-    pinocchio::ReferenceFrame ref_;         //!< Pinocchio reference frame
-    bool with_force_cost_;                  //!< Force cost ?
-    bool active_contact_;                   //!< Active contact ?
-    std::size_t nc_;                        //!< Contact model dimension = 3
-    Scalar force_des_;                    //!< Desired force 1D
+    using Base::Kp_;
+    using Base::Kv_;
+    using Base::oPc_;
+    using Base::frameId_;
+    using Base::parentId_;
+    using Base::ref_;
+    using Base::with_force_cost_;
+    using Base::active_contact_;
+    using Base::nc_;
+    using Base::jMf_;
+    using Base::with_armature_;
+    using Base::armature_;
+    VectorXs force_des_;                    //!< Desired force 3D
     Scalar force_weight_;                   //!< Force cost weight
-    pinocchio::SE3Tpl<Scalar> jMf_;         //!< Placement of contact frame w.r.t. parent frame
-    bool with_armature_;                    //!< Indicate if we have defined an armature
-    VectorXs armature_;                     //!< Armature vector
     sobec::Vector3MaskType type_;           //!< 1D contact mask type 
 };
 
 template <typename _Scalar>
-struct DADSoftContact1DAugmentedFwdDynamicsTpl : public crocoddyl::DifferentialActionDataFreeFwdDynamicsTpl<_Scalar> {
+struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbstractAugmentedFwdDynamicsTpl<_Scalar> {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   typedef _Scalar Scalar;
   typedef MathBaseTpl<Scalar> MathBase;
-  typedef crocoddyl::DifferentialActionDataFreeFwdDynamicsTpl<Scalar> Base;
+  typedef sobec::DADSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar> Base;
   typedef typename MathBase::VectorXs VectorXs;
   typedef typename MathBase::Vector3s Vector3s;
   typedef typename MathBase::MatrixXs MatrixXs;
@@ -213,85 +187,29 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public crocoddyl::DifferentialA
   template <template <typename Scalar> class Model>
   explicit DADSoftContact1DAugmentedFwdDynamicsTpl(Model<Scalar>* const model)
       : Base(model),
-        dtau_dx(model->get_state()->get_nv(), model->get_state()->get_ndx()),
-        lJ(6, model->get_state()->get_nv()),
-        oJ(6, model->get_state()->get_nv()),
-        aba_dq(model->get_state()->get_nv(), model->get_state()->get_nv()),
-        aba_dv(model->get_state()->get_nv(), model->get_state()->get_nv()),
-        aba_dx(model->get_state()->get_nv(), model->get_state()->get_ndx()),
-        aba_dtau(model->get_state()->get_nv(), model->get_state()->get_nv()),
-        aba_df(model->get_state()->get_nv(), 1),
         aba_df3d(model->get_state()->get_nv(), 3),
         aba_df3d_copy(model->get_state()->get_nv(), 3),
-        lv_dq(6, model->get_state()->get_nv()),
-        lv_dv(6, model->get_state()->get_nv()),
-        lv_dx(6, model->get_state()->get_ndx()),
-        v_dv(6, model->get_state()->get_nv()),
-        a_dq(6, model->get_state()->get_nv()),
-        a_dv(6, model->get_state()->get_nv()),
-        a_da(6, model->get_state()->get_nv()),
-        da_dx(6,model->get_state()->get_ndx()),
-        da_du(6,model->get_nu()),
-        da_df(6,1),
         da_df3d(6,3),
-        pinForce(pinocchio::ForceTpl<Scalar>::Zero()),
-        fext(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()),
-        fext_copy(model->get_pinocchio().njoints, pinocchio::ForceTpl<Scalar>::Zero()),
         dfdt3d_dx(3, model->get_state()->get_ndx()),
         dfdt3d_du(3, model->get_nu()),
+        dfdt3d_df(3, 1),
         dfdt3d_dx_copy(3, model->get_state()->get_ndx()),
         dfdt3d_du_copy(3, model->get_nu()),
-        dfdt_dx(1, model->get_state()->get_ndx()),
-        dfdt_du(1, model->get_nu()),
-        dfdt_df(3, 1) {
-        // JtF(model->get_state()->get_nv(), model->get_state()->get_nv()) {
-    costs->shareMemory(this);
-    Minv.setZero();
-    u_drift.setZero();
-    dtau_dx.setZero();
-    tmp_xstatic.setZero();
-    oRf.setZero();
-    lJ.setZero();
-    oJ.setZero();
-    aba_dq.setZero();
-    aba_dv.setZero();
-    aba_dx.setZero();
-    aba_dtau.setZero();
-    aba_df.setZero();
+        dfdt3d_df_copy(3, 1)
+        {
     aba_df3d.setZero();
     aba_df3d_copy.setZero();
-    lv.setZero();
-    la.setZero();
-    ov.setZero();
-    oa.setZero();
-    lv_dq.setZero();
-    lv_dv.setZero();
-    lv_dx.setZero();
-    v_dv.setZero();
-    a_dq.setZero();
-    a_dv.setZero();
-    a_da.setZero();
-    da_dx.setZero();
-    da_du.setZero();
-    da_df.setZero();
     da_df3d.setZero();
     f3d.setZero();
     f3d_copy.setZero();
     fout3d.setZero();
     fout3d_copy.setZero();
-    dfdt_dx.setZero();
-    dfdt_du.setZero();
-    dfdt_df.setZero();
     dfdt3d_dx.setZero();
     dfdt3d_du.setZero();
     dfdt3d_df.setZero();
     dfdt3d_dx_copy.setZero();
     dfdt3d_du_copy.setZero();
     dfdt3d_df_copy.setZero();
-    // Lf.setZero();
-    // Lff.setZero();
-    // f_residual.setZero();
-    // JtF.setZero();
   }
 
   using Base::pinocchio;
@@ -302,65 +220,68 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public crocoddyl::DifferentialA
   // using Base::dtau_dx;
   using Base::tmp_xstatic;
 
-  MatrixXs dtau_dx;
+  using Base::dtau_dx;
   // Contact frame rotation and Jacobians
-  Matrix3s oRf;
-  MatrixXs lJ;
-  MatrixXs oJ;
+  using Base::oRf;
+  using Base::lJ;
+  using Base::oJ;
   // Partials of ABA w.r.t. state and control
-  MatrixXs aba_dq;
-  MatrixXs aba_dv;
-  MatrixXs aba_dx;
-  MatrixXs aba_dtau;
-  MatrixXs aba_df;
+  using Base::aba_dq;
+  using Base::aba_dv;
+  using Base::aba_dx;
+  using Base::aba_dtau;
+  using Base::aba_df;
   MatrixXs aba_df3d;
   MatrixXs aba_df3d_copy;
   // Frame linear velocity and acceleration in LOCAL and LOCAL_WORLD_ALIGNED frames
-  Vector3s lv;
-  Vector3s la;
-  Vector3s ov;
-  Vector3s oa;
+  using Base::lv;
+  using Base::la;
+  using Base::ov;
+  using Base::oa;
   // Partials of frame spatial velocity w.r.t. joint pos, vel, acc
-  MatrixXs lv_dq;
-  MatrixXs lv_dv;
-  MatrixXs lv_dx;
+  using Base::lv_dq;
+  using Base::lv_dv;
+  using Base::lv_dx;
   // Partials of frame spatial acceleration w.r.t. joint pos, vel, acc
-  MatrixXs v_dv;
-  MatrixXs a_dq;
-  MatrixXs a_dv;
-  MatrixXs a_da;
+  using Base::v_dv;
+  using Base::a_dq;
+  using Base::a_dv;
+  using Base::a_da;
   // Partial of frame spatial acc w.r.t. state 
-  MatrixXs da_dx;
-  MatrixXs da_du;
-  MatrixXs da_df;
+  using Base::da_dx;
+  using Base::da_du;
+  using Base::da_df;
   MatrixXs da_df3d;
   // Current force and next force
   Vector3s f3d;
   Vector3s f3d_copy;
   Vector3s fout3d;
   Vector3s fout3d_copy;
-  Scalar f_copy;
-  Scalar fout;
-  Scalar fout_copy;
+  using Base::f_copy;
+  using Base::fout;
+  using Base::fout_copy;
   // Spatial wrench due to contact force
-  pinocchio::ForceTpl<Scalar> pinForce;
-  pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext;  //!< External spatial forces in body coordinates (joint level)
-  pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext_copy;  //!< External spatial forces in body coordinates (joint level)
+  using Base::pinForce;
+  using Base::fext;       //!< External spatial forces in body coordinates (joint level)
+  using Base::fext_copy;  //!< External spatial forces in body coordinates (joint level)
   // Partial derivatives of next force w.r.t. augmented state
-  MatrixXs dfdt_dx;
-  MatrixXs dfdt_du;
-  MatrixXs dfdt_df;
+  using Base::dfdt_dx;
+  using Base::dfdt_du;
+  using Base::dfdt_df;
+  using Base::dfdt_dx_copy;
+  using Base::dfdt_du_copy;
+  using Base::dfdt_df_copy;
   MatrixXs dfdt3d_dx;
   MatrixXs dfdt3d_du;
-  Matrix3s dfdt3d_df;
+  MatrixXs dfdt3d_df;
   MatrixXs dfdt3d_dx_copy;
   MatrixXs dfdt3d_du_copy;
-  Matrix3s dfdt3d_df_copy;
+  MatrixXs dfdt3d_df_copy;
   // Partials of cost w.r.t. force 
-  Scalar Lf;
-  Scalar Lff;
+  using Base::Lf;
+  using Base::Lff;
   // Force residual for hard coded tracking cost
-  Scalar f_residual;
+  using Base::f_residual;
 
   // MatrixXs JtF;
   using Base::cost;

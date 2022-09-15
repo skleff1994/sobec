@@ -19,6 +19,7 @@ from .sobec_pywrap import (
     DifferentialActionModelContactFwdDynamics,
     DifferentialActionModelSoftContact3DFwdDynamics,
     DifferentialActionModelSoftContact1DFwdDynamics,
+    DAMSoftContactAbstractAugmentedFwdDynamics,
     DAMSoftContact3DAugmentedFwdDynamics,
     DAMSoftContact1DAugmentedFwdDynamics,
     IAMSoftContact3DAugmented,
