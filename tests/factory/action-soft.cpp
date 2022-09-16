@@ -17,8 +17,8 @@ const std::vector<IAMSoftContactTypes::Type> IAMSoftContactTypes::all(
 
 std::ostream& operator<<(std::ostream& os, IAMSoftContactTypes::Type type) {
   switch (type) {
-    case IAMSoftContactTypes::IAMSoftContact3DAugmented:
-      os << "IAMSoftContact3DAugmented";
+    case IAMSoftContactTypes::IAMSoftContactAugmented:
+      os << "IAMSoftContactAugmented";
       break;
     case IAMSoftContactTypes::IAMSoftContact1DAugmented:
       os << "IAMSoftContact1DAugmented";
@@ -32,19 +32,19 @@ std::ostream& operator<<(std::ostream& os, IAMSoftContactTypes::Type type) {
 IAMSoftContactFactory::IAMSoftContactFactory() {}
 IAMSoftContactFactory::~IAMSoftContactFactory() {}
 
-boost::shared_ptr<sobec::IAMSoftContact3DAugmented>
+boost::shared_ptr<sobec::IAMSoftContactAugmented>
 IAMSoftContactFactory::create(IAMSoftContactTypes::Type iam_type,
                               DAMSoftContactAbstractTypes::Type dam_type,
                               PinocchioReferenceTypes::Type ref_type,
                               ContactModelMaskTypes::Type mask_type) const {
-  boost::shared_ptr<sobec::IAMSoftContact3DAugmented> iam;
+  boost::shared_ptr<sobec::IAMSoftContactAugmented> iam;
   switch (iam_type) {
-    case IAMSoftContactTypes::IAMSoftContact3DAugmented: {
+    case IAMSoftContactTypes::IAMSoftContactAugmented: {
       boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> dam =
           DAMSoftContact3DFactory().create(mapDAMSoftAbstractTo3D.at(dam_type), ref_type);
       double time_step = 1e-3;
       bool with_cost_residual = true;
-      iam = boost::make_shared<sobec::IAMSoftContact3DAugmented>(
+      iam = boost::make_shared<sobec::IAMSoftContactAugmented>(
           dam, time_step, with_cost_residual);
       break;
     }
@@ -53,7 +53,7 @@ IAMSoftContactFactory::create(IAMSoftContactTypes::Type iam_type,
           DAMSoftContact1DFactory().create(mapDAMSoftAbstractTo1D.at(dam_type), ref_type, mask_type);
       double time_step = 1e-3;
       bool with_cost_residual = true;
-      iam = boost::make_shared<sobec::IAMSoftContact3DAugmented>(
+      iam = boost::make_shared<sobec::IAMSoftContactAugmented>(
           dam, time_step, with_cost_residual);
       break;
     }

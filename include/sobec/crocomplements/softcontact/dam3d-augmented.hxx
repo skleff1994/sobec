@@ -110,7 +110,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
       d->u_drift = d->multibody.actuation->tau - d->pinocchio.nle;
       //  Compute jacobian transpose lambda
       pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL, d->lJ);
-      d->xout.noalias() = d->Minv * d->u_drift + d->Minv * d->lJ.topRows(3).transpose() * d->pinForce.linear(); //d->JtF;
+      d->xout.noalias() = d->Minv * d->u_drift + d->Minv * d->lJ.topRows(3).transpose() * d->pinForce.linear(); 
     // ABA without armature
     } else {
       d->xout = pinocchio::aba(this->get_pinocchio(), d->pinocchio, q, v, d->multibody.actuation->tau, d->fext); 

@@ -10,12 +10,12 @@
 #include <crocoddyl/core/utils/exception.hpp>
 #include <iostream>
 
-#include "iam3d-augmented.hpp"
+#include "iam-augmented.hpp"
 
 namespace sobec {
 using namespace crocoddyl;
 template <typename Scalar>
-IAMSoftContact3DAugmentedTpl<Scalar>::IAMSoftContact3DAugmentedTpl(
+IAMSoftContactAugmentedTpl<Scalar>::IAMSoftContactAugmentedTpl(
     boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamics> model,
     const Scalar& time_step,
     const bool& with_cost_residual)
@@ -42,10 +42,10 @@ IAMSoftContact3DAugmentedTpl<Scalar>::IAMSoftContact3DAugmentedTpl(
 }
 
 template <typename Scalar>
-IAMSoftContact3DAugmentedTpl<Scalar>::~IAMSoftContact3DAugmentedTpl() {}
+IAMSoftContactAugmentedTpl<Scalar>::~IAMSoftContactAugmentedTpl() {}
 
 template <typename Scalar>
-void IAMSoftContact3DAugmentedTpl<Scalar>::calc(
+void IAMSoftContactAugmentedTpl<Scalar>::calc(
     const boost::shared_ptr<ActionDataAbstract>& data,
     const Eigen::Ref<const VectorXs>& y, 
     const Eigen::Ref<const VectorXs>& u) {
@@ -136,7 +136,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calc(
 }  // calc
 
 template <typename Scalar>
-void IAMSoftContact3DAugmentedTpl<Scalar>::calc(
+void IAMSoftContactAugmentedTpl<Scalar>::calc(
     const boost::shared_ptr<ActionDataAbstract>& data,
     const Eigen::Ref<const VectorXs>& y) {
   const std::size_t& nx = differential_->get_state()->get_nx();
@@ -166,7 +166,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calc(
 
 
 template <typename Scalar>
-void IAMSoftContact3DAugmentedTpl<Scalar>::calcDiff(
+void IAMSoftContactAugmentedTpl<Scalar>::calcDiff(
     const boost::shared_ptr<ActionDataAbstract>& data,
     const Eigen::Ref<const VectorXs>& y, 
     const Eigen::Ref<const VectorXs>& u) {
@@ -231,7 +231,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calcDiff(
 }
 
 template <typename Scalar>
-void IAMSoftContact3DAugmentedTpl<Scalar>::calcDiff(
+void IAMSoftContactAugmentedTpl<Scalar>::calcDiff(
     const boost::shared_ptr<ActionDataAbstract>& data,
     const Eigen::Ref<const VectorXs>& y) {
   const std::size_t& nx = differential_->get_state()->get_nx();
@@ -261,12 +261,12 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::calcDiff(
 
 template <typename Scalar>
 boost::shared_ptr<ActionDataAbstractTpl<Scalar> >
-IAMSoftContact3DAugmentedTpl<Scalar>::createData() {
+IAMSoftContactAugmentedTpl<Scalar>::createData() {
   return boost::allocate_shared<Data>(Eigen::aligned_allocator<Data>(), this);
 }
 
 template <typename Scalar>
-bool IAMSoftContact3DAugmentedTpl<Scalar>::checkData(
+bool IAMSoftContactAugmentedTpl<Scalar>::checkData(
     const boost::shared_ptr<ActionDataAbstract>& data) {
   boost::shared_ptr<Data> d = boost::dynamic_pointer_cast<Data>(data);
   boost::shared_ptr<DADSoftContactAbstractAugmentedFwdDynamics> diff_data_soft = boost::static_pointer_cast<DADSoftContactAbstractAugmentedFwdDynamics>(d->differential);
@@ -279,18 +279,18 @@ bool IAMSoftContact3DAugmentedTpl<Scalar>::checkData(
 
 template <typename Scalar>
 const boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar> >&
-IAMSoftContact3DAugmentedTpl<Scalar>::get_differential() const {
+IAMSoftContactAugmentedTpl<Scalar>::get_differential() const {
   return differential_;
 }
 
 template <typename Scalar>
-const Scalar& IAMSoftContact3DAugmentedTpl<Scalar>::get_dt() const {
+const Scalar& IAMSoftContactAugmentedTpl<Scalar>::get_dt() const {
   return time_step_;
 }
 
 
 template <typename Scalar>
-void IAMSoftContact3DAugmentedTpl<Scalar>::set_dt(const Scalar& dt) {
+void IAMSoftContactAugmentedTpl<Scalar>::set_dt(const Scalar& dt) {
   if (dt < 0.) {
     throw_pretty("Invalid argument: "
                  << "dt has positive value");
@@ -301,7 +301,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::set_dt(const Scalar& dt) {
 
 
 template <typename Scalar>
-void IAMSoftContact3DAugmentedTpl<Scalar>::set_differential(
+void IAMSoftContactAugmentedTpl<Scalar>::set_differential(
     boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamics> model) {
   const std::size_t& nu = model->get_nu();
   if (nu_ != nu) {
@@ -317,7 +317,7 @@ void IAMSoftContact3DAugmentedTpl<Scalar>::set_differential(
 }
 
 // template <typename Scalar>
-// void IAMSoftContact3DAugmentedTpl<Scalar>::quasiStatic(
+// void IAMSoftContactAugmentedTpl<Scalar>::quasiStatic(
 //     const boost::shared_ptr<ActionDataAbstract>& data, Eigen::Ref<VectorXs> u,
 //     const Eigen::Ref<const VectorXs>& x, 
 //     const std::size_t& maxiter,

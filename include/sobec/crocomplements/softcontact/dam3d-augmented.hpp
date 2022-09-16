@@ -25,8 +25,9 @@ namespace sobec {
 
 /**
  * @brief Differential action model for visco-elastic contact forward dynamics in multibody
- * systems (augmented dynamics including contact force as a state, designed specifically for force feedback MPC)
+ * systems (augmented dynamics including contact force as a state)
  *
+ * Derived class with 3D force (linear)
  * Maths here : https://www.overleaf.com/read/xdpymjfhqqhn
  *
  * \sa `DAMSoftContact3DAugmentedFwdDynamicsTpl`, `calc()`, `calcDiff()`,
@@ -81,9 +82,9 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the system acceleration, and cost value
    *
-   * It computes the system acceleration using the free forward-dynamics.
+   * It computes the system acceleration using the soft contact forward-dynamics.
    *
-   * @param[in] data  Free forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    * @param[in] u     Control input \f$\mathbf{u}\in\mathbb{R}^{nu}\f$
@@ -96,9 +97,9 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the system acceleration, and cost value
    *
-   * It computes the system acceleration using the free forward-dynamics.
+   * It computes the system acceleration using the soft contact forward-dynamics.
    *
-   * @param[in] data  Free forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    */
@@ -218,8 +219,7 @@ struct DADSoftContact3DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::da_dx;
   using Base::da_du;
   using Base::da_df;
-  // Current force and next force
-  using Base::f_copy;
+  // Time-derivative of contact force
   using Base::fout;
   using Base::fout_copy;
   // Spatial wrench due to contact force
@@ -238,8 +238,6 @@ struct DADSoftContact3DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::Lff;
   // Force residual for hard coded tracking cost
   using Base::f_residual;
-
-  using Base::JtF;
 
   using Base::cost;
   using Base::Fu;

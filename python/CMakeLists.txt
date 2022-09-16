@@ -22,7 +22,7 @@ set(${PY_NAME}_SOURCES
   # crocomplements/softcontact/dam-augmented.hpp
   crocomplements/softcontact/dam3d-augmented.cpp
   crocomplements/softcontact/dam1d-augmented.cpp
-  crocomplements/softcontact/iam3d-augmented.cpp
+  crocomplements/softcontact/iam-augmented.cpp
   crocomplements/softcontact/state.cpp
   walk-with-traj/designer.cpp
   walk-with-traj/horizon_manager.cpp

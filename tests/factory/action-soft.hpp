@@ -14,7 +14,7 @@
 #include "crocoddyl/core/action-base.hpp"
 #include "crocoddyl/core/numdiff/action.hpp"
 
-#include "sobec/crocomplements/softcontact/iam3d-augmented.hpp"
+#include "sobec/crocomplements/softcontact/iam-augmented.hpp"
 #include "statesoft.hpp"
 
 #include "diff-action-soft-abstract.hpp"
@@ -26,7 +26,7 @@ namespace unittest {
 
 struct IAMSoftContactTypes {
   enum Type {
-    IAMSoftContact3DAugmented,
+    IAMSoftContactAugmented,
     IAMSoftContact1DAugmented,
     NbIAMSoftContactTypes
   };
@@ -72,7 +72,7 @@ class IAMSoftContactFactory {
   explicit IAMSoftContactFactory();
   ~IAMSoftContactFactory();
 
-  boost::shared_ptr<sobec::IAMSoftContact3DAugmented> create(
+  boost::shared_ptr<sobec::IAMSoftContactAugmented> create(
       IAMSoftContactTypes::Type iam_type,
       DAMSoftContactAbstractTypes::Type dam_type,
       PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
