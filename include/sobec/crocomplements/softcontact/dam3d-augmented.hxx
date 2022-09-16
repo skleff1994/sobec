@@ -350,33 +350,6 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_force_cost(const Vecto
   with_force_cost_ = true;
 }
 
-// template <typename Scalar>
-// void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_Kp(const Scalar inKp) {
-//   if (inKp < 0.) {
-//     throw_pretty("Invalid argument: "
-//                  << "Stiffness should be positive");
-//   }
-//   Kp_ = inKp;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_Kv(const Scalar inKv) {
-//   if (inKv < 0.) {
-//     throw_pretty("Invalid argument: "
-//                  << "Damping should be positive");
-//   }
-//   Kv_ = inKv;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_oPc(const Vector3s& inoPc) {
-//   if (inoPc.size() != 3) {
-//     throw_pretty("Invalid argument: "
-//                  << "Anchor point position should have size 3");
-//   }
-//   oPc_ = inoPc;
-// }
-
 template <typename Scalar>
 void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_force_des(const Vector3s& inForceDes) {
   if (inForceDes.size() != 3) {
@@ -395,31 +368,6 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_force_weight(const Sca
   force_weight_ = inForceWeight;
 }
 
-// template <typename Scalar>
-// void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_ref(const pinocchio::ReferenceFrame inRef) {
-//   ref_ = inRef;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_id(const pinocchio::FrameIndex inId) {
-//   frameId_ = inId;
-// }
-
-// template <typename Scalar>
-// const Scalar DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_Kp() const {
-//   return Kp_;
-// }
-
-// template <typename Scalar>
-// const Scalar DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_Kv() const {
-//   return Kv_;
-// }
-
-// template <typename Scalar>
-// const typename MathBaseTpl<Scalar>::Vector3s& DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_oPc() const {
-//   return oPc_;
-// }
-
 template <typename Scalar>
 const typename MathBaseTpl<Scalar>::Vector3s& DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_force_des() const {
   return force_des_;
@@ -429,33 +377,5 @@ template <typename Scalar>
 const Scalar DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_force_weight() const {
   return force_weight_;
 }
-
-// template <typename Scalar>
-// const pinocchio::ReferenceFrame& DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_ref() const {
-//   return ref_;
-// }
-
-// template <typename Scalar>
-// const pinocchio::FrameIndex& DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_id() const {
-//   return frameId_;
-// }
-
-
-// // armature
-// template <typename Scalar>
-// const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_armature() const {
-//   return armature_;
-// }
-
-// template <typename Scalar>
-// void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_armature(const VectorXs& armature) {
-//   if (static_cast<std::size_t>(armature.size()) != this->get_state()->get_nv()) {
-//     throw_pretty("Invalid argument: "
-//                  << "The armature dimension is wrong (it should be " + std::to_string(this->get_state()->get_nv()) + ")");
-//   }
-//   armature_ = armature;
-//   with_armature_ = true;
-// }
-
 
 }  // namespace sobec
