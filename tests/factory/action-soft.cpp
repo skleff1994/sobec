@@ -7,7 +7,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "action-soft.hpp"
-
 #include <crocoddyl/core/utils/exception.hpp>
 
 namespace sobec {
@@ -21,6 +20,9 @@ std::ostream& operator<<(std::ostream& os, IAMSoftContactTypes::Type type) {
     case IAMSoftContactTypes::IAMSoftContact3DAugmented:
       os << "IAMSoftContact3DAugmented";
       break;
+    case IAMSoftContactTypes::IAMSoftContact1DAugmented:
+      os << "IAMSoftContact1DAugmented";
+      break;
     default:
       break;
   }
@@ -32,20 +34,29 @@ IAMSoftContactFactory::~IAMSoftContactFactory() {}
 
 boost::shared_ptr<sobec::IAMSoftContact3DAugmented>
 IAMSoftContactFactory::create(IAMSoftContactTypes::Type iam_type,
-                              DAMSoftContact3DTypes::Type dam_type,
-                              PinocchioReferenceTypes::Type ref_type) const {
+                              DAMSoftContactAbstractTypes::Type dam_type,
+                              PinocchioReferenceTypes::Type ref_type,
+                              ContactModelMaskTypes::Type mask_type) const {
   boost::shared_ptr<sobec::IAMSoftContact3DAugmented> iam;
-  boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> dam =
-      DAMSoftContact3DFactory().create(dam_type, ref_type);
   switch (iam_type) {
     case IAMSoftContactTypes::IAMSoftContact3DAugmented: {
+      boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> dam =
+          DAMSoftContact3DFactory().create(mapDAMSoftAbstractTo3D.at(dam_type), ref_type);
       double time_step = 1e-3;
       bool with_cost_residual = true;
       iam = boost::make_shared<sobec::IAMSoftContact3DAugmented>(
           dam, time_step, with_cost_residual);
       break;
     }
-
+    case IAMSoftContactTypes::IAMSoftContact1DAugmented: {
+      boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> dam =
+          DAMSoftContact1DFactory().create(mapDAMSoftAbstractTo1D.at(dam_type), ref_type, mask_type);
+      double time_step = 1e-3;
+      bool with_cost_residual = true;
+      iam = boost::make_shared<sobec::IAMSoftContact3DAugmented>(
+          dam, time_step, with_cost_residual);
+      break;
+    }
     default:
       throw_pretty(__FILE__ ": Wrong IAMSoftContactTypes::Type given");
       break;

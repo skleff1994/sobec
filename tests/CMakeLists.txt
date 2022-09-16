@@ -7,6 +7,7 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/statelpf.hpp
   factory/statesoft.hpp
   factory/lpf.hpp
+  factory/diff-action-soft-abstract.hpp
   factory/diff-action-soft3d.hpp
   factory/diff-action-soft1d.hpp
   factory/diff-action.hpp
@@ -22,6 +23,7 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/statesoft.cpp
   factory/lpf.cpp
   factory/diff-action.cpp
+  factory/diff-action-soft-abstract.cpp
   factory/diff-action-soft3d.cpp
   factory/diff-action-soft1d.cpp
   factory/action-soft.cpp

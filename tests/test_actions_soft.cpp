@@ -25,12 +25,13 @@ using namespace sobec::unittest;
 
 void test_check_data(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL, 
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // create the model
   IAMSoftContactFactory factory_iam;
   const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& model =
-      factory_iam.create(iam_type, dam_type, ref_type);
+      factory_iam.create(iam_type, dam_type, ref_type, mask_type);
   // Run the print function
   std::ostringstream tmp;
   tmp << *model;
@@ -44,12 +45,13 @@ void test_check_data(
 
 void test_calc_returns_state(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL, 
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // create the model
   IAMSoftContactFactory factory_iam;
   const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& model =
-      factory_iam.create(iam_type, dam_type, ref_type);
+      factory_iam.create(iam_type, dam_type, ref_type, mask_type);
   // create the corresponding data object
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& data =
       model->createData();
@@ -64,12 +66,13 @@ void test_calc_returns_state(
 
 void test_calc_returns_a_cost(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL, 
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // create the model
   IAMSoftContactFactory factory_iam;
   const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& model =
-      factory_iam.create(iam_type, dam_type, ref_type);
+      factory_iam.create(iam_type, dam_type, ref_type, mask_type);
   // create the corresponding data object and set the cost to nan
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& data =
       model->createData();
@@ -125,12 +128,13 @@ void test_partial_derivatives_against_numdiff(
 
 void test_partial_derivatives_action_model(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL, 
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // create the model
   IAMSoftContactFactory factory;
   const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& model =
-      factory.create(iam_type, dam_type, ref_type);
+      factory.create(iam_type, dam_type, ref_type, mask_type);
   test_partial_derivatives_against_numdiff(model);
 }
 
@@ -176,12 +180,13 @@ void test_partial_derivatives_against_numdiff_terminal(
 
 void test_partial_derivatives_action_model_terminal(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL, 
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // create the model
   IAMSoftContactFactory factory;
   const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& model =
-      factory.create(iam_type, dam_type, ref_type);
+      factory.create(iam_type, dam_type, ref_type, mask_type);
   model->set_dt(0.);
   test_partial_derivatives_against_numdiff_terminal(model);
 }
@@ -191,11 +196,12 @@ void test_partial_derivatives_action_model_terminal(
 
 void test_calc_equivalent_euler(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL, 
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // Create IAM soft from DAMSoft
   IAMSoftContactFactory factory_iam;
-  const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& modelSoft = factory_iam.create(iam_type, dam_type, ref_type);
+  const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& modelSoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelSoft->createData();
   // Set gains to 0
   modelSoft->get_differential()->set_Kp(0.);
@@ -224,11 +230,12 @@ void test_calc_equivalent_euler(
 
 void test_calcDiff_equivalent_euler(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // Create IAM soft from DAMSoft
   IAMSoftContactFactory factory_iam;
-  const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& modelSoft = factory_iam.create(iam_type, dam_type, ref_type);
+  const boost::shared_ptr<sobec::IAMSoftContact3DAugmented>& modelSoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelSoft->createData();
   // Set gains to 0
   modelSoft->get_differential()->set_Kp(0.);
@@ -274,38 +281,61 @@ void test_calcDiff_equivalent_euler(
 }
 
 
-
 //----------------------------------------------------------------------------//
 
 void register_action_model_unit_tests(
     IAMSoftContactTypes::Type iam_type,
-    DAMSoftContact3DTypes::Type dam_type,
-    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) {
+    DAMSoftContactAbstractTypes::Type dam_type,
+    PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
+    ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   boost::test_tools::output_test_stream test_name;
-  test_name << "test_" << iam_type << "_" << dam_type << "_" << ref_type;
+  // 3D
+  if(iam_type == IAMSoftContactTypes::Type::IAMSoftContact3DAugmented){
+    test_name << "test_" << iam_type << "_" << dam_type << "_" << ref_type;
+  // 1D
+  } else {
+    test_name << "test_" << iam_type << "_" << dam_type << "_" << ref_type << "_" << mask_type;
+  }
   std::cout << "Running " << test_name.str() << std::endl;
   test_suite* ts = BOOST_TEST_SUITE(test_name.str());
 //   ts->add(BOOST_TEST_CASE(boost::bind(&test_check_data, iam_type, dam_type, ref_type)));
-  ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_state, iam_type, dam_type, ref_type)));
-  ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_a_cost, iam_type, dam_type, ref_type)));
-  ts->add(BOOST_TEST_CASE(boost::bind(&test_partial_derivatives_action_model, iam_type, dam_type, ref_type)));
+  ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_state, iam_type, dam_type, ref_type, mask_type)));
+  ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_a_cost, iam_type, dam_type, ref_type, mask_type)));
+  ts->add(BOOST_TEST_CASE(boost::bind(&test_partial_derivatives_action_model, iam_type, dam_type, ref_type, mask_type)));
   // Need to test terminal model as well ? Seems to be incompatible with Euler test 
   // ts->add(BOOST_TEST_CASE(boost::bind(&test_partial_derivatives_action_model_terminal, iam_type, dam_type, ref_type)));
   // Equivalence with Euler when Kp, Kv=0
-  ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_equivalent_euler, iam_type, dam_type, ref_type)));
-  ts->add(BOOST_TEST_CASE(boost::bind(&test_calcDiff_equivalent_euler, iam_type, dam_type, ref_type)));
+  ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_equivalent_euler, iam_type, dam_type, ref_type, mask_type)));
+  ts->add(BOOST_TEST_CASE(boost::bind(&test_calcDiff_equivalent_euler, iam_type, dam_type, ref_type, mask_type)));
   framework::master_test_suite().add(ts);
 }
 
 bool init_function() {
 
-  // 3D contact
   for (size_t i = 0; i < IAMSoftContactTypes::all.size(); ++i) {
-    for (size_t j = 0; j < DAMSoftContact3DTypes::all.size(); ++j) {
-      for (size_t k = 0; k < PinocchioReferenceTypes::all.size(); ++k) {
-        register_action_model_unit_tests(IAMSoftContactTypes::all[i],
-                                         DAMSoftContact3DTypes::all[j],
-                                         PinocchioReferenceTypes::all[k]);
+    
+    // Contact 3D 
+    if(IAMSoftContactTypes::all[i] == IAMSoftContactTypes::Type::IAMSoftContact3DAugmented){
+      for (size_t j = 0; j < DAMSoftContactAbstractTypes::all.size(); ++j) {
+        for (size_t k = 0; k < PinocchioReferenceTypes::all.size(); ++k) {
+          register_action_model_unit_tests(IAMSoftContactTypes::all[i],
+                                          DAMSoftContactAbstractTypes::all[j],
+                                          PinocchioReferenceTypes::all[k]);
+        }
+      }
+    }
+
+    // Contact 1D 
+    if(IAMSoftContactTypes::all[i] == IAMSoftContactTypes::Type::IAMSoftContact1DAugmented){
+      for (size_t j = 0; j < DAMSoftContactAbstractTypes::all.size(); ++j) {
+        for (size_t k = 0; k < PinocchioReferenceTypes::all.size(); ++k) {
+          for (size_t l = 0; l < ContactModelMaskTypes::all.size(); ++l) {
+            register_action_model_unit_tests(IAMSoftContactTypes::all[i],
+                                            DAMSoftContactAbstractTypes::all[j],
+                                            PinocchioReferenceTypes::all[k],
+                                            ContactModelMaskTypes::all[l]);
+          }
+        }
       }
     }
   }

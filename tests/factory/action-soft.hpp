@@ -16,7 +16,10 @@
 
 #include "sobec/crocomplements/softcontact/iam3d-augmented.hpp"
 #include "statesoft.hpp"
+
+#include "diff-action-soft-abstract.hpp"
 #include "diff-action-soft3d.hpp"
+#include "diff-action-soft1d.hpp"
 
 namespace sobec {
 namespace unittest {
@@ -24,7 +27,7 @@ namespace unittest {
 struct IAMSoftContactTypes {
   enum Type {
     IAMSoftContact3DAugmented,
-    // IAMSoftContact3DAugmented_terminal,
+    IAMSoftContact1DAugmented,
     NbIAMSoftContactTypes
   };
   static std::vector<Type> init_all() {
@@ -38,6 +41,28 @@ struct IAMSoftContactTypes {
   static const std::vector<Type> all;
 };
 
+const std::map<DAMSoftContactAbstractTypes::Type, DAMSoftContact3DTypes::Type>
+    mapDAMSoftAbstractTo3D{
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_TalosArm,
+            DAMSoftContact3DTypes::DAMSoftContact3DAugmentedFwdDynamics_TalosArm},
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_HyQ, 
+            DAMSoftContact3DTypes::DAMSoftContact3DAugmentedFwdDynamics_HyQ},
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_RandomHumanoid, 
+            DAMSoftContact3DTypes::DAMSoftContact3DAugmentedFwdDynamics_RandomHumanoid},
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_Talos, 
+            DAMSoftContact3DTypes::DAMSoftContact3DAugmentedFwdDynamics_Talos}};
+
+const std::map<DAMSoftContactAbstractTypes::Type, DAMSoftContact1DTypes::Type>
+    mapDAMSoftAbstractTo1D{
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_TalosArm,
+            DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_TalosArm},
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_HyQ, 
+            DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_HyQ},
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_RandomHumanoid, 
+            DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_RandomHumanoid},
+        {DAMSoftContactAbstractTypes::DAMSoftContactAbstractAugmentedFwdDynamics_Talos, 
+            DAMSoftContact1DTypes::DAMSoftContact1DAugmentedFwdDynamics_Talos}};
+
 std::ostream& operator<<(std::ostream& os, IAMSoftContactTypes::Type type);
 
 class IAMSoftContactFactory {
@@ -49,8 +74,9 @@ class IAMSoftContactFactory {
 
   boost::shared_ptr<sobec::IAMSoftContact3DAugmented> create(
       IAMSoftContactTypes::Type iam_type,
-      DAMSoftContact3DTypes::Type dam_type,
-      PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL) const;
+      DAMSoftContactAbstractTypes::Type dam_type,
+      PinocchioReferenceTypes::Type ref_type = PinocchioReferenceTypes::LOCAL,
+      ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) const;
 };
 
 }  // namespace unittest
