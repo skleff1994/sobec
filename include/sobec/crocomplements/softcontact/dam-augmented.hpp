@@ -24,8 +24,9 @@ namespace sobec {
 
 /**
  * @brief Differential action model for visco-elastic contact forward dynamics in multibody
- * systems (augmented dynamics including contact force as a state, designed specifically for force feedback MPC)
- *
+ * systems (augmented dynamics including the contact force as a state)
+ * 
+ * Abstract class designed specifically for cartesian force feedback MPC
  * Maths here : https://www.overleaf.com/read/xdpymjfhqqhn
  *
  * \sa `DifferentialActionModelFreeFwdDynamicsTpl`, `calc()`, `calcDiff()`,
@@ -82,9 +83,9 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the system acceleration, and cost value
    *
-   * It computes the system acceleration using the free forward-dynamics.
+   * It computes the system acceleration using soft contact forward-dynamics.
    *
-   * @param[in] data  Free forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    * @param[in] u     Control input \f$\mathbf{u}\in\mathbb{R}^{nu}\f$
@@ -97,9 +98,9 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the system acceleration, and cost value
    *
-   * It computes the system acceleration using the free forward-dynamics.
+   * It computes the system acceleration using the soft contact forward-dynamics.
    *
-   * @param[in] data  Free forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    */
@@ -213,7 +214,6 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         da_dx(6,model->get_state()->get_ndx()),
         da_du(6,model->get_nu()),
         da_df(6,model->get_nc()),
-        f_copy(model->get_nc()),
         fout(model->get_nc()),
         fout_copy(model->get_nc()),
         pinForce(pinocchio::ForceTpl<Scalar>::Zero()),
@@ -227,8 +227,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         dfdt_df_copy(model->get_nc(), model->get_nc()),
         Lf(model->get_nc()),
         Lff(model->get_nc(), model->get_nc()),
-        f_residual(model->get_nc()),
-        JtF(model->get_state()->get_nv(), model->get_state()->get_nv()) {
+        f_residual(model->get_nc()) {
     costs->shareMemory(this);
     Minv.setZero();
     u_drift.setZero();
@@ -256,7 +255,6 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     da_dx.setZero();
     da_du.setZero();
     da_df.setZero();
-    f_copy.setZero();
     fout.setZero();
     fout_copy.setZero();
     dfdt_dx.setZero();
@@ -268,7 +266,6 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     Lf.setZero();
     Lff.setZero();
     f_residual.setZero();
-    JtF.setZero();
   }
 
   using Base::pinocchio;
@@ -280,55 +277,53 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
 
   MatrixXs dtau_dx;
   // Contact frame rotation and Jacobians
-  Matrix3s oRf;
-  MatrixXs lJ;
-  MatrixXs oJ;
+  Matrix3s oRf;       //!< Contact frame rotation matrix 
+  MatrixXs lJ;        //!< Contact frame LOCAL Jacobian matrix
+  MatrixXs oJ;        //!< Contact frame WORLD Jacobian matrix
   // Partials of ABA w.r.t. state and control
-  MatrixXs aba_dq;
-  MatrixXs aba_dv;
-  MatrixXs aba_dx;
-  MatrixXs aba_dtau;
-  MatrixXs aba_df;
+  MatrixXs aba_dq;    //!< Partial derivative of ABA w.r.t. joint positions
+  MatrixXs aba_dv;    //!< Partial derivative of ABA w.r.t. joint velocities
+  MatrixXs aba_dx;    //!< Partial derivative of ABA w.r.t. joint state (positions, velocities)
+  MatrixXs aba_dtau;  //!< Partial derivative of ABA w.r.t. joint torques 
+  MatrixXs aba_df;    //!< Partial derivative of ABA w.r.t. contact force
   // Frame linear velocity and acceleration in LOCAL and LOCAL_WORLD_ALIGNED frames
-  Vector3s lv;
-  Vector3s la;
-  Vector3s ov;
-  Vector3s oa;
+  Vector3s lv;        //!< Linear spatial velocity of the contact frame in LOCAL
+  Vector3s la;        //!< Linear spatial acceleration of the contact frame in LOCAL
+  Vector3s ov;        //!< Linear spatial velocity of the contact frame in LOCAL_WORLD_ALIGNED
+  Vector3s oa;        //!< Linear spatial acceleration of the contact frame in LOCAL_WORLD_ALIGNED
   // Partials of frame spatial velocity w.r.t. joint pos, vel, acc
-  MatrixXs lv_dq;
-  MatrixXs lv_dv;
-  MatrixXs lv_dx;
+  MatrixXs lv_dq;     //!< Partial derivative of spatial velocity of the contact frame w.r.t. joint positions in LOCAL
+  MatrixXs lv_dv;     //!< Partial derivative of spatial velocity of the contact frame w.r.t. joint velocities in LOCAL
+  MatrixXs lv_dx;     //!< Partial derivative of spatial velocity of the contact frame w.r.t. joint state (positions, velocities) in LOCAL
   // Partials of frame spatial acceleration w.r.t. joint pos, vel, acc
-  MatrixXs v_dv;
-  MatrixXs a_dq;
-  MatrixXs a_dv;
-  MatrixXs a_da;
+  MatrixXs v_dv;      //!< Partial derivative of spatial velocity of the contact frame w.r.t. joint velocity in LOCAL (not used)
+  MatrixXs a_dq;      //!< Partial derivative of spatial acceleration of the contact frame w.r.t. joint positions in LOCAL
+  MatrixXs a_dv;      //!< Partial derivative of spatial acceleration of the contact frame w.r.t. joint velocities in LOCAL
+  MatrixXs a_da;      //!< Partial derivative of spatial acceleration of the contact frame w.r.t. joint accelerations in LOCAL
   // Partial of frame spatial acc w.r.t. state 
-  MatrixXs da_dx;
-  MatrixXs da_du;
-  MatrixXs da_df;
+  MatrixXs da_dx;     //!< Partial derivative of spatial acceleration of the contact frame w.r.t. joint state (positions, velocities) in LOCAL
+  MatrixXs da_du;     //!< Partial derivative of spatial acceleration of the contact frame w.r.t. joint torques in LOCAL
+  MatrixXs da_df;     //!< Partial derivative of spatial acceleration of the contact frame w.r.t. contact force in LOCAL
   // Current force and next force
-  VectorXs f_copy;
-  VectorXs fout;
-  VectorXs fout_copy;
+  VectorXs fout;      //!< Contact force time-derivative (output of the soft contact forward dynamics)
+  VectorXs fout_copy; //!< Contact force time-derivative (output of the soft contact forward dynamics) (copy)
   // Spatial wrench due to contact force
-  pinocchio::ForceTpl<Scalar> pinForce;
-  pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext;  //!< External spatial forces in body coordinates (joint level)
-  pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext_copy;  //!< External spatial forces in body coordinates (joint level)
+  pinocchio::ForceTpl<Scalar> pinForce;                                         //!< External spatial force in body coordinates (at parent joint level)
+  pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext;      //!< External spatial forces in body coordinates (joint level)
+  pinocchio::container::aligned_vector<pinocchio::ForceTpl<Scalar> > fext_copy; //!< External spatial forces in body coordinates (joint level) (copy)
   // Partial derivatives of next force w.r.t. augmented state
-  MatrixXs dfdt_dx;
-  MatrixXs dfdt_du;
-  MatrixXs dfdt_df;
-  MatrixXs dfdt_dx_copy;
-  MatrixXs dfdt_du_copy;
-  MatrixXs dfdt_df_copy;
+  MatrixXs dfdt_dx;         //!< Partial derivative of fout w.r.t. joint state (positions, velocities)
+  MatrixXs dfdt_du;         //!< Partial derivative of fout w.r.t. joint torques  
+  MatrixXs dfdt_df;         //!< Partial derivative of fout w.r.t. contact force
+  MatrixXs dfdt_dx_copy;    //!< Partial derivative of fout w.r.t. joint state (copy)
+  MatrixXs dfdt_du_copy;    //!< Partial derivative of fout w.r.t. joint torques (copy)
+  MatrixXs dfdt_df_copy;    //!< Partial derivative of fout w.r.t. contact force (copy)
   // Partials of cost w.r.t. force 
-  VectorXs Lf;
-  MatrixXs Lff;
+  VectorXs Lf;              //!< Gradient of the cost w.r.t. contact force
+  MatrixXs Lff;             //!< Hessian of the cost w.r.t. contact force
   // Force residual for hard coded tracking cost
-  VectorXs f_residual;
+  VectorXs f_residual;      //!< Contact force residual
 
-  MatrixXs JtF;
   using Base::cost;
   using Base::Fu;
   using Base::Fx;

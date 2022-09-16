@@ -31,7 +31,7 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn();
 void exposeDAMSoftContact3DAugmentedFwdDyn();
 void exposeDAMSoftContact1DAugmentedFwdDyn();
 void exposeStateSoftContact();
-void exposeIAMSoftContact3DAugmented();
+void exposeIAMSoftContactAugmented();
 
 }  // namespace python
 }  // namespace sobec

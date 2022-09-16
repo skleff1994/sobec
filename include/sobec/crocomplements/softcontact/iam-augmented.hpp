@@ -22,14 +22,14 @@ namespace sobec {
 using namespace crocoddyl;
 
 template <typename _Scalar>
-class IAMSoftContact3DAugmentedTpl : public ActionModelAbstractTpl<_Scalar> {
+class IAMSoftContactAugmentedTpl : public ActionModelAbstractTpl<_Scalar> {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   typedef _Scalar Scalar;
   typedef MathBaseTpl<Scalar> MathBase;
   typedef ActionModelAbstractTpl<Scalar> Base;
-  typedef IADSoftContact3DAugmentedTpl<Scalar> Data;
+  typedef IADSoftContactAugmentedTpl<Scalar> Data;
   typedef ActionDataAbstractTpl<Scalar> ActionDataAbstract;
   typedef DifferentialActionModelAbstractTpl<Scalar>
       DifferentialActionModelAbstract;
@@ -41,11 +41,11 @@ class IAMSoftContact3DAugmentedTpl : public ActionModelAbstractTpl<_Scalar> {
   typedef StateMultibodyTpl<Scalar> StateMultibody;
   typedef pinocchio::ModelTpl<Scalar> PinocchioModel;
 
-  IAMSoftContact3DAugmentedTpl(
+  IAMSoftContactAugmentedTpl(
       boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamics> model,
       const Scalar& time_step = Scalar(1e-3),
       const bool& with_cost_residual = true);
-  virtual ~IAMSoftContact3DAugmentedTpl();
+  virtual ~IAMSoftContactAugmentedTpl();
 
   virtual void calc(const boost::shared_ptr<ActionDataAbstract>& data,
                     const Eigen::Ref<const VectorXs>& y,
@@ -104,7 +104,7 @@ class IAMSoftContact3DAugmentedTpl : public ActionModelAbstractTpl<_Scalar> {
 };
 
 template <typename _Scalar>
-struct IADSoftContact3DAugmentedTpl : public ActionDataAbstractTpl<_Scalar> {
+struct IADSoftContactAugmentedTpl : public ActionDataAbstractTpl<_Scalar> {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   typedef _Scalar Scalar;
@@ -119,14 +119,14 @@ struct IADSoftContact3DAugmentedTpl : public ActionDataAbstractTpl<_Scalar> {
       DADSoftContactAbstractAugmentedFwdDynamics;
 
   template <template <typename Scalar> class Model>
-  explicit IADSoftContact3DAugmentedTpl(Model<Scalar>* const model)
+  explicit IADSoftContactAugmentedTpl(Model<Scalar>* const model)
       : Base(model), tau_tmp(model->get_nu()) {
     tau_tmp.setZero();
     differential = model->get_differential()->createData();
     const std::size_t& ndy = model->get_state()->get_ndx();
     dy = VectorXs::Zero(ndy);
   }
-  virtual ~IADSoftContact3DAugmentedTpl() {}
+  virtual ~IADSoftContactAugmentedTpl() {}
 
   boost::shared_ptr<DifferentialActionDataAbstractTpl<Scalar> > differential;
   VectorXs dy;
@@ -150,6 +150,6 @@ struct IADSoftContact3DAugmentedTpl : public ActionDataAbstractTpl<_Scalar> {
 /* --- Details -------------------------------------------------------------- */
 /* --- Details -------------------------------------------------------------- */
 /* --- Details -------------------------------------------------------------- */
-#include "sobec/crocomplements/softcontact/iam3d-augmented.hxx"
+#include "sobec/crocomplements/softcontact/iam-augmented.hxx"
 
 #endif  // SOBEC_IAM3D_AUGMENTED_HPP_

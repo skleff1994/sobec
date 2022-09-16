@@ -28,7 +28,7 @@ void exposeDAMSoftContact1DAugmentedFwdDyn() {
 
   bp::class_<DAMSoftContact1DAugmentedFwdDynamics, bp::bases<sobec::DAMSoftContactAbstractAugmentedFwdDynamics>>(
       "DAMSoftContact1DAugmentedFwdDynamics", 
-      "Differential action model for visco-elastic contact forward dynamics in multibody systems.",
+      "Differential action model for 1D visco-elastic contact forward dynamics in multibody systems.",
       bp::init<boost::shared_ptr<crocoddyl::StateMultibody>,
                boost::shared_ptr<crocoddyl::ActuationModelAbstract>,
                boost::shared_ptr<crocoddyl::CostModelSum>,
@@ -133,12 +133,12 @@ void exposeDAMSoftContact1DAugmentedFwdDyn() {
           "f3d",
           bp::make_getter(&sobec::DADSoftContact1DAugmentedFwdDynamics::f3d,
                           bp::return_internal_reference<>()),
-          "Partial LOCAL 3D contact force")
+          "LOCAL 3D contact force")
       .add_property(
           "fout3d",
           bp::make_getter(&sobec::DADSoftContact1DAugmentedFwdDynamics::f3d,
                           bp::return_internal_reference<>()),
-          "Time derivative of the LOCAL 3D contact force")
+          "Time-derivative of the LOCAL 3D contact force")
       .add_property(
           "dfdt3d_dx",
           bp::make_getter(&sobec::DADSoftContact1DAugmentedFwdDynamics::dfdt3d_dx,

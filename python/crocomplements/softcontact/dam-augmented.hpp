@@ -9,12 +9,6 @@
 #ifndef BINDINGS_PYTHON_SOBEC_CORE_DIFF_ACTION_BASE_HPP_
 #define BINDINGS_PYTHON_SOBEC_CORE_DIFF_ACTION_BASE_HPP_
 
-// #include "crocoddyl/core/diff-action-base.hpp"
-// #include "crocoddyl/core/utils/exception.hpp"
-// #include "crocoddyl/multibody/states/multibody.hpp"
-
-// #include "python/crocoddyl/core/core.hpp"
-
 #include "sobec/crocomplements/softcontact/dam-augmented.hpp"
 
 #include <boost/python.hpp>

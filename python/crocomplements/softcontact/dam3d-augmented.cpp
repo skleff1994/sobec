@@ -24,7 +24,7 @@ void exposeDAMSoftContact3DAugmentedFwdDyn() {
 
   bp::class_<DAMSoftContact3DAugmentedFwdDynamics, bp::bases<sobec::DAMSoftContactAbstractAugmentedFwdDynamics>>(
       "DAMSoftContact3DAugmentedFwdDynamics", 
-      "Differential action model for visco-elastic contact forward dynamics in multibody systems.",
+      "Differential action model for 3D visco-elastic contact forward dynamics in multibody systems.",
       bp::init<boost::shared_ptr<crocoddyl::StateMultibody>,
                boost::shared_ptr<crocoddyl::ActuationModelAbstract>,
                boost::shared_ptr<crocoddyl::CostModelSum>,

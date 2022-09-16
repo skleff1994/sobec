@@ -6,7 +6,7 @@
 // All rights reserved.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "sobec/crocomplements/softcontact/iam3d-augmented.hpp"
+#include "sobec/crocomplements/softcontact/iam-augmented.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/enum.hpp>
@@ -21,9 +21,9 @@ namespace python {
 using namespace crocoddyl;
 namespace bp = boost::python;
 
-void exposeIAMSoftContact3DAugmented() {
-  bp::class_<IAMSoftContact3DAugmented, bp::bases<ActionModelAbstract> >(
-      "IAMSoftContact3DAugmented",
+void exposeIAMSoftContactAugmented() {
+  bp::class_<IAMSoftContactAugmented, bp::bases<ActionModelAbstract> >(
+      "IAMSoftContactAugmented",
       "Sympletic Euler integrator for differential action models.\n\n"
       "This class implements a sympletic Euler integrator (a.k.a "
       "semi-implicit\n"
@@ -40,11 +40,11 @@ void exposeIAMSoftContact3DAugmented() {
           ":param withCostResidual: includes the cost residuals and "
           "derivatives\n"
           "computation, or tau"))
-      .def<void (IAMSoftContact3DAugmented::*)(
+      .def<void (IAMSoftContactAugmented::*)(
           const boost::shared_ptr<ActionDataAbstract>&,
           const Eigen::Ref<const Eigen::VectorXd>&,
           const Eigen::Ref<const Eigen::VectorXd>&)>(
-          "calc", &IAMSoftContact3DAugmented::calc,
+          "calc", &IAMSoftContactAugmented::calc,
           bp::args("self", "data", "x", "u"),
           "Compute the time-discrete evolution of a differential action "
           "model.\n\n"
@@ -52,15 +52,15 @@ void exposeIAMSoftContact3DAugmented() {
           ":param data: action data\n"
           ":param x: state vector\n"
           ":param u: control input")
-      .def<void (IAMSoftContact3DAugmented::*)(
+      .def<void (IAMSoftContactAugmented::*)(
           const boost::shared_ptr<ActionDataAbstract>&,
           const Eigen::Ref<const Eigen::VectorXd>&)>(
           "calc", &ActionModelAbstract::calc, bp::args("self", "data", "x"))
-      .def<void (IAMSoftContact3DAugmented::*)(
+      .def<void (IAMSoftContactAugmented::*)(
           const boost::shared_ptr<ActionDataAbstract>&,
           const Eigen::Ref<const Eigen::VectorXd>&,
           const Eigen::Ref<const Eigen::VectorXd>&)>(
-          "calcDiff", &IAMSoftContact3DAugmented::calcDiff,
+          "calcDiff", &IAMSoftContactAugmented::calcDiff,
           bp::args("self", "data", "x", "u"),
           "Computes the derivatives of the integrated action model wrt state "
           "and control. \n\n"
@@ -70,51 +70,51 @@ void exposeIAMSoftContact3DAugmented() {
           ":param data: action data\n"
           ":param x: state vector\n"
           ":param u: control input\n")
-      .def<void (IAMSoftContact3DAugmented::*)(
+      .def<void (IAMSoftContactAugmented::*)(
           const boost::shared_ptr<ActionDataAbstract>&,
           const Eigen::Ref<const Eigen::VectorXd>&)>(
           "calcDiff", &ActionModelAbstract::calcDiff,
           bp::args("self", "data", "x"))
-      .def("createData", &IAMSoftContact3DAugmented::createData,
+      .def("createData", &IAMSoftContactAugmented::createData,
            bp::args("self"), "Create the Euler integrator data.")
       .add_property(
           "differential",
-          bp::make_function(&IAMSoftContact3DAugmented::get_differential,
+          bp::make_function(&IAMSoftContactAugmented::get_differential,
                             bp::return_value_policy<bp::return_by_value>()),
-          &IAMSoftContact3DAugmented::set_differential,
+          &IAMSoftContactAugmented::set_differential,
           "differential action model")
       .add_property(
           "dt",
-          bp::make_function(&IAMSoftContact3DAugmented::get_dt,
+          bp::make_function(&IAMSoftContactAugmented::get_dt,
                             bp::return_value_policy<bp::return_by_value>()),
-          &IAMSoftContact3DAugmented::set_dt, "step time")
+          &IAMSoftContactAugmented::set_dt, "step time")
 
       .add_property(
           "nc",
-          bp::make_function(&IAMSoftContact3DAugmented::get_nc,
+          bp::make_function(&IAMSoftContactAugmented::get_nc,
                             bp::return_value_policy<bp::return_by_value>()),
           "Contact model dimension")
       .add_property(
           "ny",
-          bp::make_function(&IAMSoftContact3DAugmented::get_ny,
+          bp::make_function(&IAMSoftContactAugmented::get_ny,
                             bp::return_value_policy<bp::return_by_value>()),
           "augmented state dimension (nx+ntau)");
 
-  bp::register_ptr_to_python<boost::shared_ptr<IADSoftContact3DAugmented> >();
+  bp::register_ptr_to_python<boost::shared_ptr<IADSoftContactAugmented> >();
 
-  bp::class_<IADSoftContact3DAugmented, bp::bases<ActionDataAbstract> >(
-      "IADSoftContact3DAugmented", "Sympletic Euler integrator data.",
-      bp::init<IAMSoftContact3DAugmented*>(
+  bp::class_<IADSoftContactAugmented, bp::bases<ActionDataAbstract> >(
+      "IADSoftContactAugmented", "Sympletic Euler integrator data.",
+      bp::init<IAMSoftContactAugmented*>(
           bp::args("self", "model"),
           "Create sympletic Euler integrator data.\n\n"
           ":param model: sympletic Euler integrator model"))
       .add_property(
           "differential",
-          bp::make_getter(&IADSoftContact3DAugmented::differential,
+          bp::make_getter(&IADSoftContactAugmented::differential,
                           bp::return_value_policy<bp::return_by_value>()),
           "differential action data")
       .add_property("dy",
-                    bp::make_getter(&IADSoftContact3DAugmented::dy,
+                    bp::make_getter(&IADSoftContactAugmented::dy,
                                     bp::return_internal_reference<>()),
                     "state rate.");
 }

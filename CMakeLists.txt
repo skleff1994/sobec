@@ -74,7 +74,7 @@ set(${PROJECT_NAME}_HEADERS
   include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hpp
   include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hpp
   include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/iam3d-augmented.hpp
+  include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hpp
   include/${PROJECT_NAME}/crocomplements/softcontact/state.hpp
   include/${PROJECT_NAME}/crocomplements/residual-com-velocity.hxx
   include/${PROJECT_NAME}/crocomplements/residual-cop.hxx
@@ -91,7 +91,7 @@ set(${PROJECT_NAME}_HEADERS
   include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hxx
   include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hxx
   include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/iam3d-augmented.hxx
+  include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hxx
   include/${PROJECT_NAME}/crocomplements/softcontact/state.hxx
   include/${PROJECT_NAME}/walk-without-think/ocp.hpp
   include/${PROJECT_NAME}/walk-without-think/mpc.hpp

@@ -26,8 +26,9 @@ namespace sobec {
 
 /**
  * @brief Differential action model for 1D visco-elastic contact forward dynamics in multibody
- * systems (augmented dynamics including contact force as a state, designed specifically for force feedback MPC)
+ * systems (augmented dynamics including contact force as a state)
  *
+ * Derived class with 1D force (linear)
  * Maths here : https://www.overleaf.com/read/xdpymjfhqqhn
  *
  * \sa `DAMSoftContact1DAugmentedFwdDynamicsTpl`, `calc()`, `calcDiff()`,
@@ -83,9 +84,9 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the system acceleration, and cost value
    *
-   * It computes the system acceleration using the free forward-dynamics.
+   * It computes the system acceleration using the soft contact forward-dynamics.
    *
-   * @param[in] data  Free forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    * @param[in] u     Control input \f$\mathbf{u}\in\mathbb{R}^{nu}\f$
@@ -98,9 +99,9 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the system acceleration, and cost value
    *
-   * It computes the system acceleration using the free forward-dynamics.
+   * It computes the system acceleration using the soft contact forward-dynamics.
    *
-   * @param[in] data  Free forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    */
@@ -111,7 +112,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the derivatives of the contact dynamics, and cost function
    *
-   * @param[in] data  Contact forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    * @param[in] u     Control input \f$\mathbf{u}\in\mathbb{R}^{nu}\f$
@@ -125,7 +126,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
   /**
    * @brief Compute the derivatives of the contact dynamics, and cost function
    *
-   * @param[in] data  Contact forward-dynamics data
+   * @param[in] data  Soft contact forward-dynamics data
    * @param[in] x     State point \f$\mathbf{x}\in\mathbb{R}^{ndx}\f$
    * @param[in] f     Force point \f$\mathbf{f}\in\mathbb{R}^{nc}\f$
    */
@@ -231,8 +232,8 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::aba_dx;
   using Base::aba_dtau;
   using Base::aba_df;
-  MatrixXs aba_df3d;
-  MatrixXs aba_df3d_copy;
+  MatrixXs aba_df3d;          //!< Partial derivative of ABA w.r.t. 3D contact force 
+  MatrixXs aba_df3d_copy;     //!< Partial derivative of ABA w.r.t. 3D contact force (copy)
   // Frame linear velocity and acceleration in LOCAL and LOCAL_WORLD_ALIGNED frames
   using Base::lv;
   using Base::la;
@@ -252,18 +253,17 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::da_du;
   using Base::da_df;
   MatrixXs da_df3d;
-  // Current force and next force
-  Vector3s f3d;
-  Vector3s f3d_copy;
-  Vector3s fout3d;
-  Vector3s fout3d_copy;
-  using Base::f_copy;
-  using Base::fout;
+  // Time-derivative of contact force
+  Vector3s f3d;             //!< 3D contact force 
+  Vector3s f3d_copy;        //!< 3D contact force (copy)
+  Vector3s fout3d;          //!< Time-derivative of 3D contact force ()
+  Vector3s fout3d_copy;     //!< Time-derivative of 3D contact force (copy)
+  using Base::fout;   
   using Base::fout_copy;
   // Spatial wrench due to contact force
   using Base::pinForce;
-  using Base::fext;       //!< External spatial forces in body coordinates (joint level)
-  using Base::fext_copy;  //!< External spatial forces in body coordinates (joint level)
+  using Base::fext;       
+  using Base::fext_copy;  
   // Partial derivatives of next force w.r.t. augmented state
   using Base::dfdt_dx;
   using Base::dfdt_du;
@@ -271,19 +271,18 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::dfdt_dx_copy;
   using Base::dfdt_du_copy;
   using Base::dfdt_df_copy;
-  MatrixXs dfdt3d_dx;
-  MatrixXs dfdt3d_du;
-  MatrixXs dfdt3d_df;
-  MatrixXs dfdt3d_dx_copy;
-  MatrixXs dfdt3d_du_copy;
-  MatrixXs dfdt3d_df_copy;
+  MatrixXs dfdt3d_dx;         //!< Partial derivative of fout3d w.r.t. joint state (positions, velocities)
+  MatrixXs dfdt3d_du;         //!< Partial derivative of fout3d w.r.t. joint torquess
+  MatrixXs dfdt3d_df;         //!< Partial derivative of fout3d w.r.t. contact force
+  MatrixXs dfdt3d_dx_copy;    //!< Partial derivative of fout3d w.r.t. joint state  (positions, velocities) (copy)
+  MatrixXs dfdt3d_du_copy;    //!< Partial derivative of fout3d w.r.t. joint torques (copy)
+  MatrixXs dfdt3d_df_copy;    //!< Partial derivative of fout3d w.r.t. contact force (copy)
   // Partials of cost w.r.t. force 
   using Base::Lf;
   using Base::Lff;
   // Force residual for hard coded tracking cost
   using Base::f_residual;
 
-  // MatrixXs JtF;
   using Base::cost;
   using Base::Fu;
   using Base::Fx;

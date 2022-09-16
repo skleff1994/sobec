@@ -22,7 +22,7 @@ from .sobec_pywrap import (
     DAMSoftContactAbstractAugmentedFwdDynamics,
     DAMSoftContact3DAugmentedFwdDynamics,
     DAMSoftContact1DAugmentedFwdDynamics,
-    IAMSoftContact3DAugmented,
+    IAMSoftContactAugmented,
     ResidualModelContactForce,
     WBC,
     OCPRobotWrapper,

@@ -186,11 +186,11 @@ class StateSoftContactTpl;
 typedef StateSoftContactTpl<double> StateSoftContact;
 // IAM Soft contact 3D
 template <typename Scalar>
-class IAMSoftContact3DAugmentedTpl;
-typedef IAMSoftContact3DAugmentedTpl<double> IAMSoftContact3DAugmented;
+class IAMSoftContactAugmentedTpl;
+typedef IAMSoftContactAugmentedTpl<double> IAMSoftContactAugmented;
 template <typename Scalar>
-class IADSoftContact3DAugmentedTpl;
-typedef IADSoftContact3DAugmentedTpl<double> IADSoftContact3DAugmented;
+class IADSoftContactAugmentedTpl;
+typedef IADSoftContactAugmentedTpl<double> IADSoftContactAugmented;
 
 
 }  // namespace sobec

@@ -125,10 +125,7 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
 
       .def("createData", &DAMSoftContactAbstractAugmentedFwdDynamics::createData,
            bp::args("self"), "Create the Euler integrator data.")
-    
-    //   .def("set_force_cost", &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_cost,
-    //        bp::args("self", "force_des", "force_weight"),
-    //        "Initialize force reference and cost weight ")
+
       .add_property(
           "Kp",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_Kp,
@@ -147,30 +144,18 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_oPc,
           "Anchor point of the contact model")
-    // //   .add_property(
-    // //       "f_des",
-    // //       bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_force_des,
-    // //                         bp::return_value_policy<bp::return_by_value>()),
-    // //       &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_des,
-    // //       "Desired force in the cost")
-    // //   .add_property(
-    // //       "f_weight",
-    // //       bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_force_weight,
-    // //                         bp::return_value_policy<bp::return_by_value>()),
-    // //       &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_weight,
-    // //       "Force cost weight")
-      .add_property(
-          "ref",
-          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_ref,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContactAbstractAugmentedFwdDynamics::set_ref,
-          "Pinocchio reference frame")
       .add_property(
           "id",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_id,
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_id,
           "Contact frame id")
+      .add_property(
+          "ref",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_ref,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_ref,
+          "Pinocchio reference frame")
       .add_property(
           "armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_armature,
@@ -187,6 +172,11 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
           bp::args("self", "model"),
           "Create soft contact forward-dynamics action data.\n\n"
           ":param model: soft contact model"))
+      .add_property(
+          "oRf",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::oRf,
+                          bp::return_internal_reference<>()),
+          "Contact frame rotation matrix in WORLD coordinates")
       .add_property(
           "lJ",
           bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::lJ,
@@ -223,6 +213,26 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
                           bp::return_internal_reference<>()),
           "Partial derivative of joint accelerations w.r.t. contact force")
       .add_property(
+          "lv",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::lv,
+                          bp::return_internal_reference<>()),
+          "Linear velocity of the contact frame expressed in LOCAL coordinates")
+      .add_property(
+          "la",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::la,
+                          bp::return_internal_reference<>()),
+          "Linear acceleration of the contact frame expressed in LOCAL coordinates")
+      .add_property(
+          "ov",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::ov,
+                          bp::return_internal_reference<>()),
+          "Linear velocity of the contact frame expressed in LOCAL_WORLD_ALIGNED coordinates")
+      .add_property(
+          "oa",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::oa,
+                          bp::return_internal_reference<>()),
+          "Linear acceleration of the contact frame expressed in LOCAL_WORLD_ALIGNED coordinates")
+      .add_property(
           "lv_dq",
           bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::lv_dq,
                           bp::return_internal_reference<>()),
@@ -237,7 +247,6 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
           bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::lv_dx,
                           bp::return_internal_reference<>()),
           "Partial derivative of LOCAL contact frame velocity w.r.t. state")
-
       .add_property(
           "a_dq",
           bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::a_dq,
@@ -267,8 +276,43 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
           "da_df",
           bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::da_df,
                           bp::return_internal_reference<>()),
-          "Partial derivative of LOCAL contact frame acceleration w.r.t. contact force");
-          // missing dfdt_dx, dfdt_du, fext, pinForce
+          "Partial derivative of LOCAL contact frame acceleration w.r.t. contact force")
+      
+      .add_property(
+          "fout",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::fout,
+                          bp::return_internal_reference<>()),
+          "Time-derivative of the contact force (output of forward dynamics)")
+      .add_property(
+          "dfdt_dx",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::dfdt_dx,
+                          bp::return_internal_reference<>()),
+          "Partial derivative of fout w.r.t. joint state")
+      .add_property(
+          "dfdt_du",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::dfdt_du,
+                          bp::return_internal_reference<>()),
+          "Partial derivative of fout w.r.t. joint torques")
+      .add_property(
+          "dfdt_df",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::dfdt_df,
+                          bp::return_internal_reference<>()),
+          "Partial derivative of fout w.r.t. contact force")
+      .add_property(
+          "Lf",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::Lf,
+                          bp::return_internal_reference<>()),
+          "Gradient of the cost w.r.t. contact force")
+      .add_property(
+          "Lff",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::Lff,
+                          bp::return_internal_reference<>()),
+          "Hessian of the cost w.r.t. contact force")
+      .add_property(
+          "f_residual",
+          bp::make_getter(&sobec::DADSoftContactAbstractAugmentedFwdDynamics::f_residual,
+                          bp::return_internal_reference<>()),
+          "Residual of the contact force");
 }
 
 }  // namespace python
