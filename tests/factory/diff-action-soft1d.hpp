@@ -6,8 +6,8 @@
 // All rights reserved.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef SOBEC_DIFF_ACTION_SOFT_FACTORY_HPP_
-#define SOBEC_DIFF_ACTION_SOFT_FACTORY_HPP_
+#ifndef SOBEC_DIFF_ACTION_SOFT1D_FACTORY_HPP_
+#define SOBEC_DIFF_ACTION_SOFT1D_FACTORY_HPP_
 
 #include <crocoddyl/core/diff-action-base.hpp>
 #include <crocoddyl/core/numdiff/diff-action.hpp>
@@ -66,4 +66,4 @@ class DAMSoftContact1DFactory {
 }  // namespace unittest
 }  // namespace sobec
 
-#endif  // SOBEC_DIFF_ACTION_SOFT_FACTORY_HPP_
+#endif  // SOBEC_DIFF_ACTION_SOFT1D_FACTORY_HPP_
