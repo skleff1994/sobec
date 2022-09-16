@@ -16,6 +16,14 @@ set(${PY_NAME}_SOURCES
   crocomplements/contact/multiple-contacts.cpp
   crocomplements/contact/contact-fwddyn.cpp
   crocomplements/contact/contact-force.cpp
+  crocomplements/softcontact/dam3d.cpp
+  crocomplements/softcontact/dam1d.cpp
+  crocomplements/softcontact/dam-augmented.cpp
+  # crocomplements/softcontact/dam-augmented.hpp
+  crocomplements/softcontact/dam3d-augmented.cpp
+  crocomplements/softcontact/dam1d-augmented.cpp
+  crocomplements/softcontact/iam-augmented.cpp
+  crocomplements/softcontact/state.cpp
   walk-with-traj/designer.cpp
   walk-with-traj/horizon_manager.cpp
   walk-with-traj/model_factory.cpp
@@ -26,42 +34,39 @@ set(${PY_NAME}_SOURCES
 
 add_library(${PY_NAME}_pywrap SHARED ${${PY_NAME}_SOURCES})
 target_link_libraries(${PY_NAME}_pywrap PUBLIC ${PROJECT_NAME} eigenpy::eigenpy)
-target_include_directories(${PY_NAME}_pywrap SYSTEM PRIVATE ${PYTHON_INCLUDE_DIR})
-set_target_properties(${PY_NAME}_pywrap PROPERTIES
-  INSTALL_RPATH "\$ORIGIN/../../.."
-  LIBRARY_OUTPUT_DIRECTORY ${PY_NAME}
-  PREFIX ""
-  SUFFIX ${PYTHON_EXT_SUFFIX})
-TARGET_LINK_BOOST_PYTHON(${PY_NAME}_pywrap PRIVATE)
+target_include_directories(${PY_NAME}_pywrap SYSTEM
+                           PRIVATE ${PYTHON_INCLUDE_DIR})
+set_target_properties(
+  ${PY_NAME}_pywrap
+  PROPERTIES INSTALL_RPATH "\$ORIGIN/../../.."
+             LIBRARY_OUTPUT_DIRECTORY ${PY_NAME}
+             PREFIX ""
+             SUFFIX ${PYTHON_EXT_SUFFIX})
+target_link_boost_python(${PY_NAME}_pywrap PRIVATE)
 install(TARGETS ${PY_NAME}_pywrap DESTINATION ${${PY_NAME}_INSTALL_DIR})
 
 set(${PY_NAME}_PYTHON
-  __init__.py
-  pinbullet.py
-  viewer_multiple.py
-  talos_collections.py
-  repr_ocp.py
-  logs.py
-  # talos_low.py
-  )
+    __init__.py pinbullet.py viewer_multiple.py talos_collections.py
+    repr_ocp.py logs.py
+    # talos_low.py
+)
 
 foreach(python ${${PY_NAME}_PYTHON})
-  PYTHON_INSTALL_ON_SITE(${PY_NAME} ${python})
+  python_install_on_site(${PY_NAME} ${python})
 endforeach()
 
 set(${PY_WALK_NAME}_PYTHON
-  __init__.py
-  ocp.py
-  weight_share.py
-  robot_wrapper.py
-  config_mpc.py
-  miscdisp.py
-  params.py
-  yaml_params.py
-  plotter.py
-  save_traj.py
-  )
+    __init__.py
+    ocp.py
+    weight_share.py
+    robot_wrapper.py
+    config_mpc.py
+    miscdisp.py
+    params.py
+    yaml_params.py
+    plotter.py
+    save_traj.py)
 
 foreach(python ${${PY_WALK_NAME}_PYTHON})
-  PYTHON_INSTALL_ON_SITE(${PY_NAME}/walk_without_think ${python})
+  python_install_on_site(${PY_NAME}/walk_without_think ${python})
 endforeach()

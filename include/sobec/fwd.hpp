@@ -140,6 +140,59 @@ class OCPWalk;
 // MPC
 class MPCWalk;
 
+
+// Soft contact3D DAM  
+    // 3D
+template <typename Scalar>
+class DifferentialActionModelSoftContact3DFwdDynamicsTpl;
+typedef DifferentialActionModelSoftContact3DFwdDynamicsTpl<double> DifferentialActionModelSoftContact3DFwdDynamics;
+template <typename Scalar>
+class DifferentialActionDataSoftContact3DFwdDynamicsTpl;
+typedef DifferentialActionDataSoftContact3DFwdDynamicsTpl<double> DifferentialActionDataSoftContact3DFwdDynamics;
+    // 1D
+template <typename Scalar>
+class DifferentialActionModelSoftContact1DFwdDynamicsTpl;
+typedef DifferentialActionModelSoftContact1DFwdDynamicsTpl<double> DifferentialActionModelSoftContact1DFwdDynamics;
+template <typename Scalar>
+class DifferentialActionDataSoftContact1DFwdDynamicsTpl;
+typedef DifferentialActionDataSoftContact1DFwdDynamicsTpl<double> DifferentialActionDataSoftContact1DFwdDynamics;
+
+
+// Soft contact3D DAM (augmented state)
+    // Abstract
+template <typename Scalar>
+class DAMSoftContactAbstractAugmentedFwdDynamicsTpl;
+typedef DAMSoftContactAbstractAugmentedFwdDynamicsTpl<double> DAMSoftContactAbstractAugmentedFwdDynamics;
+template <typename Scalar>
+class DADSoftContactAbstractAugmentedFwdDynamicsTpl;
+typedef DADSoftContactAbstractAugmentedFwdDynamicsTpl<double> DADSoftContactAbstractAugmentedFwdDynamics;
+    // 3D
+template <typename Scalar>
+class DAMSoftContact3DAugmentedFwdDynamicsTpl;
+typedef DAMSoftContact3DAugmentedFwdDynamicsTpl<double> DAMSoftContact3DAugmentedFwdDynamics;
+template <typename Scalar>
+class DADSoftContact3DAugmentedFwdDynamicsTpl;
+typedef DADSoftContact3DAugmentedFwdDynamicsTpl<double> DADSoftContact3DAugmentedFwdDynamics;
+    // 1D
+template <typename Scalar>
+class DAMSoftContact1DAugmentedFwdDynamicsTpl;
+typedef DAMSoftContact1DAugmentedFwdDynamicsTpl<double> DAMSoftContact1DAugmentedFwdDynamics;
+template <typename Scalar>
+class DADSoftContact1DAugmentedFwdDynamicsTpl;
+typedef DADSoftContact1DAugmentedFwdDynamicsTpl<double> DADSoftContact1DAugmentedFwdDynamics;
+// State soft contact
+template <typename Scalar>
+class StateSoftContactTpl;
+typedef StateSoftContactTpl<double> StateSoftContact;
+// IAM Soft contact 3D
+template <typename Scalar>
+class IAMSoftContactAugmentedTpl;
+typedef IAMSoftContactAugmentedTpl<double> IAMSoftContactAugmented;
+template <typename Scalar>
+class IADSoftContactAugmentedTpl;
+typedef IADSoftContactAugmentedTpl<double> IADSoftContactAugmented;
+
+
 }  // namespace sobec
 
 namespace sobec {
