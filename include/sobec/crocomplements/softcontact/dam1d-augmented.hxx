@@ -227,11 +227,10 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
       // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
       d->aba_df3d = d->aba_dtau * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
-      // d->aba_df3d_copy = d->aba_df3d;
       d->aba_df = d->aba_df3d.col(this->get_type());
       // Skew term added to RNEA derivatives when force is expressed in LWA
       if(ref_ != pinocchio::LOCAL){
-          d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d_copy) * d->lJ.bottomRows(3);
+          d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d) * d->lJ.bottomRows(3);
           // Rotate dABA/df
           d->aba_df3d = d->aba_df3d * d->oRf.transpose();
           d->aba_df = d->aba_df3d.col(this->get_type());
@@ -245,11 +244,10 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
         d->Fu.noalias() = d->Minv * d->multibody.actuation->dtau_du;
         // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
         d->aba_df3d = d->Minv * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
-        // d->aba_df3d_copy = d->aba_df3d;
         d->aba_df = d->aba_df3d.col(this->get_type());
         // Skew term added to RNEA derivatives when force is expressed in LWA
         if(ref_ != pinocchio::LOCAL){
-            d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d_copy) * d->lJ.bottomRows(3);
+            d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d) * d->lJ.bottomRows(3);
             // Rotate dABA/df
           d->aba_df3d = d->aba_df3d * d->oRf.transpose();
           d->aba_df = d->aba_df3d.col(this->get_type());
