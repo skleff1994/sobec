@@ -95,8 +95,6 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
     // Compute external wrench for LOCAL f
     d->pinForce = pinocchio::ForceTpl<Scalar>(f, Vector3s::Zero());
     d->fext[parentId_] = jMf_.act(d->pinForce);
-    // Copy for later
-    d->fext_copy = d->fext;
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->pinForce = pinocchio::ForceTpl<Scalar>(d->oRf.transpose() * f, Vector3s::Zero());

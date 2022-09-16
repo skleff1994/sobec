@@ -95,8 +95,6 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
     d->f3d(this->get_type()) = f(0);
     d->pinForce = pinocchio::ForceTpl<Scalar>(d->f3d, Vector3s::Zero());
     d->fext[parentId_] = jMf_.act(d->pinForce);
-    // Copy for later
-    d->fext_copy = d->fext;
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->pinForce = pinocchio::ForceTpl<Scalar>(d->oRf.transpose() * d->f3d, Vector3s::Zero());
@@ -124,7 +122,6 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
     d->fout3d = -Kp_ * d->lv - Kv_ * d->la;
     d->fout(0) = d->fout3d(this->get_type());
     d->fout3d_copy = d->fout3d;
-    d->fout_copy = d->fout;
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->oa = pinocchio::getFrameAcceleration(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).linear();

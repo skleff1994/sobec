@@ -73,7 +73,7 @@ void test_calc_returns_a_cost(DAMSoftContact1DTypes::Type action_type,
 
 
 // Test partials against numdiff
-void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> model){
+void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> model, double tol = 0.){
   // create the corresponding data object and set the cost to nan
   boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data = model->createData();
   // Generating random values for the state and control
@@ -161,12 +161,8 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwd
 
   // Checking the partial derivatives against NumDiff
   boost::shared_ptr<sobec::DADSoftContact1DAugmentedFwdDynamics> datacast = boost::static_pointer_cast<sobec::DADSoftContact1DAugmentedFwdDynamics>(data);
-  double tol = 1e-4; //sqrt(disturbance);
-  if(!(datacast->dfdt_dx - data_num_diff_cast->dfdt_dx).isZero(NUMDIFF_MODIFIER * tol)){
-    std::cout << "dfdt_dx : " << std::endl;
-    std::cout << datacast->dfdt_dx << std::endl;
-    std::cout << "dfdt_dx (ND) : " << std::endl;
-    std::cout << data_num_diff_cast->dfdt_dx << std::endl;
+  if(tol == 0.){
+    tol = sqrt(disturbance);
   }
   BOOST_CHECK((datacast->Fx - data_num_diff_cast->Fx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Fu - data_num_diff_cast->Fu).isZero(NUMDIFF_MODIFIER * tol));
@@ -178,6 +174,22 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwd
   BOOST_CHECK((datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lu - data_num_diff_cast->Lu).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lf - data_num_diff_cast->Lf).isZero(NUMDIFF_MODIFIER * tol));
+  if(!(datacast->Fx - data_num_diff_cast->Fx).isZero(NUMDIFF_MODIFIER * tol)){
+    std::cout << "Fx : " << std::endl;
+    std::cout << datacast->Fx - data_num_diff_cast->Fx << std::endl;
+  }
+  if(!(datacast->dfdt_dx - data_num_diff_cast->dfdt_dx).isZero(NUMDIFF_MODIFIER * tol)){
+    std::cout << "dfdt_dx : " << std::endl;
+    std::cout << datacast->dfdt_dx - data_num_diff_cast->dfdt_dx<< std::endl;
+  }
+  if(!(datacast->dfdt_df - data_num_diff_cast->dfdt_df).isZero(NUMDIFF_MODIFIER * tol)){
+    std::cout << "dfdt_df : " << std::endl;
+    std::cout << datacast->dfdt_df -data_num_diff_cast->dfdt_df << std::endl;
+  }
+  if(!(datacast->dfdt_du - data_num_diff_cast->dfdt_du).isZero(NUMDIFF_MODIFIER * tol)){
+    std::cout << "dfdt_du : " << std::endl;
+    std::cout << datacast->dfdt_du - data_num_diff_cast->dfdt_du<< std::endl;
+  }
 }
 
 void test_partial_derivatives_against_numdiff(
@@ -198,7 +210,7 @@ void test_partial_derivatives_against_numdiff_armature(
   boost::shared_ptr<sobec::DAMSoftContact1DAugmentedFwdDynamics> model = factory.create(action_type, ref_type, mask_type);
   Eigen::VectorXd armature = Eigen::VectorXd::Random(model->get_state()->get_nv());
   model->set_armature(armature);
-  test_partials_numdiff(model);
+  test_partials_numdiff(model, 1e-3);
 }
 
 
