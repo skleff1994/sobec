@@ -9,7 +9,7 @@
 #include <pinocchio/algorithm/joint-configuration.hpp>
 
 #include "crocoddyl/core/utils/exception.hpp"
-#include "state-soft-contact.hpp"
+#include "state.hpp"
 
 namespace sobec {
 using namespace crocoddyl;

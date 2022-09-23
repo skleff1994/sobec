@@ -85,6 +85,6 @@ class StateSoftContactTpl : public StateAbstractTpl<_Scalar> {
 /* --- Details -------------------------------------------------------------- */
 /* --- Details -------------------------------------------------------------- */
 /* --- Details -------------------------------------------------------------- */
-#include "sobec/crocomplements/softcontact/state-soft-contact.hxx"
+#include "sobec/crocomplements/softcontact/state.hxx"
 
 #endif  // SOBEC_STATE_SOFT_CONTACT_AUGMENTED_HPP_
