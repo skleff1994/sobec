@@ -65,10 +65,17 @@ void ResidualModelContactForceTpl<Scalar>::calc(
       }
       break;
     }
-    case Contact6D:
-      data->r = (d->contact->jMf.actInv(d->contact->f) - this->get_reference())
-                    .toVector();
+    case Contact6D: {
+      ContactData6DTpl<Scalar>* d6d =
+          static_cast<ContactData6DTpl<Scalar>*>(d->contact.get());
+      if (d6d->type == pinocchio::LOCAL) {
+        data->r = (d->contact->jMf.actInv(d->contact->f) - this->get_reference()).toVector();
+      } else if (d6d->type == pinocchio::WORLD ||
+                 d6d->type == pinocchio::LOCAL_WORLD_ALIGNED) {
+        data->r = (d6d->lwaMl.act(d->contact->jMf.actInv(d->contact->f)) - this->get_reference()).toVector();
+      }
       break;
+    }
     default:
       break;
   }

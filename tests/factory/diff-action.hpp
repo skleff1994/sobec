@@ -28,8 +28,13 @@ struct DifferentialActionModelTypes {
     DifferentialActionModelFreeFwdDynamics_TalosArm_Squashed,
     DifferentialActionModelContact1DFwdDynamics_TalosArm,
     DifferentialActionModelContact3DFwdDynamics_TalosArm,
+    DifferentialActionModelContact6DFwdDynamics_TalosArm,
     DifferentialActionModelContact1DFwdDynamics_HyQ,
     DifferentialActionModelContact3DFwdDynamics_HyQ,
+    DifferentialActionModelContact6DFwdDynamics_HyQ,
+    DifferentialActionModelContact1DFwdDynamics_Talos,
+    DifferentialActionModelContact3DFwdDynamics_Talos,
+    DifferentialActionModelContact6DFwdDynamics_Talos,
     NbDifferentialActionModelTypes
   };
   static std::vector<Type> init_all() {
@@ -61,6 +66,11 @@ class DifferentialActionModelFactory {
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics>
   create_freeFwdDynamics(StateModelTypes::Type state_type,
                          ActuationModelTypes::Type actuation_type) const;
+
+  boost::shared_ptr<newcontacts::DifferentialActionModelContactFwdDynamics>
+  create_contact6DFwdDynamics(StateModelTypes::Type state_type,
+                              ActuationModelTypes::Type actuation_type,
+                              PinocchioReferenceTypes::Type ref_type) const;
 
   boost::shared_ptr<newcontacts::DifferentialActionModelContactFwdDynamics>
   create_contact3DFwdDynamics(StateModelTypes::Type state_type,
