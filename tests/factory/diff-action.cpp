@@ -48,20 +48,12 @@ std::ostream& operator<<(std::ostream& os,
       os << "DifferentialActionModelContact3DFwdDynamics_TalosArm";
       break;
     case DifferentialActionModelTypes::
-        DifferentialActionModelContact6DFwdDynamics_TalosArm:
-      os << "DifferentialActionModelContact6DFwdDynamics_TalosArm";
-      break;
-    case DifferentialActionModelTypes::
         DifferentialActionModelContact1DFwdDynamics_HyQ:
       os << "DifferentialActionModelContact1DFwdDynamics_HyQ";
       break;
     case DifferentialActionModelTypes::
         DifferentialActionModelContact3DFwdDynamics_HyQ:
       os << "DifferentialActionModelContact3DFwdDynamics_HyQ";
-      break;
-    case DifferentialActionModelTypes::
-        DifferentialActionModelContact6DFwdDynamics_HyQ:
-      os << "DifferentialActionModelContact6DFwdDynamics_HyQ";
       break;
     case DifferentialActionModelTypes::
         DifferentialActionModelContact1DFwdDynamics_Talos:
@@ -108,12 +100,6 @@ DifferentialActionModelFactory::create(
 
     // TalosArm state
     case DifferentialActionModelTypes::
-        DifferentialActionModelContact6DFwdDynamics_TalosArm:
-      action = create_contact6DFwdDynamics(
-          StateModelTypes::StateMultibody_TalosArm,
-          ActuationModelTypes::ActuationModelFull, ref_type);
-      break;
-    case DifferentialActionModelTypes::
         DifferentialActionModelContact3DFwdDynamics_TalosArm:
       action = create_contact3DFwdDynamics(
           StateModelTypes::StateMultibody_TalosArm,
@@ -127,12 +113,6 @@ DifferentialActionModelFactory::create(
       break;
 
     // HyQ state
-    case DifferentialActionModelTypes::
-        DifferentialActionModelContact6DFwdDynamics_HyQ:
-      action = create_contact6DFwdDynamics(
-          StateModelTypes::StateMultibody_HyQ,
-          ActuationModelTypes::ActuationModelFloatingBase, ref_type);
-      break;
     case DifferentialActionModelTypes::
         DifferentialActionModelContact3DFwdDynamics_HyQ:
       action = create_contact3DFwdDynamics(
@@ -227,70 +207,10 @@ DifferentialActionModelFactory::create_contact6DFwdDynamics(
       state, actuation->get_nu());
   cost =
       boost::make_shared<crocoddyl::CostModelSum>(state, actuation->get_nu());
+  
   pinocchio::Force force = pinocchio::Force::Zero();
   Eigen::Vector2d gains = Eigen::Vector2d::Ones();
-//   gains[0] = 10;
-//   gains[0] = 2;
   switch (state_type) {
-    // TalosArm
-    case StateModelTypes::StateMultibody_TalosArm: {
-      contact->addContact(
-          "lf",
-          ContactModel6DFactory().create(
-              PinocchioModelTypes::TalosArm, ref_type, gains,
-              "gripper_left_joint", actuation->get_nu()),
-          true);
-      // force regularization
-      cost->addCost(
-          "lf",
-          boost::make_shared<crocoddyl::CostModelResidual>(
-              state,
-              boost::make_shared<sobec::newcontacts::ResidualModelContactForce>(
-                  state,
-                  state->get_pinocchio()->getFrameId(
-                      "gripper_left_joint"),
-                  force, 6, actuation->get_nu())),
-          10);
-      break;
-    }
-    // HyQ
-    case StateModelTypes::StateMultibody_HyQ: {
-      contact->addContact(
-          "lf",
-          ContactModel6DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-                                         gains, "lf_foot",
-                                         actuation->get_nu()),
-          true);
-      cost->addCost(
-          "lf",
-          boost::make_shared<crocoddyl::CostModelResidual>(
-              state,
-              boost::make_shared<sobec::newcontacts::ResidualModelContactForce>(
-                  state,
-                  state->get_pinocchio()->getFrameId(
-                      "lf_foot"),
-                  force, 6, actuation->get_nu())),
-          10);
-    //   contact->addContact(
-    //       "rf",
-    //       ContactModel6DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-    //                                      gains, "rf_foot",
-    //                                      actuation->get_nu()),
-    //       true);
-    //   contact->addContact(
-    //       "lh",
-    //       ContactModel6DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-    //                                      gains, "lh_foot",
-    //                                      actuation->get_nu()),
-    //       true);
-    //   contact->addContact(
-    //       "rh",
-    //       ContactModel6DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-    //                                      gains, "rh_foot",
-    //                                      actuation->get_nu()),
-    //       true);
-      break;
-    }
     // Talos
     case StateModelTypes::StateMultibody_Talos: {
       contact->addContact(
@@ -305,18 +225,6 @@ DifferentialActionModelFactory::create_contact6DFwdDynamics(
                                          gains, "left_sole_link",
                                          actuation->get_nu()),
           true);
-      contact->addContact(
-          "rw",
-          ContactModel6DFactory().create(PinocchioModelTypes::Talos, ref_type,
-                                         gains, "gripper_right_joint",
-                                         actuation->get_nu()),
-          true);
-      contact->addContact(
-          "lw",
-          ContactModel6DFactory().create(PinocchioModelTypes::Talos, ref_type,
-                                         gains, "gripper_left_joint",
-                                         actuation->get_nu()),
-          true);
       cost->addCost(
           "rf",
           boost::make_shared<crocoddyl::CostModelResidual>(
@@ -326,7 +234,7 @@ DifferentialActionModelFactory::create_contact6DFwdDynamics(
                   state->get_pinocchio()->getFrameId(
                       "right_sole_link"),
                   force, 6, actuation->get_nu())),
-          10);
+          0.1);
       cost->addCost(
           "lf",
           boost::make_shared<crocoddyl::CostModelResidual>(
@@ -336,27 +244,7 @@ DifferentialActionModelFactory::create_contact6DFwdDynamics(
                   state->get_pinocchio()->getFrameId(
                       "left_sole_link"),
                   force, 6, actuation->get_nu())),
-          10);
-      cost->addCost(
-          "rw",
-          boost::make_shared<crocoddyl::CostModelResidual>(
-              state,
-              boost::make_shared<sobec::newcontacts::ResidualModelContactForce>(
-                  state,
-                  state->get_pinocchio()->getFrameId(
-                      "gripper_right_joint"),
-                  force, 6, actuation->get_nu())),
-          10);
-      cost->addCost(
-          "lw",
-          boost::make_shared<crocoddyl::CostModelResidual>(
-              state,
-              boost::make_shared<sobec::newcontacts::ResidualModelContactForce>(
-                  state,
-                  state->get_pinocchio()->getFrameId(
-                      "gripper_left_joint"),
-                  force, 6, actuation->get_nu())),
-          10);
+          0.1);
       break;
     }
     default:
@@ -400,13 +288,14 @@ DifferentialActionModelFactory::create_contact3DFwdDynamics(
   cost =
       boost::make_shared<crocoddyl::CostModelSum>(state, actuation->get_nu());
   pinocchio::Force force = pinocchio::Force::Zero();
+  Eigen::Vector2d gains = Eigen::Vector2d::Ones();
   switch (state_type) {
     // TalosArm
     case StateModelTypes::StateMultibody_TalosArm: {
       contact->addContact(
           "lf",
           ContactModel3DFactory().create(
-              PinocchioModelTypes::TalosArm, ref_type, Eigen::Vector2d::Zero(),
+              PinocchioModelTypes::TalosArm, ref_type, gains,
               "gripper_left_fingertip_1_link", actuation->get_nu()),
           true);
       // force regularization
@@ -419,7 +308,7 @@ DifferentialActionModelFactory::create_contact3DFwdDynamics(
                   state->get_pinocchio()->getFrameId(
                       "gripper_left_fingertip_1_link"),
                   force, 3, actuation->get_nu())),
-          0.1);
+          10);
       break;
     }
     // HyQ
@@ -427,25 +316,25 @@ DifferentialActionModelFactory::create_contact3DFwdDynamics(
       contact->addContact(
           "lf",
           ContactModel3DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-                                         Eigen::Vector2d::Zero(), "lf_foot",
+                                         gains, "lf_foot",
                                          actuation->get_nu()),
           true);
       contact->addContact(
           "rf",
           ContactModel3DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-                                         Eigen::Vector2d::Zero(), "rf_foot",
+                                         gains, "rf_foot",
                                          actuation->get_nu()),
           true);
       contact->addContact(
           "lh",
           ContactModel3DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-                                         Eigen::Vector2d::Zero(), "lh_foot",
+                                         gains, "lh_foot",
                                          actuation->get_nu()),
           true);
       contact->addContact(
           "rh",
           ContactModel3DFactory().create(PinocchioModelTypes::HyQ, ref_type,
-                                         Eigen::Vector2d::Zero(), "rh_foot",
+                                         gains, "rh_foot",
                                          actuation->get_nu()),
           true);
       break;
@@ -455,15 +344,37 @@ DifferentialActionModelFactory::create_contact3DFwdDynamics(
       contact->addContact(
           "rf",
           ContactModel3DFactory().create(PinocchioModelTypes::Talos, ref_type,
-                                         Eigen::Vector2d::Zero(), "right_sole_link",
+                                         gains, "right_sole_link",
                                          actuation->get_nu()),
           true);
       contact->addContact(
           "lf",
           ContactModel3DFactory().create(PinocchioModelTypes::Talos, ref_type,
-                                         Eigen::Vector2d::Zero(), "left_sole_link",
+                                         gains, "left_sole_link",
                                          actuation->get_nu()),
           true);
+      // force regularization
+      cost->addCost(
+          "lf",
+          boost::make_shared<crocoddyl::CostModelResidual>(
+              state,
+              boost::make_shared<sobec::newcontacts::ResidualModelContactForce>(
+                  state,
+                  state->get_pinocchio()->getFrameId(
+                      "left_sole_link"),
+                  force, 3, actuation->get_nu())),
+          0.1);
+      // force regularization
+      cost->addCost(
+          "rf",
+          boost::make_shared<crocoddyl::CostModelResidual>(
+              state,
+              boost::make_shared<sobec::newcontacts::ResidualModelContactForce>(
+                  state,
+                  state->get_pinocchio()->getFrameId(
+                      "right_sole_link"),
+                  force, 3, actuation->get_nu())),
+          0.1);
       break;
     }
     default:

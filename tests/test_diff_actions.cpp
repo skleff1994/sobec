@@ -196,22 +196,22 @@ void test_partial_derivatives_against_numdiff(
   model_num_diff.calcDiff(data_num_diff, x, u);
 
   // Checking the partial derivatives against NumDiff
-  double tol = 0.001; //sqrt(model_num_diff.get_disturbance());
-  if(!(data->Fx - data_num_diff->Fx).isZero(tol)){
-    std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
-    std::cout << "Fx - Fx_ND = " << std::endl;
-    std::cout << data->Fx - data_num_diff->Fx << std::endl;
-  }
-  if(!(data->Fu - data_num_diff->Fu).isZero(tol)){
-    std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
-    std::cout << "Fu - Fu_ND = " << std::endl;
-    std::cout << data->Fu - data_num_diff->Fu << std::endl;
-  }
-  if(!(data->Lx - data_num_diff->Lx).isZero(tol)){
-    std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
-    std::cout << "Lx - Lx_ND = " << std::endl;
-    std::cout << data->Lx - data_num_diff->Lx << std::endl;
-  }
+  double tol = 0.002; //sqrt(model_num_diff.get_disturbance());
+  // if(!(data->Fx - data_num_diff->Fx).isZero(tol)){
+  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
+  //   std::cout << "Fx - Fx_ND = " << std::endl;
+  //   std::cout << data->Fx - data_num_diff->Fx << std::endl;
+  // }
+  // if(!(data->Fu - data_num_diff->Fu).isZero(tol)){
+  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
+  //   std::cout << "Fu - Fu_ND = " << std::endl;
+  //   std::cout << data->Fu - data_num_diff->Fu << std::endl;
+  // }
+  // if(!(data->Lx - data_num_diff->Lx).isZero(tol)){
+  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
+  //   std::cout << "Lx - Lx_ND = " << std::endl;
+  //   std::cout << data->Lx - data_num_diff->Lx << std::endl;
+  // }
   BOOST_CHECK((data->Fx - data_num_diff->Fx).isZero(tol));
   BOOST_CHECK((data->Fu - data_num_diff->Fu).isZero(tol));
   BOOST_CHECK((data->Lx - data_num_diff->Lx).isZero(tol));
@@ -261,14 +261,6 @@ void register_action_model_unit_tests(
       test_name << "test_" << action_type << "_" << ref_type;
       break;
     case DifferentialActionModelTypes::
-        DifferentialActionModelContact6DFwdDynamics_TalosArm:
-      test_name << "test_" << action_type << "_" << ref_type;
-      break;
-    case DifferentialActionModelTypes::
-        DifferentialActionModelContact6DFwdDynamics_HyQ:
-      test_name << "test_" << action_type << "_" << ref_type;
-      break;
-    case DifferentialActionModelTypes::
         DifferentialActionModelContact6DFwdDynamics_Talos:
       test_name << "test_" << action_type << "_" << ref_type;
       break;
@@ -315,12 +307,6 @@ bool init_function() {
   // 6D contact
   for (size_t i = 0; i < DifferentialActionModelTypes::all.size(); ++i) {
     if (DifferentialActionModelTypes::all[i] ==
-            DifferentialActionModelTypes::
-                DifferentialActionModelContact6DFwdDynamics_TalosArm ||
-        DifferentialActionModelTypes::all[i] ==
-            DifferentialActionModelTypes::
-                DifferentialActionModelContact6DFwdDynamics_HyQ ||
-        DifferentialActionModelTypes::all[i] ==
             DifferentialActionModelTypes::
                 DifferentialActionModelContact6DFwdDynamics_Talos) {
       for (size_t j = 0; j < PinocchioReferenceTypes::all.size(); ++j) {
