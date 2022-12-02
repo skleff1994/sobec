@@ -167,6 +167,9 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   const bool get_with_gravity_torque_reg() const;
   void set_with_gravity_torque_reg(const bool);
 
+  const Scalar get_tau_grav_weight() const;
+  void set_tau_grav_weight(const Scalar);
+
   std::size_t get_nc() {return nc_;};
 
   // armature 
@@ -187,6 +190,7 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
     bool with_armature_;                    //!< Indicate if we have defined an armature
     VectorXs armature_;                     //!< Armature vector
     bool with_gravity_torque_reg_;          //!< Control regularization w.r.t. gravity torque
+    Scalar tau_grav_weight_;                //!< Weight on regularization w.r.t. gravity torque
 };
 
 template <typename _Scalar>
@@ -233,7 +237,8 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         dfdt_df_copy(model->get_nc(), model->get_nc()),
         Lf(model->get_nc()),
         Lff(model->get_nc(), model->get_nc()),
-        f_residual(model->get_nc()) {
+        f_residual(model->get_nc()),
+        tau_grav_residual(model->get_actuation()->get_nu()) {
     costs->shareMemory(this);
     Minv.setZero();
     u_drift.setZero();
@@ -271,6 +276,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     Lf.setZero();
     Lff.setZero();
     f_residual.setZero();
+    tau_grav_residual.setZero();
   }
 
   using Base::pinocchio;
@@ -328,6 +334,8 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   MatrixXs Lff;             //!< Hessian of the cost w.r.t. contact force
   // Force residual for hard coded tracking cost
   VectorXs f_residual;      //!< Contact force residual
+  // Gravity reg residual
+  VectorXs tau_grav_residual;
 
   using Base::cost;
   using Base::Fu;

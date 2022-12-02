@@ -150,9 +150,14 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   d->cost = d->costs->cost;
 
   // Add hard-coded cost on contact force
-  if(active_contact_ && with_force_cost_){
-    d->f_residual = f - force_des_;
-    d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
+  if(active_contact_){
+    if(with_force_cost_){
+      d->f_residual = f - force_des_;
+      d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
+    }
+    if(with_gravity_torque_reg_){
+      d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
+    }
   }
 }
 
@@ -225,6 +230,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
       // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
       d->aba_df = d->aba_dtau * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
+      // d->aba_df = d->aba_dtau * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3);
       // Skew term added to RNEA derivatives when force is expressed in LWA
       if(ref_ != pinocchio::LOCAL){
           d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
@@ -240,6 +246,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
         d->Fu.noalias() = d->Minv * d->multibody.actuation->dtau_du;
         // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
         d->aba_df = d->Minv * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
+        // d->aba_df = d->Minv * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3);
         // Skew term added to RNEA derivatives when force is expressed in LWA
         if(ref_ != pinocchio::LOCAL){
             d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
@@ -310,7 +317,8 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lff = force_weight_ * Matrix3s::Identity();
     }
     if(with_gravity_torque_reg_){
-      d->Lf += d->lJ.topRows(3).transpose();
+      d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
+      d->Lff += tau_grav_weight_ * ( d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3) ).transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
     }
   }
 }

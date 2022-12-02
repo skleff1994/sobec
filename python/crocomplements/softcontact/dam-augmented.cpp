@@ -169,6 +169,12 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_gravity_torque_reg,
           "Is control regularization around gravity vector?")
       .add_property(
+          "tau_grav_weight",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_tau_grav_weight,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_tau_grav_weight,
+          "Weight of the control regularization w.r.t. gravity torque")
+      .add_property(
           "armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_armature,
                             bp::return_value_policy<bp::return_by_value>()),

@@ -166,7 +166,8 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
     using Base::armature_;
     Vector3s force_des_;                    //!< Desired force 3D
     Scalar force_weight_;                   //!< Force cost weight
-
+    using Base::tau_grav_weight_;
+    
 };
 
 template <typename _Scalar>
@@ -239,6 +240,8 @@ struct DADSoftContact3DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::Lff;
   // Force residual for hard coded tracking cost
   using Base::f_residual;
+  // Gravity reg residual
+  using Base::tau_grav_residual;
 
   using Base::cost;
   using Base::Fu;
