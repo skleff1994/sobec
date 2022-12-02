@@ -157,6 +157,12 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_ref,
           "Pinocchio reference frame")
       .add_property(
+          "active_contact",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_active_contact,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_active_contact,
+          "Activeness of the soft contact")
+      .add_property(
           "armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_armature,
                             bp::return_value_policy<bp::return_by_value>()),

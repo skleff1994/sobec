@@ -56,7 +56,6 @@ DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContact3DAugmentedFwdDyn
   parentId_ = this->get_pinocchio().frames[frameId_].parent;
   jMf_ = this->get_pinocchio().frames[frameId_].placement;
   with_armature_ = false;
-  armature_ = VectorXs::Zero(this->get_state()->get_nv());
 }
 
 template <typename Scalar>
@@ -151,7 +150,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   d->cost = d->costs->cost;
 
   // Add hard-coded cost on contact force
-  if(with_force_cost_){
+  if(active_contact_ && with_force_cost_){
     d->f_residual = f - force_des_;
     d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
   }
@@ -285,6 +284,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
                                                       d->aba_dq, d->aba_dv, d->aba_dtau);
       d->Fx.leftCols(nv) = d->aba_dq;
       d->Fx.rightCols(nv) = d->aba_dv;
+      d->pinocchio.Minv = d->aba_dtau;
       d->Fx += d->aba_dtau * d->multibody.actuation->dtau_dx;
       d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
     } else {

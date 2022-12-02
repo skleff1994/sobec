@@ -58,7 +58,6 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   parentId_ = this->get_pinocchio().frames[frameId_].parent;
   jMf_ = this->get_pinocchio().frames[frameId_].placement;
   with_armature_ = false;
-  armature_ = VectorXs::Zero(this->get_state()->get_nv());
 }
 
 template <typename Scalar>
@@ -223,6 +222,16 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_armature(const V
   }
   armature_ = armature;
   with_armature_ = true;
+}
+
+template <typename Scalar>
+const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_active_contact() const {
+  return active_contact_;
+}
+
+template <typename Scalar>
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_active_contact(const bool inActive) {
+  active_contact_ = inActive;
 }
 
 

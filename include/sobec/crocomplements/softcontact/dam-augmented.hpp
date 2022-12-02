@@ -161,6 +161,9 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   
   const pinocchio::FrameIndex& get_id() const;
 
+  const bool get_active_contact() const;
+  void set_active_contact(const bool);
+
   std::size_t get_nc() {return nc_;};
 
   // armature 
