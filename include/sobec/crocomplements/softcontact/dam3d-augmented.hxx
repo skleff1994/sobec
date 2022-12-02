@@ -149,7 +149,15 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   this->get_costs()->calc(d->costs, x, u);
   d->cost = d->costs->cost;
 
-  // Add hard-coded cost on contact force
+  // hard coded cost not in contact
+  if(!active_contact_){
+    if(with_gravity_torque_reg_){
+      d->tau_grav_residual = d->actuation->tau - pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q);
+      d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
+    }
+  }
+
+  // Add hard-coded cost in contact
   if(active_contact_){
     if(with_force_cost_){
       d->f_residual = f - force_des_;
@@ -157,6 +165,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
     }
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
+      d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
     }
   }
 }
@@ -309,7 +318,19 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   d->Lxx = d->costs->Lxx;
   d->Lxu = d->costs->Lxu;
   d->Luu = d->costs->Luu;
-  // add hard-coded cost
+
+  // Hard-coded gravity reg cost (no contact)
+  if(!active_contact_){
+    if(with_gravity_torque_reg_){
+      d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q));
+      Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, true> Rq = data->Rx.leftCols(this->get_state()->get_nv());
+      pinocchio::computeGeneralizedGravityDerivatives(this->get_pinocchio(), d->pinocchio, q, Rq);
+      Rq *= -1;
+      d->Lu = tau_grav_weight_ * d->multibody.actuation->dtau_du;
+    }
+  }
+
+  // add hard-coded cost in contact 
   if(active_contact_){
     if(with_force_cost_){
       d->f_residual = f - force_des_;
@@ -317,6 +338,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lff = force_weight_ * Matrix3s::Identity();
     }
     if(with_gravity_torque_reg_){
+      d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
       d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
       d->Lff += tau_grav_weight_ * ( d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3) ).transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
     }
