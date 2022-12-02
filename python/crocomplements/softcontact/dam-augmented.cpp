@@ -163,6 +163,12 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_active_contact,
           "Activeness of the soft contact")
       .add_property(
+          "with_gravity_torque_reg",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_with_gravity_torque_reg,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_gravity_torque_reg,
+          "Is control regularization around gravity vector?")
+      .add_property(
           "armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_armature,
                             bp::return_value_policy<bp::return_by_value>()),

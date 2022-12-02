@@ -219,9 +219,9 @@ void test_calc_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamic
   modelsoft->calc(data, x, f, u);
   modelfree->calc(datafree, x, u);
   // BOOST_CHECK((data->xout - datafree->xout).norm() <= 1e-8);
-  std::cout << "size soft xout = " << data->xout.size() << std::endl;
-  std::cout << "size free xout = " << datafree->xout.size() << std::endl;
-  std::cout << data->xout - datafree->xout << std::endl;
+  // std::cout << "size soft xout = " << data->xout.size() << std::endl;
+  // std::cout << "size free xout = " << datafree->xout.size() << std::endl;
+  // std::cout << data->xout - datafree->xout << std::endl;
   BOOST_CHECK((data->xout - datafree->xout).isZero(1e-4));
 }
 
@@ -258,13 +258,11 @@ void test_calc_equivalent_free(DAMSoftContact3DTypes::Type action_type,
 
 void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft, 
                         Eigen::VectorXd armature){
-  boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data = modelsoft->createData();
   // Create DAM free
   boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_state()); 
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics> modelfree =
       boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(
           statemb, modelsoft->get_actuation(), modelsoft->get_costs());
-  const boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract>& datafree = modelfree->createData();
   // optional armature
   if(!armature.isZero(1e-9)){
     if(modelsoft->get_state()->get_nv() > modelsoft->get_nu()){
@@ -273,6 +271,8 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
     modelfree->set_armature(armature);
     modelsoft->set_armature(armature);
   }
+  boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> datafree = modelfree->createData();
+  boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> datasoft = modelsoft->createData();
   // Generating random state and control vectors
   const Eigen::VectorXd x = modelsoft->get_state()->rand();
   const Eigen::VectorXd f = Eigen::Vector3d::Zero();
@@ -281,19 +281,19 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
   modelsoft->set_Kp(0.);
   modelsoft->set_Kv(0.);
   // Getting the state dimension from calc() call
-  modelsoft->calc(data, x, f, u);
-  modelsoft->calcDiff(data, x, f, u);
+  modelsoft->calc(datasoft, x, f, u);
+  modelsoft->calcDiff(datasoft, x, f, u);
   modelfree->calc(datafree, x, u);
   modelfree->calcDiff(datafree, x, u);
   // Checking the partial derivatives against NumDiff
   double tol = 1e-6;
-  BOOST_CHECK((data->Fx - datafree->Fx).isZero(tol));
-  BOOST_CHECK((data->Fu - datafree->Fu).isZero(tol));
-  BOOST_CHECK((data->Lx - datafree->Lx).isZero(tol));
-  BOOST_CHECK((data->Lu - datafree->Lu).isZero(tol));
-  BOOST_CHECK((data->Lxx - datafree->Lxx).isZero(tol));
-  BOOST_CHECK((data->Lxu - datafree->Lxu).isZero(tol));
-  BOOST_CHECK((data->Luu - datafree->Luu).isZero(tol));
+  BOOST_CHECK((datasoft->Fx - datafree->Fx).isZero(tol));
+  BOOST_CHECK((datasoft->Fu - datafree->Fu).isZero(tol));
+  BOOST_CHECK((datasoft->Lx - datafree->Lx).isZero(tol));
+  BOOST_CHECK((datasoft->Lu - datafree->Lu).isZero(tol));
+  BOOST_CHECK((datasoft->Lxx - datafree->Lxx).isZero(tol));
+  BOOST_CHECK((datasoft->Lxu - datafree->Lxu).isZero(tol));
+  BOOST_CHECK((datasoft->Luu - datafree->Luu).isZero(tol));
 }
 
 void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
@@ -327,16 +327,6 @@ void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
 
 }
 
-// void test_calcDiff_equivalent_free_armature(DAMSoftContact3DTypes::Type action_type,
-//                                             PinocchioReferenceTypes::Type ref_type) {
-//   // create the model
-//   DAMSoftContact3DFactory factory;
-//   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
-//       factory.create(action_type, ref_type);
-//   Eigen::VectorXd armature = 1e-3*Eigen::VectorXd::Ones(modelsoft->get_state()->get_nv());
-//   test_calcDiff_free(modelsoft, armature);
-// }
-
 //----------------------------------------------------------------------------//
 
 void register_action_model_unit_tests(DAMSoftContact3DTypes::Type action_type,
@@ -349,15 +339,11 @@ void register_action_model_unit_tests(DAMSoftContact3DTypes::Type action_type,
   ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_state, action_type, ref_type)));
   ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_returns_a_cost, action_type, ref_type)));
   ts->add(BOOST_TEST_CASE(boost::bind(&test_partial_derivatives_against_numdiff, action_type, ref_type)));
-  // Test equivalence with Euler for soft contact when Kp, Kv = 0 and f=0
+  // Test equivalence with Euler for soft contact when Kp, Kv = 0 and f=0, or active_contact = 0
   ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_equivalent_free, action_type, ref_type)));
   ts->add(BOOST_TEST_CASE(boost::bind(&test_calcDiff_equivalent_free, action_type, ref_type)));
-  // armature stuff
+  // test partials with armature 
   ts->add(BOOST_TEST_CASE(boost::bind(&test_partial_derivatives_against_numdiff_armature, action_type, ref_type)));
-  // ts->add(BOOST_TEST_CASE(boost::bind(&test_calc_equivalent_free_armature, action_type, ref_type)));
-  // issue with calcDiff free fwd dyn + armature : wrong sizes in d->Minv * d->dtau_dx
-  // dtau_dx is (nu,ndx) but Minv is (nv,nv) 
-  // ts->add(BOOST_TEST_CASE(boost::bind(&test_calcDiff_equivalent_free_armature, action_type, ref_type)));
   framework::master_test_suite().add(ts);
 }
 

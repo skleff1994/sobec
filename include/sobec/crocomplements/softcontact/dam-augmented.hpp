@@ -164,6 +164,9 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   const bool get_active_contact() const;
   void set_active_contact(const bool);
 
+  const bool get_with_gravity_torque_reg() const;
+  void set_with_gravity_torque_reg(const bool);
+
   std::size_t get_nc() {return nc_;};
 
   // armature 
@@ -183,6 +186,7 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
     pinocchio::SE3Tpl<Scalar> jMf_;         //!< Placement of contact frame w.r.t. parent frame
     bool with_armature_;                    //!< Indicate if we have defined an armature
     VectorXs armature_;                     //!< Armature vector
+    bool with_gravity_torque_reg_;          //!< Control regularization w.r.t. gravity torque
 };
 
 template <typename _Scalar>
@@ -199,7 +203,6 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   template <template <typename Scalar> class Model>
   explicit DADSoftContactAbstractAugmentedFwdDynamicsTpl(Model<Scalar>* const model)
       : Base(model),
-        dtau_dx(model->get_state()->get_nv(), model->get_state()->get_ndx()),
         lJ(6, model->get_state()->get_nv()),
         oJ(6, model->get_state()->get_nv()),
         aba_dq(model->get_state()->get_nv(), model->get_state()->get_nv()),
@@ -234,7 +237,6 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     costs->shareMemory(this);
     Minv.setZero();
     u_drift.setZero();
-    dtau_dx.setZero();
     tmp_xstatic.setZero();
     oRf.setZero();
     lJ.setZero();
@@ -275,10 +277,10 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   using Base::multibody;
   using Base::costs;
   using Base::Minv;
+  using Base::dtau_dx;
   using Base::u_drift;
   using Base::tmp_xstatic;
 
-  MatrixXs dtau_dx;
   // Contact frame rotation and Jacobians
   Matrix3s oRf;       //!< Contact frame rotation matrix 
   MatrixXs lJ;        //!< Contact frame LOCAL Jacobian matrix

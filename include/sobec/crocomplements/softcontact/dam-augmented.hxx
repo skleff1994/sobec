@@ -58,6 +58,7 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   parentId_ = this->get_pinocchio().frames[frameId_].parent;
   jMf_ = this->get_pinocchio().frames[frameId_].placement;
   with_armature_ = false;
+  with_gravity_torque_reg_ = false;
 }
 
 template <typename Scalar>
@@ -232,6 +233,16 @@ const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_active_con
 template <typename Scalar>
 void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_active_contact(const bool inActive) {
   active_contact_ = inActive;
+}
+
+template <typename Scalar>
+const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_gravity_torque_reg() const {
+  return with_gravity_torque_reg_;
+}
+
+template <typename Scalar>
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_with_gravity_torque_reg(const bool inBool) {
+  with_gravity_torque_reg_ = inBool;
 }
 
 

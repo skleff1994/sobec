@@ -162,6 +162,7 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
     using Base::nc_;
     using Base::jMf_;
     using Base::with_armature_;
+    using Base::with_gravity_torque_reg_;
     using Base::armature_;
     Vector3s force_des_;                    //!< Desired force 3D
     Scalar force_weight_;                   //!< Force cost weight

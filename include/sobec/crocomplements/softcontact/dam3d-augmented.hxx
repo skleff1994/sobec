@@ -303,10 +303,15 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   d->Lxu = d->costs->Lxu;
   d->Luu = d->costs->Luu;
   // add hard-coded cost
-  if(active_contact_ && with_force_cost_){
+  if(active_contact_){
+    if(with_force_cost_){
       d->f_residual = f - force_des_;
       d->Lf = force_weight_ * d->f_residual.transpose();
       d->Lff = force_weight_ * Matrix3s::Identity();
+    }
+    if(with_gravity_torque_reg_){
+      d->Lf += d->lJ.topRows(3).transpose();
+    }
   }
 }
 
