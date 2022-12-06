@@ -39,13 +39,13 @@ DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContact1DAugmentedFwdDyn
   Base::set_u_lb(Scalar(-1.) * this->get_pinocchio().effortLimit.tail(this->get_nu()));
   Base::set_u_ub(Scalar(+1.) * this->get_pinocchio().effortLimit.tail(this->get_nu()));
   // Soft contact model parameters
-  if(Kp_ < 0.){
+  if(Kp < 0.){
      throw_pretty("Invalid argument: "
-                << "Kp_ must be positive "); 
+                << "Kp must be positive "); 
   }
-  if(Kv_ < 0.){
+  if(Kv < 0.){
      throw_pretty("Invalid argument: "
-                << "Kv_ must be positive "); 
+                << "Kv must be positive "); 
   }
   Kp_ = Kp;
   Kv_ = Kv;

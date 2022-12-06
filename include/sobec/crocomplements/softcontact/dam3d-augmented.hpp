@@ -140,16 +140,6 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
    */
   virtual boost::shared_ptr<DifferentialActionDataAbstract> createData();
   
-  void set_force_cost(const Vector3s& force_des, const Scalar force_weight);
-
-  void set_force_des(const Vector3s& inForceDes);
-
-  void set_force_weight(const Scalar inForceWeight);
-
-  const Vector3s& get_force_des() const;
-
-  const Scalar get_force_weight() const;
-
   protected:
     using Base::Kp_;
     using Base::Kv_;
@@ -164,8 +154,8 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
     using Base::with_armature_;
     using Base::with_gravity_torque_reg_;
     using Base::armature_;
-    Vector3s force_des_;                    //!< Desired force 3D
-    Scalar force_weight_;                   //!< Force cost weight
+    using Base::force_des_;                    
+    using Base::force_weight_;                   
     using Base::tau_grav_weight_;
     
 };
@@ -242,6 +232,9 @@ struct DADSoftContact3DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::f_residual;
   // Gravity reg residual
   using Base::tau_grav_residual;
+  using Base::tau_grav_residual_x;
+  using Base::tau_grav_residual_u;
+//   using Base::tau_grav_residual_f;
 
   using Base::cost;
   using Base::Fu;

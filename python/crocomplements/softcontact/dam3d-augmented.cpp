@@ -82,58 +82,7 @@ void exposeDAMSoftContact3DAugmentedFwdDyn() {
           const Eigen::Ref<const Eigen::VectorXd>&)>(
           "calcDiff", &DAMSoftContact3DAugmentedFwdDynamics::calcDiff, bp::args("self", "data", "x", "f"))
       .def("createData", &DAMSoftContact3DAugmentedFwdDynamics::createData,
-           bp::args("self"), "Create the Euler integrator data.")
-      .def("set_force_cost", &DAMSoftContact3DAugmentedFwdDynamics::set_force_cost,
-           bp::args("self", "force_des", "force_weight"),
-           "Initialize force reference and cost weight ")
-    //   .add_property(
-    //       "Kp",
-    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_Kp,
-    //                         bp::return_value_policy<bp::return_by_value>()),
-    //       &DAMSoftContact3DAugmentedFwdDynamics::set_Kp,
-    //       "Stiffness of the contact model")
-    //   .add_property(
-    //       "Kv",
-    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_Kv,
-    //                         bp::return_value_policy<bp::return_by_value>()),
-    //       &DAMSoftContact3DAugmentedFwdDynamics::set_Kv,
-    //       "Damping of the contact model")
-    //   .add_property(
-    //       "oPc",
-    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_oPc,
-    //                         bp::return_value_policy<bp::return_by_value>()),
-    //       &DAMSoftContact3DAugmentedFwdDynamics::set_oPc,
-    //       "Anchor point of the contact model")
-      .add_property(
-          "f_des",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_force_des,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_force_des,
-          "Desired force in the cost")
-      .add_property(
-          "f_weight",
-          bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_force_weight,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact3DAugmentedFwdDynamics::set_force_weight,
-          "Force cost weight");
-    //   .add_property(
-    //       "ref",
-    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_ref,
-    //                         bp::return_value_policy<bp::return_by_value>()),
-    //       &DAMSoftContact3DAugmentedFwdDynamics::set_ref,
-    //       "Pinocchio reference frame")
-    //   .add_property(
-    //       "id",
-    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_id,
-    //                         bp::return_value_policy<bp::return_by_value>()),
-    //       &DAMSoftContact3DAugmentedFwdDynamics::set_id,
-    //       "Contact frame id")
-    //   .add_property(
-    //       "armature",
-    //       bp::make_function(&DAMSoftContact3DAugmentedFwdDynamics::get_armature,
-    //                         bp::return_value_policy<bp::return_by_value>()),
-    //       &DAMSoftContact3DAugmentedFwdDynamics::set_armature,
-    //       "Armature");
+           bp::args("self"), "Create the Euler integrator data.");
 
   bp::register_ptr_to_python<boost::shared_ptr<DADSoftContact3DAugmentedFwdDynamics> >();
 

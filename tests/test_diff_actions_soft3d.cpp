@@ -11,6 +11,7 @@
 
 #include "common.hpp"
 #include "factory/diff-action-soft3d.hpp"
+#include <crocoddyl/multibody/residuals/control-gravity.hpp>
 
 using namespace boost::unit_test;
 using namespace sobec::unittest;
@@ -168,6 +169,12 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
   BOOST_CHECK((datacast->dfdt_du - data_num_diff_cast->dfdt_du).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lu - data_num_diff_cast->Lu).isZero(NUMDIFF_MODIFIER * tol));
+  if(!(datacast->Lf - data_num_diff_cast->Lf).isZero(NUMDIFF_MODIFIER*tol)){
+    std::cout << "Lf " << std::endl;
+    std::cout << datacast->Lf << std::endl;
+    std::cout << "Lf_ND " << std::endl;
+    std::cout << data_num_diff_cast->Lf << std::endl;
+  }
   BOOST_CHECK((datacast->Lf - data_num_diff_cast->Lf).isZero(NUMDIFF_MODIFIER * tol));
 }
 
@@ -186,7 +193,10 @@ void test_partial_derivatives_against_numdiff_armature(
   // create the model
   DAMSoftContact3DFactory factory;
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model = factory.create(action_type, ref_type);
-  Eigen::VectorXd armature = Eigen::VectorXd::Random(model->get_state()->get_nv());
+  Eigen::VectorXd armature = 1e-3*Eigen::VectorXd::Ones(model->get_state()->get_nv());
+  if(model->get_state()->get_nv() > model->get_nu()){
+    armature.head(6) = Eigen::VectorXd::Zero(6);
+  }
   model->set_armature(armature);
   test_partials_numdiff(model);
 }
@@ -197,12 +207,14 @@ void test_partial_derivatives_against_numdiff_armature(
 // Test equivalence with free dynamics when Kp,Kv=0
 void test_calc_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft,
                     Eigen::VectorXd armature) {
-  boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data = modelsoft->createData();
   // Create DAM free
   boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_state()); 
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics> modelfree = boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(
           statemb, modelsoft->get_actuation(), modelsoft->get_costs());
-  const boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract>& datafree = modelfree->createData();
+  // Add gravity cost on free model
+  boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
+          statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
+  modelfree->get_costs()->addCost( "grav_reg", cost, 0.01);
   // optional armature
   if(!armature.isZero(1e-9)){
     if(modelsoft->get_state()->get_nv() > modelsoft->get_nu()){
@@ -211,18 +223,20 @@ void test_calc_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamic
     modelfree->set_armature(armature);
     modelsoft->set_armature(armature);
   }
+  boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> datafree = modelfree->createData();
+  boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> datasoft = modelsoft->createData();
   // Generating random state and control vectors
   const Eigen::VectorXd x = modelsoft->get_state()->rand();
   const Eigen::VectorXd f = Eigen::Vector3d::Zero();
   const Eigen::VectorXd u = Eigen::VectorXd::Random(modelsoft->get_nu());
   // Getting the state dimension from calc() call
-  modelsoft->calc(data, x, f, u);
+  modelsoft->calc(datasoft, x, f, u);
   modelfree->calc(datafree, x, u);
   // BOOST_CHECK((data->xout - datafree->xout).norm() <= 1e-8);
   // std::cout << "size soft xout = " << data->xout.size() << std::endl;
   // std::cout << "size free xout = " << datafree->xout.size() << std::endl;
   // std::cout << data->xout - datafree->xout << std::endl;
-  BOOST_CHECK((data->xout - datafree->xout).isZero(1e-4));
+  BOOST_CHECK((datasoft->xout - datafree->xout).isZero(1e-4));
 }
 
 void test_calc_equivalent_free(DAMSoftContact3DTypes::Type action_type,
@@ -263,6 +277,10 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics> modelfree =
       boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(
           statemb, modelsoft->get_actuation(), modelsoft->get_costs());
+  // Add gravity cost on free model
+  boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
+          statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
+  modelfree->get_costs()->addCost( "grav_reg", cost, 0.01);
   // optional armature
   if(!armature.isZero(1e-9)){
     if(modelsoft->get_state()->get_nv() > modelsoft->get_nu()){

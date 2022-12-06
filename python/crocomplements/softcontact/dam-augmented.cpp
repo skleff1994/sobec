@@ -174,6 +174,21 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_tau_grav_weight,
           "Weight of the control regularization w.r.t. gravity torque")
+      .def("set_force_cost", &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_cost,
+           bp::args("self", "force_des", "force_weight"),
+           "Initialize force reference and cost weight ")
+      .add_property(
+          "f_des",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_force_des,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_des,
+          "Desired force in the cost")
+      .add_property(
+          "f_weight",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_force_weight,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_weight,
+          "Force cost weight")
       .add_property(
           "armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_armature,

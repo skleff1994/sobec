@@ -30,33 +30,7 @@ DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContact3DAugmentedFwdDyn
     const Scalar Kv,
     const Vector3s& oPc,
     const pinocchio::ReferenceFrame ref)
-    : Base(state, actuation, costs, frameId, Kp, Kv, oPc, 3, ref) {
-  if (this->get_costs()->get_nu() != this->get_nu()) {
-    throw_pretty("Invalid argument: "
-                 << "Costs doesn't have the same control dimension (it should be " + std::to_string(this->get_nu()) + ")");
-  }
-  Base::set_u_lb(Scalar(-1.) * this->get_pinocchio().effortLimit.tail(this->get_nu()));
-  Base::set_u_ub(Scalar(+1.) * this->get_pinocchio().effortLimit.tail(this->get_nu()));
-  // Soft contact model parameters
-  if(Kp_ < 0.){
-     throw_pretty("Invalid argument: "
-                << "Kp_ must be positive "); 
-  }
-  if(Kv_ < 0.){
-     throw_pretty("Invalid argument: "
-                << "Kv_ must be positive "); 
-  }
-  Kp_ = Kp;
-  Kv_ = Kv;
-  oPc_ = oPc;
-  frameId_ = frameId;
-  ref_ = ref;
-  with_force_cost_ = false;
-  active_contact_ = true;
-  parentId_ = this->get_pinocchio().frames[frameId_].parent;
-  jMf_ = this->get_pinocchio().frames[frameId_].placement;
-  with_armature_ = false;
-}
+    : Base(state, actuation, costs, frameId, Kp, Kv, oPc, 3, ref) {}
 
 template <typename Scalar>
 DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::~DAMSoftContact3DAugmentedFwdDynamicsTpl() {}
@@ -110,6 +84,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
       //  Compute jacobian transpose lambda
       pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL, d->lJ);
       d->xout.noalias() = d->Minv * d->u_drift + d->Minv * d->lJ.topRows(3).transpose() * d->pinForce.linear(); 
+     
     // ABA without armature
     } else {
       d->xout = pinocchio::aba(this->get_pinocchio(), d->pinocchio, q, v, d->multibody.actuation->tau, d->fext); 
@@ -152,7 +127,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   // hard coded cost not in contact
   if(!active_contact_){
     if(with_gravity_torque_reg_){
-      d->tau_grav_residual = d->actuation->tau - pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q);
+      d->tau_grav_residual = d->multibody.actuation->tau - pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q);
       d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
     }
   }
@@ -190,7 +165,23 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   pinocchio::computeAllTerms(this->get_pinocchio(), d->pinocchio, q, v);
   this->get_costs()->calc(d->costs, x);
   d->cost = d->costs->cost;
-  // Add cost on force here?
+  // hard coded cost not in contact
+  if(!active_contact_){
+    if(with_gravity_torque_reg_){
+      d->tau_grav_residual = -pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q);
+      d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
+    }
+  }
+  else{
+    if(with_force_cost_){
+      d->f_residual = f - force_des_;
+      d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
+    }
+    if(with_gravity_torque_reg_){
+      d->tau_grav_residual = -pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext);
+      d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
+    }
+  }
 }
 
 
@@ -238,8 +229,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Fx += d->aba_dtau * d->multibody.actuation->dtau_dx;
       d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
       // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
-      d->aba_df = d->aba_dtau * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
-      // d->aba_df = d->aba_dtau * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3);
+      d->aba_df = d->aba_dtau * d->lJ.topRows(3).transpose();
       // Skew term added to RNEA derivatives when force is expressed in LWA
       if(ref_ != pinocchio::LOCAL){
           d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
@@ -254,8 +244,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
         d->Fx.noalias() = d->Minv * d->dtau_dx;
         d->Fu.noalias() = d->Minv * d->multibody.actuation->dtau_du;
         // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
-        d->aba_df = d->Minv * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
-        // d->aba_df = d->Minv * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3);
+        d->aba_df = d->Minv * d->lJ.topRows(3).transpose();
         // Skew term added to RNEA derivatives when force is expressed in LWA
         if(ref_ != pinocchio::LOCAL){
             d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
@@ -323,10 +312,13 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   if(!active_contact_){
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q));
-      Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, true> Rq = data->Rx.leftCols(this->get_state()->get_nv());
+      Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, true> Rq = d->tau_grav_residual_x.leftCols(nv);
       pinocchio::computeGeneralizedGravityDerivatives(this->get_pinocchio(), d->pinocchio, q, Rq);
       Rq *= -1;
-      d->Lu = tau_grav_weight_ * d->multibody.actuation->dtau_du;
+      d->tau_grav_residual_x += d->multibody.actuation->dtau_dx;
+      d->tau_grav_residual_u = d->multibody.actuation->dtau_du;
+      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
+      d->Lu += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_u;
     }
   }
 
@@ -339,6 +331,13 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     }
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
+      Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, true> Rq = d->tau_grav_residual_x.leftCols(nv);
+      pinocchio::computeStaticTorqueDerivatives(this->get_pinocchio(), d->pinocchio, q, d->fext, Rq);
+      Rq *= -1;
+      d->tau_grav_residual_x += d->multibody.actuation->dtau_dx;
+      d->tau_grav_residual_u = d->multibody.actuation->dtau_du;
+      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
+      d->Lu += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_u;
       d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
       d->Lff += tau_grav_weight_ * ( d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3) ).transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
     }
@@ -359,56 +358,44 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     throw_pretty("Invalid argument: "
                  << "f has wrong dimension (it should be 3)");
   }
+  const Eigen::VectorBlock<const Eigen::Ref<const VectorXs>, Eigen::Dynamic> q = x.head(this->get_state()->get_nq());
+  const std::size_t nv = this->get_state()->get_nv();
   Data* d = static_cast<Data*>(data.get());
   this->get_costs()->calcDiff(d->costs, x);
-  // Add cost on force here
+  // Hard-coded gravity reg cost (no contact)
+  if(!active_contact_){
+    if(with_gravity_torque_reg_){
+      d->tau_grav_residual = -pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q);
+      Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, true> Rq = d->tau_grav_residual_x.leftCols(nv);
+      pinocchio::computeGeneralizedGravityDerivatives(this->get_pinocchio(), d->pinocchio, q, Rq);
+      Rq *= -1;
+      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
+    }
+  }
+  // else 
+  if(active_contact_){
+    if(with_force_cost_){
+      d->f_residual = f - force_des_;
+      d->Lf = force_weight_ * d->f_residual.transpose();
+      d->Lff = force_weight_ * Matrix3s::Identity();
+    }
+    if(with_gravity_torque_reg_){
+      d->tau_grav_residual = -pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext);
+      Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, true> Rq = d->tau_grav_residual_x.leftCols(nv);
+      pinocchio::computeStaticTorqueDerivatives(this->get_pinocchio(), d->pinocchio, q, d->fext, Rq);
+      Rq *= -1;
+      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
+      d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
+      // d->Lff += d->tau_grav_residual_f;
+      d->Lff += tau_grav_weight_ * ( d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3) ).transpose() * d->lJ.transpose() * jMf_.toActionMatrix().transpose().leftCols(3); 
+    }
+  }
 }
-
 
 template <typename Scalar>
 boost::shared_ptr<DifferentialActionDataAbstractTpl<Scalar> >
 DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::createData() {
   return boost::allocate_shared<Data>(Eigen::aligned_allocator<Data>(), this);
-}
-
-template <typename Scalar>
-void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_force_cost(const Vector3s& force_des, 
-                                                                     const Scalar force_weight) {
-  if (force_weight < 0.) {
-    throw_pretty("Invalid argument: "
-                 << "Force weight should be positive");
-  }
-  force_des_ = force_des;
-  force_weight_ = force_weight;
-  with_force_cost_ = true;
-}
-
-template <typename Scalar>
-void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_force_des(const Vector3s& inForceDes) {
-  if (inForceDes.size() != 3) {
-    throw_pretty("Invalid argument: "
-                 << "Desired force should have size 3");
-  }
-  force_des_ = inForceDes;
-}
-
-template <typename Scalar>
-void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::set_force_weight(const Scalar inForceWeight) {
-  if (inForceWeight < 0.) {
-    throw_pretty("Invalid argument: "
-                 << "Force cost weight should be positive");
-  }
-  force_weight_ = inForceWeight;
-}
-
-template <typename Scalar>
-const typename MathBaseTpl<Scalar>::Vector3s& DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_force_des() const {
-  return force_des_;
-}
-
-template <typename Scalar>
-const Scalar DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::get_force_weight() const {
-  return force_weight_;
 }
 
 }  // namespace sobec

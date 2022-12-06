@@ -142,31 +142,30 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   virtual boost::shared_ptr<DifferentialActionDataAbstract> createData();
 
   void set_Kp(const Scalar inKp);
-
   void set_Kv(const Scalar inKv);
-
   void set_oPc(const Vector3s& oPc);
-
   void set_ref(const pinocchio::ReferenceFrame inRef);
-  
   void set_id(const pinocchio::FrameIndex inId);
 
   const Scalar get_Kp() const;
-
   const Scalar get_Kv() const;
-
   const Vector3s& get_oPc() const;
-
   const pinocchio::ReferenceFrame& get_ref() const;
-  
   const pinocchio::FrameIndex& get_id() const;
 
-  const bool get_active_contact() const;
+  bool get_active_contact() const;
   void set_active_contact(const bool);
 
-  const bool get_with_gravity_torque_reg() const;
-  void set_with_gravity_torque_reg(const bool);
+  // Force cost
+  void set_force_cost(const VectorXs& force_des, const Scalar force_weight);
+  void set_force_des(const VectorXs& inForceDes);
+  void set_force_weight(const Scalar inForceWeight);
+  const VectorXs& get_force_des() const;
+  const Scalar get_force_weight() const;
 
+  // Gravity cost
+  bool get_with_gravity_torque_reg() const;
+  void set_with_gravity_torque_reg(const bool);
   const Scalar get_tau_grav_weight() const;
   void set_tau_grav_weight(const Scalar);
 
@@ -183,12 +182,14 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
     pinocchio::FrameIndex frameId_;         //!< Frame id of the contact
     pinocchio::FrameIndex parentId_;        //!< Parent id of the contact
     pinocchio::ReferenceFrame ref_;         //!< Pinocchio reference frame
-    bool with_force_cost_;                  //!< Force cost ?
     bool active_contact_;                   //!< Active contact ?
     std::size_t nc_;                        //!< Contact model dimension
     pinocchio::SE3Tpl<Scalar> jMf_;         //!< Placement of contact frame w.r.t. parent frame
     bool with_armature_;                    //!< Indicate if we have defined an armature
     VectorXs armature_;                     //!< Armature vector
+    bool with_force_cost_;                  //!< Force cost ?
+    VectorXs force_des_;                    //!< Desired force 3D
+    Scalar force_weight_;                   //!< Force cost weight
     bool with_gravity_torque_reg_;          //!< Control regularization w.r.t. gravity torque
     Scalar tau_grav_weight_;                //!< Weight on regularization w.r.t. gravity torque
 };
@@ -238,7 +239,10 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         Lf(model->get_nc()),
         Lff(model->get_nc(), model->get_nc()),
         f_residual(model->get_nc()),
-        tau_grav_residual(model->get_actuation()->get_nu()) {
+        tau_grav_residual(model->get_actuation()->get_nu()),
+        tau_grav_residual_x(model->get_actuation()->get_nu(), model->get_state()->get_ndx()),
+        tau_grav_residual_u(model->get_actuation()->get_nu(), model->get_actuation()->get_nu()) {
+        // tau_grav_residual_f(model->get_actuation()->get_nu(), model->get_nc()) {
     costs->shareMemory(this);
     Minv.setZero();
     u_drift.setZero();
@@ -277,6 +281,9 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     Lff.setZero();
     f_residual.setZero();
     tau_grav_residual.setZero();
+    tau_grav_residual_x.setZero();
+    tau_grav_residual_u.setZero();
+    // tau_grav_residual_f.setZero();
   }
 
   using Base::pinocchio;
@@ -335,7 +342,11 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   // Force residual for hard coded tracking cost
   VectorXs f_residual;      //!< Contact force residual
   // Gravity reg residual
+  Scalar tau_grav_weight_;
   VectorXs tau_grav_residual;
+  MatrixXs tau_grav_residual_x;
+  MatrixXs tau_grav_residual_u;
+  // MatrixXs tau_grav_residual_f;
 
   using Base::cost;
   using Base::Fu;
