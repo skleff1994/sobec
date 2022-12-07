@@ -64,6 +64,14 @@ std::ostream& operator<<(std::ostream& os,
       os << "DifferentialActionModelContact3DFwdDynamics_HyQ";
       break;
     case DifferentialActionModelTypes::
+        DifferentialActionModelSoftContact3DFwdDynamics_HyQ:
+      os << "DifferentialActionModelSoftContact3DFwdDynamics_HyQ";
+      break;
+    case DifferentialActionModelTypes::
+        DifferentialActionModelSoftContact1DFwdDynamics_HyQ:
+      os << "DifferentialActionModelSoftContact1DFwdDynamics_HyQ";
+      break;
+    case DifferentialActionModelTypes::
         DifferentialActionModelContact1DFwdDynamics_Talos:
       os << "DifferentialActionModelContact1DFwdDynamics_Talos";
       break;
@@ -142,6 +150,18 @@ DifferentialActionModelFactory::create(
     case DifferentialActionModelTypes::
         DifferentialActionModelContact1DFwdDynamics_HyQ:
       action = create_contact1DFwdDynamics(
+          StateModelTypes::StateMultibody_HyQ,
+          ActuationModelTypes::ActuationModelFloatingBase, ref_type, mask_type);
+      break;
+    case DifferentialActionModelTypes::
+        DifferentialActionModelSoftContact3DFwdDynamics_HyQ:
+      action = create_softContact3DFwdDynamics(
+          StateModelTypes::StateMultibody_HyQ,
+          ActuationModelTypes::ActuationModelFloatingBase, ref_type);
+      break;
+    case DifferentialActionModelTypes::
+        DifferentialActionModelSoftContact1DFwdDynamics_HyQ:
+      action = create_softContact1DFwdDynamics(
           StateModelTypes::StateMultibody_HyQ,
           ActuationModelTypes::ActuationModelFloatingBase, ref_type, mask_type);
       break;
