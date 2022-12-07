@@ -42,6 +42,7 @@ namespace python {
 
 void exposeResidualContactForce();
 void exposeDAMContactFwdDyn();
+void exposeContact6D();
 void exposeContact3D();
 void exposeContact1D();
 void exposeMultipleContacts();

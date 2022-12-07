@@ -198,6 +198,14 @@ typedef IADSoftContactAugmentedTpl<double> IADSoftContactAugmented;
 namespace sobec {
 namespace newcontacts {
 
+// contact 6D
+template <typename Scalar>
+class ContactModel6DTpl;
+typedef ContactModel6DTpl<double> ContactModel6D;
+template <typename Scalar>
+class ContactData6DTpl;
+typedef ContactData6DTpl<double> ContactData6D;
+
 // contact 3D
 template <typename Scalar>
 class ContactModel3DTpl;

@@ -13,6 +13,7 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/diff-action.hpp
   factory/action-soft.hpp
   factory/actuation.hpp
+  factory/contact6d.hpp
   factory/contact3d.hpp
   factory/contact1d.hpp
   factory/activation.cpp
@@ -28,6 +29,7 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/diff-action-soft1d.cpp
   factory/action-soft.cpp
   factory/actuation.cpp
+  factory/contact6d.cpp
   factory/contact3d.cpp
   factory/contact1d.cpp
   )
@@ -50,6 +52,9 @@ target_link_libraries(test_statessoft PUBLIC ${PROJECT_NAME}_unittest)
 
 ADD_UNIT_TEST(test_lpf test_lpf.cpp)
 target_link_libraries(test_lpf PUBLIC ${PROJECT_NAME}_unittest)
+
+add_unit_test(test_contact6d test_contact6d.cpp)
+target_link_libraries(test_contact6d PUBLIC ${PROJECT_NAME}_unittest)
 
 add_unit_test(test_contact3d test_contact3d.cpp)
 target_link_libraries(test_contact3d PUBLIC ${PROJECT_NAME}_unittest)
