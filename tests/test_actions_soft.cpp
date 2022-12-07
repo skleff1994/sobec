@@ -16,7 +16,7 @@
 #include "common.hpp"
 #include "factory/action-soft.hpp"
 #include "factory/diff-action-soft3d.hpp"
-// #include "factory/contact1d.hpp"
+#include <crocoddyl/multibody/residuals/control-gravity.hpp>
 
 using namespace boost::unit_test;
 using namespace sobec::unittest;
@@ -201,28 +201,34 @@ void test_calc_equivalent_euler(
     ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // Create IAM soft from DAMSoft
   IAMSoftContactFactory factory_iam;
-  const boost::shared_ptr<sobec::IAMSoftContactAugmented>& modelSoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
-  const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelSoft->createData();
+  const boost::shared_ptr<sobec::IAMSoftContactAugmented>& modelsoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
+  const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelsoft->createData();
   // Set gains to 0
-  modelSoft->get_differential()->set_Kp(0.);
-  modelSoft->get_differential()->set_Kv(0.);
+  modelsoft->get_differential()->set_Kp(0.);
+  modelsoft->get_differential()->set_Kv(0.);
 
   // Create IAM Euler from DAMfree (incompatible with DAMSoft)
-  boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelSoft->get_differential()->get_state()); 
+  boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_differential()->get_state()); 
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics> modelfree = boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(
-          statemb, modelSoft->get_differential()->get_actuation(), modelSoft->get_differential()->get_costs());
-  boost::shared_ptr<crocoddyl::IntegratedActionModelEuler> modelEuler = boost::make_shared<crocoddyl::IntegratedActionModelEuler>(modelfree, modelSoft->get_dt(), true);
+          statemb, modelsoft->get_differential()->get_actuation(), boost::make_shared<crocoddyl::CostModelSum>(*modelsoft->get_differential()->get_costs()));
+  // Add gravity cost on free model
+  if(modelsoft->get_differential()->get_with_gravity_torque_reg()){
+    boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
+            statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
+    modelfree->get_costs()->addCost( "grav_reg", cost, modelsoft->get_differential()->get_tau_grav_weight());
+  }
+  boost::shared_ptr<crocoddyl::IntegratedActionModelEuler> modelEuler = boost::make_shared<crocoddyl::IntegratedActionModelEuler>(modelfree, modelsoft->get_dt(), true);
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataEuler = modelEuler->createData();
 
   // Generating random state and control vectors
   std::size_t nx = statemb->get_nx();
-  std::size_t nc = modelSoft->get_nc();
-  Eigen::VectorXd y = modelSoft->get_state()->rand();
+  std::size_t nc = modelsoft->get_nc();
+  Eigen::VectorXd y = modelsoft->get_state()->rand();
   y.tail(nc) = Eigen::VectorXd::Zero(nc); // set 0 initial force
   Eigen::VectorXd x = y.head(nx);
-  Eigen::VectorXd u = Eigen::VectorXd::Random(modelSoft->get_nu());
+  Eigen::VectorXd u = Eigen::VectorXd::Random(modelsoft->get_nu());
   // Getting the state dimension from calc() call
-  modelSoft->calc(dataSoft, y, u);
+  modelsoft->calc(dataSoft, y, u);
   modelEuler->calc(dataEuler, x, u);
   BOOST_CHECK((dataSoft->xnext.head(nx) - dataEuler->xnext).norm() <= 1e-8);
   BOOST_CHECK((dataSoft->xnext.head(nx) - dataEuler->xnext).isZero(1e-6));
@@ -235,30 +241,36 @@ void test_calcDiff_equivalent_euler(
     ContactModelMaskTypes::Type mask_type = ContactModelMaskTypes::Type::Z) {
   // Create IAM soft from DAMSoft
   IAMSoftContactFactory factory_iam;
-  const boost::shared_ptr<sobec::IAMSoftContactAugmented>& modelSoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
-  const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelSoft->createData();
+  const boost::shared_ptr<sobec::IAMSoftContactAugmented>& modelsoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
+  const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelsoft->createData();
   // Set gains to 0
-  modelSoft->get_differential()->set_Kp(0.);
-  modelSoft->get_differential()->set_Kv(0.);
+  modelsoft->get_differential()->set_Kp(0.);
+  modelsoft->get_differential()->set_Kv(0.);
 
   // Create IAM Euler from DAMfree (incompatible with DAMSoft)
-  boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelSoft->get_differential()->get_state()); 
+  boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_differential()->get_state()); 
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics> modelfree = boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(
-          statemb, modelSoft->get_differential()->get_actuation(), modelSoft->get_differential()->get_costs());
-  boost::shared_ptr<crocoddyl::IntegratedActionModelEuler> modelEuler = boost::make_shared<crocoddyl::IntegratedActionModelEuler>(modelfree, modelSoft->get_dt(), true);
+          statemb, modelsoft->get_differential()->get_actuation(), boost::make_shared<crocoddyl::CostModelSum>(*modelsoft->get_differential()->get_costs()));
+  // Add gravity cost on free model
+  if(modelsoft->get_differential()->get_with_gravity_torque_reg()){
+    boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
+            statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
+    modelfree->get_costs()->addCost( "grav_reg", cost, modelsoft->get_differential()->get_tau_grav_weight());
+  }
+  boost::shared_ptr<crocoddyl::IntegratedActionModelEuler> modelEuler = boost::make_shared<crocoddyl::IntegratedActionModelEuler>(modelfree, modelsoft->get_dt(), true);
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataEuler = modelEuler->createData();
 
   // Generating random state and control vectors
   std::size_t nx = statemb->get_nx();
   std::size_t ndx = statemb->get_ndx();
-  std::size_t nc = modelSoft->get_nc();
-  std::size_t nu = modelSoft->get_nu();
-  Eigen::VectorXd y = modelSoft->get_state()->rand();
+  std::size_t nc = modelsoft->get_nc();
+  std::size_t nu = modelsoft->get_nu();
+  Eigen::VectorXd y = modelsoft->get_state()->rand();
   y.tail(nc) = Eigen::VectorXd::Zero(nc); // set 0 initial force
   Eigen::VectorXd x = y.head(nx);
   Eigen::VectorXd u = Eigen::VectorXd::Random(nu);
-  modelSoft->calc(dataSoft, y, u);
-  modelSoft->calcDiff(dataSoft, y, u);
+  modelsoft->calc(dataSoft, y, u);
+  modelsoft->calcDiff(dataSoft, y, u);
   modelEuler->calc(dataEuler, x, u);
   modelEuler->calcDiff(dataEuler, x, u);
 

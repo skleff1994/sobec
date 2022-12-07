@@ -17,9 +17,7 @@
 
 #include "contact3d.hpp"
 #include "cost.hpp"
-#include <crocoddyl/multibody/residuals/control-gravity.hpp>
 
-// #include "sobec/crocomplements/softcontact/dam1d.hpp"
 
 namespace sobec {
 namespace unittest {

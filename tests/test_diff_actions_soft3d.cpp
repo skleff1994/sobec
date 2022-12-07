@@ -169,12 +169,12 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
   BOOST_CHECK((datacast->dfdt_dx - data_num_diff_cast->dfdt_dx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->dfdt_df - data_num_diff_cast->dfdt_df).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->dfdt_du - data_num_diff_cast->dfdt_du).isZero(NUMDIFF_MODIFIER * tol));
-  if(!(datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER*tol)){
-    std::cout << "Lx " << std::endl;
-    std::cout << datacast->Lx << std::endl;
-    std::cout << "Lx_ND " << std::endl;
-    std::cout << data_num_diff_cast->Lx << std::endl;
-  }
+  // if(!(datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER*tol)){
+  //   std::cout << "Lx " << std::endl;
+  //   std::cout << datacast->Lx << std::endl;
+  //   std::cout << "Lx_ND " << std::endl;
+  //   std::cout << data_num_diff_cast->Lx << std::endl;
+  // }
   BOOST_CHECK((datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lu - data_num_diff_cast->Lu).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lf - data_num_diff_cast->Lf).isZero(NUMDIFF_MODIFIER * tol));
@@ -318,12 +318,12 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
   BOOST_CHECK((datasoft->Lxx - datafree->Lxx).isZero(tol));
   BOOST_CHECK((datasoft->Lxu - datafree->Lxu).isZero(tol));
   BOOST_CHECK((datasoft->Luu - datafree->Luu).isZero(tol));
-  if(!(datasoft->Lxx - datafree->Lxx).isZero(NUMDIFF_MODIFIER*tol)){
-    std::cout << "Lxx " << std::endl;
-    std::cout << datasoft->Lxx << std::endl;
-    std::cout << "Lxx_ND " << std::endl;
-    std::cout << datafree->Lxx << std::endl;
-  }
+  // if(!(datasoft->Lxx - datafree->Lxx).isZero(NUMDIFF_MODIFIER*tol)){
+  //   std::cout << "Lxx " << std::endl;
+  //   std::cout << datasoft->Lxx << std::endl;
+  //   std::cout << "Lxx_ND " << std::endl;
+  //   std::cout << datafree->Lxx << std::endl;
+  // }
 }
 
 void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
