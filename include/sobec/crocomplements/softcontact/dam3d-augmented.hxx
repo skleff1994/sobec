@@ -320,6 +320,9 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->tau_grav_residual_u = d->multibody.actuation->dtau_du;
       d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
       d->Lu += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_u;
+      d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
+      d->Lxu += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_u;
+      d->Luu += tau_grav_weight_ * d->tau_grav_residual_u.transpose() * d->tau_grav_residual_u;
     }
   }
 
@@ -337,8 +340,11 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       Rq *= -1;
       d->tau_grav_residual_x += d->multibody.actuation->dtau_dx;
       d->tau_grav_residual_u = d->multibody.actuation->dtau_du;
-      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x.topRows(nu);
+      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
       d->Lu += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_u;
+      d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
+      d->Lxu += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_u;
+      d->Luu += tau_grav_weight_ * d->tau_grav_residual_u.transpose() * d->tau_grav_residual_u;
       if(ref_ == pinocchio::LOCAL){
         d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose(); 
         d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose() ).transpose() * d->lJ.topRows(3).transpose(); 
@@ -376,7 +382,8 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->tau_grav_residual_x.topLeftCorner(nv, nv);
       pinocchio::computeGeneralizedGravityDerivatives(this->get_pinocchio(), d->pinocchio, q, Rq);
       Rq *= -1;
-      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x.topRows(nu);
+      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
+      d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
     }
   }
   // else 
@@ -391,9 +398,15 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->tau_grav_residual_x.topLeftCorner(nv, nv);
       pinocchio::computeStaticTorqueDerivatives(this->get_pinocchio(), d->pinocchio, q, d->fext, Rq);
       Rq *= -1;
-      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x.topRows(nu);
-      d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose(); 
-      d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose() ).transpose() * d->lJ.topRows(3).transpose(); 
+      d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
+      d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
+      if(ref_ == pinocchio::LOCAL){
+        d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose(); 
+        d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose() ).transpose() * d->lJ.topRows(3).transpose(); 
+      } else {
+        d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose() * d->oRf.transpose(); 
+        d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose()*d->oRf.transpose() ).transpose()*d->lJ.topRows(3).transpose()*d->oRf.transpose(); 
+      } 
     }
   }
 }

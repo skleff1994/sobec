@@ -74,6 +74,9 @@ void test_calc_returns_a_cost(DAMSoftContact3DTypes::Type action_type,
 void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> model){
   // create the corresponding data object and set the cost to nan
   boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data = model->createData();
+  // model->set_Kp(0.);
+  // model->set_Kv(0.);
+  model->set_active_contact(true);
   // Generating random values for the state and control
   std::size_t ndx = model->get_state()->get_ndx();
   std::size_t nx = model->get_state()->get_nx();
@@ -143,7 +146,6 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
   }
 
   // Computing the d action(x,f,u) / du
-  du.setZero();
   for (unsigned iu = 0; iu < nu; ++iu) {
     du(iu) = disturbance;
     model->calc(data_u[iu], x, f, u + du);
@@ -167,14 +169,14 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
   BOOST_CHECK((datacast->dfdt_dx - data_num_diff_cast->dfdt_dx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->dfdt_df - data_num_diff_cast->dfdt_df).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->dfdt_du - data_num_diff_cast->dfdt_du).isZero(NUMDIFF_MODIFIER * tol));
+  if(!(datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER*tol)){
+    std::cout << "Lx " << std::endl;
+    std::cout << datacast->Lx << std::endl;
+    std::cout << "Lx_ND " << std::endl;
+    std::cout << data_num_diff_cast->Lx << std::endl;
+  }
   BOOST_CHECK((datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lu - data_num_diff_cast->Lu).isZero(NUMDIFF_MODIFIER * tol));
-  if(!(datacast->Lf - data_num_diff_cast->Lf).isZero(NUMDIFF_MODIFIER*tol)){
-    std::cout << "Lf " << std::endl;
-    std::cout << datacast->Lf << std::endl;
-    std::cout << "Lf_ND " << std::endl;
-    std::cout << data_num_diff_cast->Lf << std::endl;
-  }
   BOOST_CHECK((datacast->Lf - data_num_diff_cast->Lf).isZero(NUMDIFF_MODIFIER * tol));
 }
 
@@ -210,11 +212,13 @@ void test_calc_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamic
   // Create DAM free
   boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_state()); 
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics> modelfree = boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(
-          statemb, modelsoft->get_actuation(), modelsoft->get_costs());
+          statemb, modelsoft->get_actuation(), boost::make_shared<crocoddyl::CostModelSum>(*modelsoft->get_costs()));
   // Add gravity cost on free model
-  boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
-          statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
-  modelfree->get_costs()->addCost( "grav_reg", cost, 0.01);
+  if(modelsoft->get_with_gravity_torque_reg()){
+    boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
+            statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
+    modelfree->get_costs()->addCost( "grav_reg", cost, modelsoft->get_tau_grav_weight());
+  }
   // optional armature
   if(!armature.isZero(1e-9)){
     if(modelsoft->get_state()->get_nv() > modelsoft->get_nu()){
@@ -276,11 +280,13 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
   boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_state()); 
   boost::shared_ptr<crocoddyl::DifferentialActionModelFreeFwdDynamics> modelfree =
       boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(
-          statemb, modelsoft->get_actuation(), modelsoft->get_costs());
+          statemb, modelsoft->get_actuation(), boost::make_shared<crocoddyl::CostModelSum>(*modelsoft->get_costs()));
   // Add gravity cost on free model
-  boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
-          statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
-  modelfree->get_costs()->addCost( "grav_reg", cost, 0.01);
+  if(modelsoft->get_with_gravity_torque_reg()){
+    boost::shared_ptr<crocoddyl::CostModelAbstract> cost = boost::make_shared<crocoddyl::CostModelResidual>(
+            statemb, boost::make_shared<crocoddyl::ResidualModelControlGrav>( statemb, modelfree->get_actuation()->get_nu() ));
+    modelfree->get_costs()->addCost( "grav_reg", cost, modelsoft->get_tau_grav_weight());
+  }
   // optional armature
   if(!armature.isZero(1e-9)){
     if(modelsoft->get_state()->get_nv() > modelsoft->get_nu()){
@@ -312,6 +318,12 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
   BOOST_CHECK((datasoft->Lxx - datafree->Lxx).isZero(tol));
   BOOST_CHECK((datasoft->Lxu - datafree->Lxu).isZero(tol));
   BOOST_CHECK((datasoft->Luu - datafree->Luu).isZero(tol));
+  if(!(datasoft->Lxx - datafree->Lxx).isZero(NUMDIFF_MODIFIER*tol)){
+    std::cout << "Lxx " << std::endl;
+    std::cout << datasoft->Lxx << std::endl;
+    std::cout << "Lxx_ND " << std::endl;
+    std::cout << datafree->Lxx << std::endl;
+  }
 }
 
 void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
