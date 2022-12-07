@@ -309,7 +309,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   d->Lxu = d->costs->Lxu;
   d->Luu = d->costs->Luu;
 
-  // Hard-coded gravity reg cost (no contact)
+  // Add hard-coded gravity reg cost partials (no contact)
   if(!active_contact_){
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q));
@@ -326,7 +326,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     }
   }
 
-  // add hard-coded cost in contact 
+  // Add hard-coded costs partials (in contact)
   if(active_contact_){
     if(with_force_cost_){
       d->f_residual = f - force_des_;
@@ -334,24 +334,26 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lff = force_weight_ * Matrix3s::Identity();
     }
     if(with_gravity_torque_reg_){
+      // Compute residual derivatives w.r.t. x, u and f
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
       Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->tau_grav_residual_x.topLeftCorner(nv, nv);
       pinocchio::computeStaticTorqueDerivatives(this->get_pinocchio(), d->pinocchio, q, d->fext, Rq);
       Rq *= -1;
       d->tau_grav_residual_x += d->multibody.actuation->dtau_dx;
       d->tau_grav_residual_u = d->multibody.actuation->dtau_du;
+      d->tau_grav_residual_f = d->lJ.topRows(3).transpose(); 
+      if(ref_ != pinocchio::LOCAL){
+        d->tau_grav_residual_f *= d->oRf.transpose();  
+        d->tau_grav_residual_x.topLeftCorner(nv, nv) += d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+      }
+      // Add cost partials (approx. Hessian with jac^T jac)
+      d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_f; 
+      d->Lff += tau_grav_weight_ * d->tau_grav_residual_f.transpose() * d->tau_grav_residual_f; 
       d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
       d->Lu += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_u;
       d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
       d->Lxu += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_u;
       d->Luu += tau_grav_weight_ * d->tau_grav_residual_u.transpose() * d->tau_grav_residual_u;
-      if(ref_ == pinocchio::LOCAL){
-        d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose(); 
-        d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose() ).transpose() * d->lJ.topRows(3).transpose(); 
-      } else {
-        d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose() * d->oRf.transpose(); 
-        d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose()*d->oRf.transpose() ).transpose()*d->lJ.topRows(3).transpose()*d->oRf.transpose(); 
-      }
     }
   }
 }
@@ -375,7 +377,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   const std::size_t nu = this->get_actuation()->get_nu();
   Data* d = static_cast<Data*>(data.get());
   this->get_costs()->calcDiff(d->costs, x);
-  // Hard-coded gravity reg cost (no contact)
+  // Add hard-coded costs partials (in contact)
   if(!active_contact_){
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = -pinocchio::computeGeneralizedGravity(this->get_pinocchio(), d->pinocchio, q);
@@ -386,7 +388,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
     }
   }
-  // else 
+  // Add hard-coded costs partials (in contact) 
   if(active_contact_){
     if(with_force_cost_){
       d->f_residual = f - force_des_;
@@ -394,19 +396,22 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lff = force_weight_ * Matrix3s::Identity();
     }
     if(with_gravity_torque_reg_){
+      // Compute residual derivatives w.r.t. x and f
       d->tau_grav_residual = -pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext);
       Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->tau_grav_residual_x.topLeftCorner(nv, nv);
       pinocchio::computeStaticTorqueDerivatives(this->get_pinocchio(), d->pinocchio, q, d->fext, Rq);
       Rq *= -1;
+      d->tau_grav_residual_x += d->multibody.actuation->dtau_dx;
+      d->tau_grav_residual_f = d->lJ.topRows(3).transpose(); 
+      if(ref_ != pinocchio::LOCAL){
+        d->tau_grav_residual_f *= d->oRf.transpose();  
+        d->tau_grav_residual_x.topLeftCorner(nv, nv) += d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+      }
+      // Add cost partials (approx. Hessian with jac^T jac)
+      d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_f; 
+      d->Lff += tau_grav_weight_ * d->tau_grav_residual_f.transpose() * d->tau_grav_residual_f; 
       d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
       d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
-      if(ref_ == pinocchio::LOCAL){
-        d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose(); 
-        d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose() ).transpose() * d->lJ.topRows(3).transpose(); 
-      } else {
-        d->Lf += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->lJ.topRows(3).transpose() * d->oRf.transpose(); 
-        d->Lff += tau_grav_weight_ * ( d->lJ.topRows(3).transpose()*d->oRf.transpose() ).transpose()*d->lJ.topRows(3).transpose()*d->oRf.transpose(); 
-      } 
     }
   }
 }

@@ -241,8 +241,8 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         f_residual(model->get_nc()),
         tau_grav_residual(model->get_state()->get_nv()),
         tau_grav_residual_x(model->get_state()->get_nv(), model->get_state()->get_ndx()),
-        tau_grav_residual_u(model->get_state()->get_nv(), model->get_actuation()->get_nu()) {
-        // tau_grav_residual_f(model->get_actuation()->get_nu(), model->get_nc()) {
+        tau_grav_residual_u(model->get_state()->get_nv(), model->get_actuation()->get_nu()),
+        tau_grav_residual_f(model->get_state()->get_nv(), model->get_nc()) {
     costs->shareMemory(this);
     Minv.setZero();
     u_drift.setZero();
@@ -283,7 +283,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     tau_grav_residual.setZero();
     tau_grav_residual_x.setZero();
     tau_grav_residual_u.setZero();
-    // tau_grav_residual_f.setZero();
+    tau_grav_residual_f.setZero();
   }
 
   using Base::pinocchio;
@@ -346,7 +346,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   VectorXs tau_grav_residual;
   MatrixXs tau_grav_residual_x;
   MatrixXs tau_grav_residual_u;
-  // MatrixXs tau_grav_residual_f;
+  MatrixXs tau_grav_residual_f;
 
   using Base::cost;
   using Base::Fu;
