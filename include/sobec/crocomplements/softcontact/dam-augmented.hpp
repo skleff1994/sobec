@@ -239,9 +239,9 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         Lf(model->get_nc()),
         Lff(model->get_nc(), model->get_nc()),
         f_residual(model->get_nc()),
-        tau_grav_residual(model->get_actuation()->get_nu()),
-        tau_grav_residual_x(model->get_actuation()->get_nu(), model->get_state()->get_ndx()),
-        tau_grav_residual_u(model->get_actuation()->get_nu(), model->get_actuation()->get_nu()) {
+        tau_grav_residual(model->get_state()->get_nv()),
+        tau_grav_residual_x(model->get_state()->get_nv(), model->get_state()->get_ndx()),
+        tau_grav_residual_u(model->get_state()->get_nv(), model->get_actuation()->get_nu()) {
         // tau_grav_residual_f(model->get_actuation()->get_nu(), model->get_nc()) {
     costs->shareMemory(this);
     Minv.setZero();
