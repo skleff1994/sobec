@@ -63,7 +63,7 @@ set(${PROJECT_NAME}_HEADERS
   include/${PROJECT_NAME}/crocomplements/residual-feet-collision.hpp
   include/${PROJECT_NAME}/crocomplements/residual-vel-collision.hpp
   include/${PROJECT_NAME}/crocomplements/residual-fly-high.hpp
-  include/${PROJECT_NAME}/crocomplements/activation-quad-ref.hpp
+  # include/${PROJECT_NAME}/crocomplements/activation-quad-ref.hpp
   include/${PROJECT_NAME}/crocomplements/lowpassfilter/state.hpp
   include/${PROJECT_NAME}/crocomplements/lowpassfilter/state.hxx
   include/${PROJECT_NAME}/crocomplements/lowpassfilter/action.hpp
