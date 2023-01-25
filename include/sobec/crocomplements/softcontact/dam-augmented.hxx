@@ -53,7 +53,7 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   frameId_ = frameId;
   ref_ = ref;
   // If gains are too small, set contact to inactive
-  if(Kp <= Scalar(1e-9) || Kv <= Scalar(1e-9)){
+  if(Kp <= Scalar(1e-9) && Kv <= Scalar(1e-9)){
     active_contact_ = false;
   } else {
     active_contact_ = true;
@@ -62,9 +62,11 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   parentId_ = this->get_pinocchio().frames[frameId_].parent;
   jMf_ = this->get_pinocchio().frames[frameId_].placement;
   with_armature_ = false;
+  armature_ = VectorXs::Zero(this->get_state()->get_nv());
   // Hard-coded cost on force and gravity reg
   with_force_cost_ = false;
   force_weight_ = Scalar(0.);
+  force_des_ = VectorXs::Zero(nc_);
   with_gravity_torque_reg_ = false;
   tau_grav_weight_ = Scalar(0.);
 }
@@ -160,6 +162,11 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kp(const Scalar 
                  << "Stiffness should be positive");
   }
   Kp_ = inKp;
+  if(Kp_ <= Scalar(1e-9) && Kv_ <= Scalar(1e-9)){
+    active_contact_ = false;
+  } else {
+    active_contact_ = true;
+  }
 }
 
 template <typename Scalar>
@@ -169,6 +176,11 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kv(const Scalar 
                  << "Damping should be positive");
   }
   Kv_ = inKv;
+  if(Kp_ <= Scalar(1e-9) && Kv_ <= Scalar(1e-9)){
+    active_contact_ = false;
+  } else {
+    active_contact_ = true;
+  }
 }
 
 template <typename Scalar>

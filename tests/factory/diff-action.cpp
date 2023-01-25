@@ -331,7 +331,7 @@ DifferentialActionModelFactory::create_contact3DFwdDynamics(
               "gripper_left_fingertip_1_link", actuation->get_nu()),
           true);
       // force regularization
-      /*cost->addCost(
+      cost->addCost(
           "lf",
           boost::make_shared<crocoddyl::CostModelResidual>(
               state,
@@ -340,7 +340,7 @@ DifferentialActionModelFactory::create_contact3DFwdDynamics(
                   state->get_pinocchio()->getFrameId(
                       "gripper_left_fingertip_1_link"),
                   force, 3, actuation->get_nu())),
-          10);*/
+          0.1);
       break;
     }
     // HyQ
@@ -452,7 +452,7 @@ DifferentialActionModelFactory::create_contact1DFwdDynamics(
               actuation->get_nu()),
           true);
       // force regularization
-      /*cost->addCost(
+      cost->addCost(
           "lf",
           boost::make_shared<crocoddyl::CostModelResidual>(
               state,
@@ -461,7 +461,7 @@ DifferentialActionModelFactory::create_contact1DFwdDynamics(
                   state->get_pinocchio()->getFrameId(
                       "gripper_left_fingertip_1_link"),
                   force, 1, actuation->get_nu())),
-          0.1);*/
+          0.1);
       break;
     }
     // HyQ

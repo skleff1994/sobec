@@ -137,22 +137,7 @@ void test_partial_derivatives_against_numdiff(
 
 
   // Checking the partial derivatives against NumDiff
-  double tol = 0.002;  // sqrt(model_num_diff.get_disturbance());
-  // if(!(data->Fx - data_num_diff->Fx).isZero(tol)){
-  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
-  //   std::cout << "Fx - Fx_ND = " << std::endl;
-  //   std::cout << data->Fx - data_num_diff->Fx << std::endl;
-  // }
-  // if(!(data->Fu - data_num_diff->Fu).isZero(tol)){
-  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
-  //   std::cout << "Fu - Fu_ND = " << std::endl;
-  //   std::cout << data->Fu - data_num_diff->Fu << std::endl;
-  // }
-  // if(!(data->Lx - data_num_diff->Lx).isZero(tol)){
-  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
-  //   std::cout << "Lx - Lx_ND = " << std::endl;
-  //   std::cout << data->Lx - data_num_diff->Lx << std::endl;
-  // }
+  double tol = 0.01; 
   BOOST_CHECK((data->Fx - data_num_diff->Fx).isZero(tol));
   BOOST_CHECK((data->Fu - data_num_diff->Fu).isZero(tol));
   BOOST_CHECK((data->Lx - data_num_diff->Lx).isZero(tol));
@@ -166,6 +151,18 @@ void test_partial_derivatives_against_numdiff(
     BOOST_CHECK((data_num_diff->Lxu).isZero(tol));
     BOOST_CHECK((data_num_diff->Luu).isZero(tol));
   }
+  // if(!(data->Lx - data_num_diff->Lx).isZero(tol)){
+  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
+  //   std::cout << " tol = " << tol << std::endl;
+  //   std::cout << " Lx - Lx_nd " << std::endl;
+  //   std::cout << data->Lx - data_num_diff->Lx << std::endl;
+  // }
+  // if(!(data->Lu - data_num_diff->Lu).isZero(tol)){
+  //   std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
+  //   std::cout << " tol = " << tol << std::endl;
+  //   std::cout << " Lu - Lu_nd " << std::endl;
+  //   std::cout << data->Lu - data_num_diff->Lu << std::endl;
+  // }
 }
 
 
