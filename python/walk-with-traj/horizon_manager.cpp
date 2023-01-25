@@ -9,9 +9,6 @@
 
 #include "sobec/fwd.hpp"
 // keep this line on top
-#include <boost/python.hpp>
-#include <boost/python/enum.hpp>
-#include <boost/python/return_internal_reference.hpp>
 #include <crocoddyl/core/activation-base.hpp>
 #include <eigenpy/eigenpy.hpp>
 #include <sobec/walk-with-traj/horizon_manager.hpp>
@@ -57,17 +54,35 @@ void exposeHorizonManager() {
            bp::args("self", "settings", "x0", "runningModels", "terminalModel"))
       .def("ama", &HorizonManager::ama, bp::args("self", "time"))
       .def("iam", &HorizonManager::iam, bp::args("self", "time"))
+      .def("terminaliam", &HorizonManager::terminaliam, bp::args("self"))
       .def("dam", &HorizonManager::dam, bp::args("self", "time"))
+      .def("terminaldam", &HorizonManager::terminaldam, bp::args("self"))
+      .def("dad", &HorizonManager::dad, bp::args("self", "time"))
+      .def("pinData", &HorizonManager::pinData, bp::args("self", "time"))
       .def("costs", &HorizonManager::costs, bp::args("self", "time"))
+      .def("terminalCosts", &HorizonManager::terminalCosts, bp::args("self"))
       .def("contacts", &HorizonManager::contacts, bp::args("self", "time"))
       .def("state", &HorizonManager::state, bp::args("self", "time"))
       .def("actuation", &HorizonManager::actuation, bp::args("self", "time"))
       .def("ada", &HorizonManager::ada, bp::args("self", "time"))
       .def("iad", &HorizonManager::iad, bp::args("self", "time"))
-      .def("setPoseReferenceLF", &HorizonManager::setPoseReferenceLF,
-           bp::args("self", "time", "pose", "costName"))
-      .def("setPoseReferenceRF", &HorizonManager::setPoseReferenceRF,
-           bp::args("self", "time", "pose", "costName"))
+      .def("setPoseReference", &HorizonManager::setPoseReference,
+           bp::args("self", "time", "costName", "pose"))
+      .def("setRotationReference", &HorizonManager::setRotationReference,
+           bp::args("self", "time", "costName", "rotation"))
+      .def("setTerminalRotationReference",
+           &HorizonManager::setTerminalRotationReference,
+           bp::args("self", "costName", "rotation"))
+      .def("setTranslationReference", &HorizonManager::setTranslationReference,
+           bp::args("self", "time", "costName", "translation"))
+      .def("setTerminalPoseReference",
+           &HorizonManager::setTerminalPoseReference,
+           bp::args("self", "costName", "pose"))
+      .def("setTerminalTranslationReference",
+           &HorizonManager::setTerminalTranslationReference,
+           bp::args("self"
+                    "costName",
+                    "translation"))
       .def("activateContactLF", &HorizonManager::activateContactLF,
            bp::args("self", "time", "contactName"))
       .def("activateContactRF", &HorizonManager::activateContactRF,
@@ -76,10 +91,16 @@ void exposeHorizonManager() {
            bp::args("self", "time", "contactName"))
       .def("removeContactRF", &HorizonManager::removeContactRF,
            bp::args("self", "time", "contactName"))
-      .def("setForceReferenceLF", &HorizonManager::setForceReferenceLF,
+      .def("setForceReference", &HorizonManager::setForceReference,
            bp::args("self", "time", "costName", "ref_wrench"))
-      .def("setForceReferenceRF", &HorizonManager::setForceReferenceRF,
+      .def("setWrenchReference", &HorizonManager::setWrenchReference,
            bp::args("self", "time", "costName", "ref_wrench"))
+      .def("setTerminalPoseCoM", &HorizonManager::setTerminalPoseCoM,
+           bp::args("self", "costName", "ref_placement"))
+      .def("setTerminalDCMReference", &HorizonManager::setTerminalDCMReference,
+           bp::args("self", "costName", "ref_translation"))
+      .def("setVelocityRefCOM", &HorizonManager::setVelocityRefCOM,
+           bp::args("self", "time", "costName", "ref_velocity"))
       .def("setSwingingLF", &HorizonManager::setSwingingLF,
            bp::args("self", "time", "contactNameLF", "contactNameRF",
                     "forceCostName"))
@@ -91,6 +112,10 @@ void exposeHorizonManager() {
       .def("getFootPoseReference",
            bp::make_function(
                &HorizonManager::getFootPoseReference,
+               bp::return_value_policy<bp::reference_existing_object>()))
+      .def("getTerminalFootPoseReference",
+           bp::make_function(
+               &HorizonManager::getTerminalFootPoseReference,
                bp::return_value_policy<bp::reference_existing_object>()))
       .def<void (HorizonManager::*)(const AMA &, const ADA &)>(
           "recede", &HorizonManager::recede, bp::args("self", "IAM", "IAD"))

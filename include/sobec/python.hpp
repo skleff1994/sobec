@@ -1,7 +1,7 @@
 #ifndef __sobec_python__
 #define __sobec_python__
 
-#include <boost/python.hpp>
+#include <eigenpy/eigenpy.hpp>
 #include <pinocchio/fwd.hpp>
 
 namespace sobec {
@@ -13,6 +13,9 @@ void exposeResidualVelCollision();
 void exposeResidualCenterOfPressure();
 void exposeResidualFeetCollision();
 void exposeResidualFlyHigh();
+void exposeResidualFlyAngle();
+void exposeResidualDCMPosition();
+void exposeResidual2DSurface();
 void exposeActivationQuadRef();
 void exposeDesigner();
 void exposeHorizonManager();
@@ -22,6 +25,8 @@ void exposeStateLPF();
 void exposeDAMContactFwdDyn();
 void exposeResidualContactForce();
 void exposeWBC();
+void exposeWBCHorizon();
+void exposeFootTrajectory();
 void exposeFlex();
 void exposeOCPWalk();
 void exposeMPCWalk();

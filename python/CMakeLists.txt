@@ -1,37 +1,41 @@
 set(${PY_NAME}_SOURCES
-  main.cpp
-  std-containers.cpp
-  flexibility_compensation.cpp
-  crocomplements/residual-com-velocity.cpp
-  crocomplements/residual-vel-collision.cpp
-  crocomplements/residual-cop.cpp
-  crocomplements/residual-center-of-friction.cpp
-  crocomplements/residual-feet-collision.cpp
-  crocomplements/residual-fly-high.cpp
-  crocomplements/activation-quad-ref.cpp
-  crocomplements/lowpassfilter/action.cpp
-  crocomplements/lowpassfilter/state.cpp
-  crocomplements/contact/contact6d.cpp
-  crocomplements/contact/contact3d.cpp
-  crocomplements/contact/contact1d.cpp
-  crocomplements/contact/multiple-contacts.cpp
-  crocomplements/contact/contact-fwddyn.cpp
-  crocomplements/contact/contact-force.cpp
-  crocomplements/softcontact/dam3d.cpp
-  crocomplements/softcontact/dam1d.cpp
-  crocomplements/softcontact/dam-augmented.cpp
-  # crocomplements/softcontact/dam-augmented.hpp
-  crocomplements/softcontact/dam3d-augmented.cpp
-  crocomplements/softcontact/dam1d-augmented.cpp
-  crocomplements/softcontact/iam-augmented.cpp
-  crocomplements/softcontact/state.cpp
-  walk-with-traj/designer.cpp
-  walk-with-traj/horizon_manager.cpp
-  walk-with-traj/model_factory.cpp
-  walk-with-traj/wbc.cpp
-  walk-without-think/ocp.cpp
-  walk-without-think/mpc.cpp
-  )
+    main.cpp
+    std-containers.cpp
+    flexibility_compensation.cpp
+    crocomplements/residual-com-velocity.cpp
+    crocomplements/residual-vel-collision.cpp
+    crocomplements/residual-cop.cpp
+    crocomplements/residual-center-of-friction.cpp
+    crocomplements/residual-feet-collision.cpp
+    crocomplements/residual-fly-high.cpp
+    crocomplements/residual-fly-angle.cpp
+    crocomplements/residual-dcm-position.cpp
+    crocomplements/residual-2D-surface.cpp
+    crocomplements/activation-quad-ref.cpp
+    crocomplements/lowpassfilter/action.cpp
+    crocomplements/lowpassfilter/state.cpp
+    crocomplements/contact/contact6d.cpp
+    crocomplements/contact/contact3d.cpp
+    crocomplements/contact/contact1d.cpp
+    crocomplements/contact/multiple-contacts.cpp
+    crocomplements/contact/contact-fwddyn.cpp
+    crocomplements/contact/contact-force.cpp
+    crocomplements/softcontact/dam3d.cpp
+    crocomplements/softcontact/dam1d.cpp
+    crocomplements/softcontact/dam-augmented.cpp
+    # crocomplements/softcontact/dam-augmented.hpp
+    crocomplements/softcontact/dam3d-augmented.cpp
+    crocomplements/softcontact/dam1d-augmented.cpp
+    crocomplements/softcontact/iam-augmented.cpp
+    crocomplements/softcontact/state.cpp
+    walk-with-traj/designer.cpp
+    walk-with-traj/horizon_manager.cpp
+    walk-with-traj/model_factory.cpp
+    walk-with-traj/wbc.cpp
+    walk-with-traj/wbc_horizon.cpp
+    walk-with-traj/foot_trajectory.cpp
+    walk-without-think/ocp.cpp
+    walk-without-think/mpc.cpp)
 
 add_library(${PY_NAME}_pywrap SHARED ${${PY_NAME}_SOURCES})
 target_link_libraries(${PY_NAME}_pywrap PUBLIC ${PROJECT_NAME} eigenpy::eigenpy)
@@ -51,6 +55,11 @@ set(${PY_NAME}_PYTHON
     repr_ocp.py logs.py
     # talos_low.py
 )
+
+if(GENERATE_PYTHON_STUBS)
+  load_stubgen()
+  generate_stubs(${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_NAME} ${PYTHON_SITELIB})
+endif(GENERATE_PYTHON_STUBS)
 
 foreach(python ${${PY_NAME}_PYTHON})
   python_install_on_site(${PY_NAME} ${python})
