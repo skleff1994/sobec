@@ -178,8 +178,11 @@ DAMSoftContact1DFactory::create_augmentedDAMSoft1D(StateModelTypes::Type state_t
       cost, 
       state->get_pinocchio()->getFrameId(frameName), 
       Kp, Kv, oPc, pinRefFrame, mask);
-  action->set_force_cost(Eigen::VectorXd::Random(1), 0.01);
-
+  action->set_force_des(Eigen::VectorXd::Zero(1));
+  action->set_force_weight(0.01);
+  action->set_with_force_cost(true);
+  action->set_tau_grav_weight(0.01);
+  action->set_with_gravity_torque_reg(true);
   return action;
 }
 

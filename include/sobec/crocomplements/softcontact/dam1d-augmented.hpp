@@ -142,15 +142,15 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
    */
   virtual boost::shared_ptr<DifferentialActionDataAbstract> createData();
   
-  void set_force_cost(const VectorXs& force_des, const Scalar force_weight);
+  // void set_force_cost(const VectorXs& force_des, const Scalar force_weight);
 
-  void set_force_des(const VectorXs& inForceDes);
+  // void set_force_des(const VectorXs& inForceDes);
 
-  void set_force_weight(const Scalar inForceWeight);
+  // void set_force_weight(const Scalar inForceWeight);
 
-  const VectorXs& get_force_des() const;
+  // const VectorXs& get_force_des() const;
 
-  const Scalar get_force_weight() const;
+  // const Scalar get_force_weight() const;
 
   const Vector3MaskType& get_type() const;
 
@@ -168,9 +168,11 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
     using Base::nc_;
     using Base::jMf_;
     using Base::with_armature_;
+    using Base::with_gravity_torque_reg_;
     using Base::armature_;
-    VectorXs force_des_;                    //!< Desired force 3D
-    Scalar force_weight_;                   //!< Force cost weight
+    using Base::force_des_;                   
+    using Base::force_weight_;                   
+    using Base::tau_grav_weight_;
     sobec::Vector3MaskType type_;           //!< 1D contact mask type 
 };
 
@@ -218,7 +220,6 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::costs;
   using Base::Minv;
   using Base::u_drift;
-  // using Base::dtau_dx;
   using Base::tmp_xstatic;
 
   using Base::dtau_dx;
@@ -282,6 +283,11 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::Lff;
   // Force residual for hard coded tracking cost
   using Base::f_residual;
+  // Gravity reg residual
+  using Base::tau_grav_residual;
+  using Base::tau_grav_residual_x;
+  using Base::tau_grav_residual_u;
+  using Base::tau_grav_residual_f;
 
   using Base::cost;
   using Base::Fu;

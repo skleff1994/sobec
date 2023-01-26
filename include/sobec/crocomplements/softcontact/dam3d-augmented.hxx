@@ -206,7 +206,6 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   }
 
   const std::size_t nv = this->get_state()->get_nv();
-  const std::size_t nu = this->get_actuation()->get_nu();
   const Eigen::VectorBlock<const Eigen::Ref<const VectorXs>, Eigen::Dynamic> q = x.head(this->get_state()->get_nq());
   const Eigen::VectorBlock<const Eigen::Ref<const VectorXs>, Eigen::Dynamic> v = x.tail(nv);
   Data* d = static_cast<Data*>(data.get());
@@ -343,7 +342,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->tau_grav_residual_u = d->multibody.actuation->dtau_du;
       d->tau_grav_residual_f = d->lJ.topRows(3).transpose(); 
       if(ref_ != pinocchio::LOCAL){
-        d->tau_grav_residual_f *= d->oRf.transpose();  
+        d->tau_grav_residual_f = d->tau_grav_residual_f * d->oRf.transpose();  
         d->tau_grav_residual_x.topLeftCorner(nv, nv) += d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
       }
       // Add cost partials (approx. Hessian with jac^T jac)
@@ -374,7 +373,6 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   }
   const Eigen::VectorBlock<const Eigen::Ref<const VectorXs>, Eigen::Dynamic> q = x.head(this->get_state()->get_nq());
   const std::size_t nv = this->get_state()->get_nv();
-  const std::size_t nu = this->get_actuation()->get_nu();
   Data* d = static_cast<Data*>(data.get());
   this->get_costs()->calcDiff(d->costs, x);
   // Add hard-coded costs partials (in contact)
@@ -404,7 +402,7 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->tau_grav_residual_x += d->multibody.actuation->dtau_dx;
       d->tau_grav_residual_f = d->lJ.topRows(3).transpose(); 
       if(ref_ != pinocchio::LOCAL){
-        d->tau_grav_residual_f *= d->oRf.transpose();  
+        d->tau_grav_residual_f = d->tau_grav_residual_f * d->oRf.transpose();  
         d->tau_grav_residual_x.topLeftCorner(nv, nv) += d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
       }
       // Add cost partials (approx. Hessian with jac^T jac)

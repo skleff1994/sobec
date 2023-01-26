@@ -89,21 +89,6 @@ void exposeDAMSoftContact1DAugmentedFwdDyn() {
       .def("createData", &DAMSoftContact1DAugmentedFwdDynamics::createData,
            bp::args("self"), "Create the Euler integrator data.")
 
-      .def("set_force_cost", &DAMSoftContact1DAugmentedFwdDynamics::set_force_cost,
-           bp::args("self", "force_des", "force_weight"),
-           "Initialize force reference and cost weight ")
-      .add_property(
-          "f_des",
-          bp::make_function(&DAMSoftContact1DAugmentedFwdDynamics::get_force_des,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact1DAugmentedFwdDynamics::set_force_des,
-          "Desired force in the cost")
-      .add_property(
-          "f_weight",
-          bp::make_function(&DAMSoftContact1DAugmentedFwdDynamics::get_force_weight,
-                            bp::return_value_policy<bp::return_by_value>()),
-          &DAMSoftContact1DAugmentedFwdDynamics::set_force_weight,
-          "Force cost weight")
       .add_property(
           "type",
           bp::make_function(&DAMSoftContact1DAugmentedFwdDynamics::get_type,
