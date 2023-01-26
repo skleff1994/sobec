@@ -10,6 +10,8 @@ set(PROJECT_URL https://github.com/${PROJECT_NAMESPACE}/${PROJECT_NAME})
 option(BUILD_PYTHON_INTERFACE "Build the python binding" ON)
 option(BUILD_PY2CPP_INTERFACE "Build the py2cpp library" OFF)
 option(SUFFIX_SO_VERSION "Suffix library name with its version" ON)
+option(GENERATE_PYTHON_STUBS
+       "Generate the Python stubs associated to the Python library" OFF)
 
 # Project configuration
 set(PROJECT_USE_CMAKE_EXPORT TRUE)
@@ -35,6 +37,7 @@ endif()
 # JRL-cmakemodule setup
 include("${JRL_CMAKE_MODULES}/base.cmake")
 include("${JRL_CMAKE_MODULES}/boost.cmake")
+include("${JRL_CMAKE_MODULES}/stubs.cmake")
 
 # Project definition
 compute_project_args(PROJECT_ARGS LANGUAGES CXX)
@@ -55,60 +58,67 @@ add_project_dependency(yaml-cpp REQUIRED)
 
 # Main Library
 set(${PROJECT_NAME}_HEADERS
-  include/${PROJECT_NAME}/flexibility_compensation.hpp
-  include/${PROJECT_NAME}/python.hpp
-  include/${PROJECT_NAME}/fwd.hpp
-  include/${PROJECT_NAME}/crocomplements/residual-com-velocity.hpp
-  include/${PROJECT_NAME}/crocomplements/residual-cop.hpp
-  include/${PROJECT_NAME}/crocomplements/residual-feet-collision.hpp
-  include/${PROJECT_NAME}/crocomplements/residual-vel-collision.hpp
-  include/${PROJECT_NAME}/crocomplements/residual-fly-high.hpp
-  include/${PROJECT_NAME}/crocomplements/activation-quad-ref.hpp
-  include/${PROJECT_NAME}/crocomplements/lowpassfilter/state.hpp
-  include/${PROJECT_NAME}/crocomplements/lowpassfilter/state.hxx
-  include/${PROJECT_NAME}/crocomplements/lowpassfilter/action.hpp
-  include/${PROJECT_NAME}/crocomplements/lowpassfilter/action.hxx
-  include/${PROJECT_NAME}/crocomplements/contact/contact6d.hpp
-  include/${PROJECT_NAME}/crocomplements/contact/contact3d.hpp
-  include/${PROJECT_NAME}/crocomplements/contact/contact1d.hpp
-  include/${PROJECT_NAME}/crocomplements/contact/multiple-contacts.hpp
-  include/${PROJECT_NAME}/crocomplements/contact/contact-fwddyn.hpp
-  include/${PROJECT_NAME}/crocomplements/contact/contact-force.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam3d.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hpp
-  include/${PROJECT_NAME}/crocomplements/softcontact/state.hpp
-  include/${PROJECT_NAME}/crocomplements/residual-com-velocity.hxx
-  include/${PROJECT_NAME}/crocomplements/residual-cop.hxx
-  include/${PROJECT_NAME}/crocomplements/residual-feet-collision.hxx
-  include/${PROJECT_NAME}/crocomplements/residual-vel-collision.hxx
-  include/${PROJECT_NAME}/crocomplements/contact/contact6d.hxx
-  include/${PROJECT_NAME}/crocomplements/contact/contact3d.hxx
-  include/${PROJECT_NAME}/crocomplements/contact/contact1d.hxx
-  include/${PROJECT_NAME}/crocomplements/contact/multiple-contacts.hxx
-  include/${PROJECT_NAME}/crocomplements/contact/contact-fwddyn.hxx
-  include/${PROJECT_NAME}/crocomplements/contact/contact-force.hxx
-  include/${PROJECT_NAME}/crocomplements/residual-fly-high.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam3d.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hxx
-  include/${PROJECT_NAME}/crocomplements/softcontact/state.hxx
-  include/${PROJECT_NAME}/walk-without-think/ocp.hpp
-  include/${PROJECT_NAME}/walk-without-think/mpc.hpp
-  include/${PROJECT_NAME}/walk-without-think/mpc.hxx
-  include/${PROJECT_NAME}/walk-with-traj/designer.hpp
-  include/${PROJECT_NAME}/walk-with-traj/model_factory.hpp
-  include/${PROJECT_NAME}/walk-with-traj/horizon_manager.hpp
-  # include/${PROJECT_NAME}/walk-with-traj/ocp.hpp
-  include/${PROJECT_NAME}/walk-with-traj/wbc.hpp
-  include/${PROJECT_NAME}/walk-with-traj/foot_trajectory.hpp
- )
+    include/${PROJECT_NAME}/flexibility_compensation.hpp
+    include/${PROJECT_NAME}/python.hpp
+    include/${PROJECT_NAME}/fwd.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-com-velocity.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-cop.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-feet-collision.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-vel-collision.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-fly-high.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-fly-angle.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-dcm-position.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-2D-surface.hpp
+    include/${PROJECT_NAME}/crocomplements/activation-quad-ref.hpp
+    include/${PROJECT_NAME}/crocomplements/activation-weighted-log.hpp
+    include/${PROJECT_NAME}/crocomplements/lowpassfilter/state.hpp
+    include/${PROJECT_NAME}/crocomplements/lowpassfilter/state.hxx
+    include/${PROJECT_NAME}/crocomplements/lowpassfilter/action.hpp
+    include/${PROJECT_NAME}/crocomplements/lowpassfilter/action.hxx
+    include/${PROJECT_NAME}/crocomplements/contact/contact6d.hpp
+    include/${PROJECT_NAME}/crocomplements/contact/contact3d.hpp
+    include/${PROJECT_NAME}/crocomplements/contact/contact1d.hpp
+    include/${PROJECT_NAME}/crocomplements/contact/multiple-contacts.hpp
+    include/${PROJECT_NAME}/crocomplements/contact/contact-fwddyn.hpp
+    include/${PROJECT_NAME}/crocomplements/contact/contact-force.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/state.hpp
+    include/${PROJECT_NAME}/crocomplements/residual-com-velocity.hxx
+    include/${PROJECT_NAME}/crocomplements/residual-cop.hxx
+    include/${PROJECT_NAME}/crocomplements/residual-feet-collision.hxx
+    include/${PROJECT_NAME}/crocomplements/residual-vel-collision.hxx
+    include/${PROJECT_NAME}/crocomplements/contact/contact6d.hxx
+    include/${PROJECT_NAME}/crocomplements/contact/contact3d.hxx
+    include/${PROJECT_NAME}/crocomplements/contact/contact1d.hxx
+    include/${PROJECT_NAME}/crocomplements/contact/multiple-contacts.hxx
+    include/${PROJECT_NAME}/crocomplements/contact/contact-fwddyn.hxx
+    include/${PROJECT_NAME}/crocomplements/contact/contact-force.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/state.hxx
+    include/${PROJECT_NAME}/crocomplements/residual-fly-high.hxx
+    include/${PROJECT_NAME}/crocomplements/residual-fly-angle.hxx
+    include/${PROJECT_NAME}/crocomplements/residual-dcm-position.hxx
+    include/${PROJECT_NAME}/crocomplements/residual-2D-surface.hxx
+    include/${PROJECT_NAME}/walk-without-think/ocp.hpp
+    include/${PROJECT_NAME}/walk-without-think/mpc.hpp
+    include/${PROJECT_NAME}/walk-without-think/mpc.hxx
+    include/${PROJECT_NAME}/walk-with-traj/designer.hpp
+    include/${PROJECT_NAME}/walk-with-traj/model_factory.hpp
+    include/${PROJECT_NAME}/walk-with-traj/horizon_manager.hpp
+    # include/${PROJECT_NAME}/walk-with-traj/ocp.hpp
+    include/${PROJECT_NAME}/walk-with-traj/wbc.hpp
+    include/${PROJECT_NAME}/walk-with-traj/wbc_horizon.hpp
+    include/${PROJECT_NAME}/walk-with-traj/foot_trajectory.hpp)
 
 set(${PROJECT_NAME}_SOURCES
     src/walk-with-traj/designer.cpp
@@ -116,6 +126,7 @@ set(${PROJECT_NAME}_SOURCES
     src/walk-with-traj/horizon_manager.cpp
     # src/walk-with-traj/ocp.cpp
     src/walk-with-traj/wbc.cpp
+    src/walk-with-traj/wbc_horizon.cpp
     src/walk-with-traj/foot_trajectory.cpp
     src/flexibility_compensation.cpp
     src/walk-without-think/ocp.cpp

@@ -20,7 +20,6 @@ namespace sobec {
 /// @todo: in order to switch between locomotions safely, incorporate a terminal
 /// constraint
 /// @todo: bind these enumerations
-enum ControlForm { StepTracker, NonThinking, StairClimber };
 enum LocomotionType { WALKING, STANDING };
 enum supportSwitch { NO_SWITCH, LAND_LF, LAND_RF, TAKEOFF_LF, TAKEOFF_RF };
 
@@ -28,7 +27,6 @@ struct WBCSettings {
   ///@todo: add the cost names as setting parameters.
  public:
   // timing
-  int horizonSteps = 2;
   int totalSteps = 4;
   int T = 100;
   int TdoubleSupport = 50;
@@ -40,7 +38,6 @@ struct WBCSettings {
   double simu_step = 1e-3;
 
   int Nc = (int)round(Dt / simu_step);
-  ControlForm typeOfCommand = StepTracker;
 };
 class WBC {
   /**
@@ -50,19 +47,29 @@ class WBC {
    *
    */
 
- private:
+ protected:
   WBCSettings settings_;
   RobotDesigner designer_;
   HorizonManager horizon_;
   HorizonManager walkingCycle_;
   HorizonManager standingCycle_;
 
+  eVector3 ref_com_vel_;
+  eVector3 ref_com_;
+  eVector3 ref_dcm_;
+  Eigen::Matrix3d ref_base_rotation_;
+
   Eigen::VectorXd x0_;
 
   LocomotionType now_ = WALKING;
+  int nWalkingCycles_;
+  double yaw_left_;
+  double yaw_right_;
 
   // timings
   std::vector<int> takeoff_RF_, takeoff_LF_, land_RF_, land_LF_;
+
+  int takeoff_RF_cycle_, takeoff_LF_cycle_, land_RF_cycle_, land_LF_cycle_;
 
   // INTERNAL UPDATING functions
   void updateStepTrackerReferences();
@@ -71,7 +78,6 @@ class WBC {
 
   // References for costs:
   std::vector<pinocchio::SE3> ref_LF_poses_, ref_RF_poses_;
-  std::vector<eVector3> ref_com_vel_;
 
   // Security management
   bool initialized_ = false;
@@ -111,6 +117,10 @@ class WBC {
 
   void generateStandingCycle(ModelMaker &mm);
 
+  void generateWalkingCycleNoThinking(ModelMaker &mm);
+
+  void generateStandingCycleNoThinking(ModelMaker &mm);
+
   void updateStepCycleTiming();
 
   bool timeToSolveDDP(int iteration);
@@ -120,9 +130,15 @@ class WBC {
 
   void iterate(int iteration, const Eigen::VectorXd &q_current,
                const Eigen::VectorXd &v_current, bool is_feasible);
+  void iterateNoThinking(const Eigen::VectorXd &q_current,
+                         const Eigen::VectorXd &v_current, bool is_feasible);
+
+  void iterateNoThinking(int iteration, const Eigen::VectorXd &q_current,
+                         const Eigen::VectorXd &v_current, bool is_feasible);
 
   void recedeWithCycle();
   void recedeWithCycle(HorizonManager &cycle);
+  void goToNextDoubleSupport();
 
   // getters and setters
   WBCSettings &get_settings() { return settings_; }
@@ -151,6 +167,11 @@ class WBC {
   const std::vector<int> &get_takeoff_LF() { return takeoff_LF_; }
   const std::vector<int> &get_takeoff_RF() { return takeoff_RF_; }
 
+  const int &get_land_LF_cycle() { return land_LF_cycle_; }
+  const int &get_land_RF_cycle() { return land_RF_cycle_; }
+  const int &get_takeoff_LF_cycle() { return takeoff_LF_cycle_; }
+  const int &get_takeoff_RF_cycle() { return takeoff_RF_cycle_; }
+
   // USER REFERENCE SETTERS AND GETTERS
   const std::vector<pinocchio::SE3> &getPoseRef_LF() { return ref_LF_poses_; }
   const pinocchio::SE3 &getPoseRef_LF(unsigned long time) {
@@ -174,20 +195,23 @@ class WBC {
     ref_RF_poses_[time] = ref_RF_pose;
   }
 
-  const std::vector<eVector3> &getVelRef_COM() { return ref_com_vel_; }
-  const eVector3 &getVelRef_COM(unsigned long time) {
-    return ref_com_vel_[time];
+  const eVector3 &getCoMRef() { return ref_com_; }
+  void setCoMRef(eVector3 ref_com) { ref_com_ = ref_com; }
+
+  const Eigen::Matrix3d &getBaseRotRef() { return ref_base_rotation_; }
+  void setBaseRotRef(Eigen::Matrix3d ref_base_rotation) {
+    ref_base_rotation_ = ref_base_rotation;
   }
-  void setVelRef_COM(const std::vector<eVector3> &ref_com_vel) {
-    ref_com_vel_ = ref_com_vel;
-  }
-  void setVelRef_COM(const eVector3 &ref_com_vel, unsigned long time) {
-    ref_com_vel_[time] = ref_com_vel;
-  }
+
+  const eVector3 &getVelRef_COM() { return ref_com_vel_; }
+  void setVelRef_COM(eVector3 ref_com_vel) { ref_com_vel_ = ref_com_vel; }
+
   // For the python bindings:
   std::vector<pinocchio::SE3> &ref_LF_poses() { return ref_LF_poses_; }
   std::vector<pinocchio::SE3> &ref_RF_poses() { return ref_RF_poses_; }
-  std::vector<eVector3> &ref_com_vel() { return ref_com_vel_; }
+  eVector3 &ref_com() { return ref_com_; }
+  Eigen::Matrix3d &ref_base_rot() { return ref_base_rotation_; }
+  eVector3 &ref_com_vel() { return ref_com_vel_; }
 
   void switchToWalk() { now_ = WALKING; }
   void switchToStand() { now_ = STANDING; }

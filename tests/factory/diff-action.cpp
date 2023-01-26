@@ -340,7 +340,7 @@ DifferentialActionModelFactory::create_contact3DFwdDynamics(
                   state->get_pinocchio()->getFrameId(
                       "gripper_left_fingertip_1_link"),
                   force, 3, actuation->get_nu())),
-          10);
+          0.1);
       break;
     }
     // HyQ

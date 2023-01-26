@@ -167,16 +167,13 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_with_gravity_torque_reg,
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_gravity_torque_reg,
-          "Is control regularization around gravity vector?")
+          "Is control regularization around gravity vector active?")
       .add_property(
           "tau_grav_weight",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_tau_grav_weight,
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_tau_grav_weight,
           "Weight of the control regularization w.r.t. gravity torque")
-      .def("set_force_cost", &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_cost,
-           bp::args("self", "force_des", "force_weight"),
-           "Initialize force reference and cost weight ")
       .add_property(
           "f_des",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_force_des,
@@ -189,6 +186,18 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
                             bp::return_value_policy<bp::return_by_value>()),
           &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_weight,
           "Force cost weight")
+      .add_property(
+          "with_force_cost",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_with_force_cost,
+                          bp::return_value_policy<bp::return_by_value>()),
+            &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_force_cost,
+          "Is the contact force cost active?")
+      .add_property(
+          "with_armature",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_with_armature,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_armature,
+          "Is armature considered ? (true if armature values are > 1e-9, false otherwise) ")
       .add_property(
           "armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_armature,

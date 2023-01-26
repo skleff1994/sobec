@@ -53,7 +53,7 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   frameId_ = frameId;
   ref_ = ref;
   // If gains are too small, set contact to inactive
-  if(Kp <= Scalar(1e-9) || Kv <= Scalar(1e-9)){
+  if(Kp <= Scalar(1e-9) && Kv <= Scalar(1e-9)){
     active_contact_ = false;
   } else {
     active_contact_ = true;
@@ -62,9 +62,11 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   parentId_ = this->get_pinocchio().frames[frameId_].parent;
   jMf_ = this->get_pinocchio().frames[frameId_].placement;
   with_armature_ = false;
+  armature_ = VectorXs::Zero(this->get_state()->get_nv());
   // Hard-coded cost on force and gravity reg
   with_force_cost_ = false;
   force_weight_ = Scalar(0.);
+  force_des_ = VectorXs::Zero(nc_);
   with_gravity_torque_reg_ = false;
   tau_grav_weight_ = Scalar(0.);
 }
@@ -160,6 +162,11 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kp(const Scalar 
                  << "Stiffness should be positive");
   }
   Kp_ = inKp;
+  if(Kp_ <= Scalar(1e-9) && Kv_ <= Scalar(1e-9)){
+    active_contact_ = false;
+  } else {
+    active_contact_ = true;
+  }
 }
 
 template <typename Scalar>
@@ -169,6 +176,11 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kv(const Scalar 
                  << "Damping should be positive");
   }
   Kv_ = inKv;
+  if(Kp_ <= Scalar(1e-9) && Kv_ <= Scalar(1e-9)){
+    active_contact_ = false;
+  } else {
+    active_contact_ = true;
+  }
 }
 
 template <typename Scalar>
@@ -223,6 +235,17 @@ const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwd
   return armature_;
 }
 
+
+template <typename Scalar>
+const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_armature() const {
+  return with_armature_;
+}
+
+template <typename Scalar>
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_with_armature(const bool inBool) {
+  with_armature_ = inBool;
+}
+
 template <typename Scalar>
 void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_armature(const VectorXs& armature) {
   if (static_cast<std::size_t>(armature.size()) != this->get_state()->get_nv()) {
@@ -230,11 +253,10 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_armature(const V
                  << "The armature dimension is wrong (it should be " + std::to_string(this->get_state()->get_nv()) + ")");
   }
   armature_ = armature;
-  with_armature_ = true;
 }
 
 template <typename Scalar>
-bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_active_contact() const {
+const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_active_contact() const {
   return active_contact_;
 }
 
@@ -243,20 +265,16 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_active_contact(c
   active_contact_ = inActive;
 }
 
+
+
 template <typename Scalar>
-void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_cost(const VectorXs& inForceDes, 
-                                                                           const Scalar inForceWeight) {
-  if (inForceWeight < 0.) {
-    throw_pretty("Invalid argument: "
-                 << "Force weight should be positive");
-  }
-  if (std::size_t(inForceDes.size()) != nc_) {
-    throw_pretty("Invalid argument: "
-                 << "Desired force should be have size " << nc_);
-  }
-  force_des_ = inForceDes;
-  force_weight_ = inForceWeight;
-  with_force_cost_ = true;
+const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_force_cost() const {
+  return with_force_cost_;
+}
+
+template <typename Scalar>
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_with_force_cost(const bool inBool) {
+  with_force_cost_ = inBool;
 }
 
 template <typename Scalar>
@@ -288,8 +306,9 @@ const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_force_we
 }
 
 
+
 template <typename Scalar>
-bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_gravity_torque_reg() const {
+const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_gravity_torque_reg() const {
   return with_gravity_torque_reg_;
 }
 
@@ -297,7 +316,6 @@ template <typename Scalar>
 void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_with_gravity_torque_reg(const bool inBool) {
   with_gravity_torque_reg_ = inBool;
 }
-
 
 template <typename Scalar>
 const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_tau_grav_weight() const {
@@ -311,7 +329,6 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_tau_grav_weight(
                  << "Gravity torque regularization weight should be positive");
   }
   tau_grav_weight_ = inWeight;
-  with_gravity_torque_reg_ = true;
 }
 
 

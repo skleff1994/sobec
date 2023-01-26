@@ -3,18 +3,22 @@
 #include "sobec/python.hpp"
 
 BOOST_PYTHON_MODULE(sobec_pywrap) {
-  boost::python::import("pinocchio");
-  boost::python::import("crocoddyl");
-  boost::python::import("pinocchio");
+  namespace bp = boost::python;
+
+  bp::import("pinocchio");
+  bp::import("crocoddyl");
   // Enabling eigenpy support, i.e. numpy/eigen compatibility.
   eigenpy::enableEigenPy();
-  ENABLE_SPECIFIC_MATRIX_TYPE(Eigen::VectorXi);
+  eigenpy::enableEigenPySpecific<Eigen::VectorXi>();
   sobec::python::exposeStdContainers();
   sobec::python::exposeResidualVelCollision();
   sobec::python::exposeResidualCoMVelocity();
   sobec::python::exposeResidualCenterOfPressure();
   sobec::python::exposeResidualFeetCollision();
   sobec::python::exposeResidualFlyHigh();
+  sobec::python::exposeResidualFlyAngle();
+  sobec::python::exposeResidualDCMPosition();
+  sobec::python::exposeResidual2DSurface();
   sobec::python::exposeActivationQuadRef();
   sobec::python::exposeDesigner();
   sobec::python::exposeHorizonManager();
@@ -23,6 +27,7 @@ BOOST_PYTHON_MODULE(sobec_pywrap) {
   sobec::python::exposeIntegratedActionLPF();
   sobec::python::exposeStateLPF();
   sobec::python::exposeWBC();
+  sobec::python::exposeWBCHorizon();
   sobec::python::exposeOCPWalk();
   sobec::python::exposeMPCWalk();
   sobec::python::exposeDAMSoftContact3DFwdDyn();
@@ -33,6 +38,8 @@ BOOST_PYTHON_MODULE(sobec_pywrap) {
   sobec::python::exposeStateSoftContact();
   sobec::python::exposeIAMSoftContactAugmented();
   
+  sobec::python::exposeFootTrajectory();
+
   sobec::newcontacts::python::exposeContact6D();
   sobec::newcontacts::python::exposeContact3D();
   sobec::newcontacts::python::exposeContact1D();

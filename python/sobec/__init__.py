@@ -1,40 +1,6 @@
 # flake8: noqa
 
-from .sobec_pywrap import (
-    ResidualModelCoMVelocity,
-    ResidualModelVelCollision,
-    ActivationModelQuadRef,
-    RobotDesigner,
-    HorizonManager,
-    ModelMaker,
-    Support,
-    ResidualModelCenterOfPressure,
-    ResidualModelFeetCollision,
-    ResidualModelFlyHigh,
-    IntegratedActionModelLPF,
-    StateLPF,
-    ContactModel6D,
-    ContactModel3D,
-    ContactModel1D,
-    ContactModelMultiple,
-    DifferentialActionModelContactFwdDynamics,
-    DifferentialActionModelSoftContact3DFwdDynamics,
-    DifferentialActionModelSoftContact1DFwdDynamics,
-    DAMSoftContactAbstractAugmentedFwdDynamics,
-    DAMSoftContact3DAugmentedFwdDynamics,
-    DAMSoftContact1DAugmentedFwdDynamics,
-    IAMSoftContactAugmented,
-    ResidualModelContactForce,
-    WBC,
-    OCPRobotWrapper,
-    OCPWalkParams,
-    OCPWalk,
-    MPCWalkParams,
-    MPCWalk,
-    Flex,
-    computeWeightShareSmoothProfile,
-    LocomotionType,
-)
+from .sobec_pywrap import *
 
 from .repr_ocp import reprProblem
 from .viewer_multiple import GepettoGhostViewer

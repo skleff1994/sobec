@@ -234,7 +234,7 @@ struct DADSoftContact3DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::tau_grav_residual;
   using Base::tau_grav_residual_x;
   using Base::tau_grav_residual_u;
-//   using Base::tau_grav_residual_f;
+  using Base::tau_grav_residual_f;
 
   using Base::cost;
   using Base::Fu;
