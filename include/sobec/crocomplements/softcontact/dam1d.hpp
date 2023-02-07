@@ -22,7 +22,6 @@
 
 namespace sobec {
 
-enum Vector3MaskType { x = 0, y = 1, z = 2 };
 
 /**
  * @brief Differential action model for visco-elastic contact forward dynamics in multibody
@@ -51,8 +50,7 @@ class DifferentialActionModelSoftContact1DFwdDynamicsTpl
   typedef typename MathBase::VectorXs VectorXs;
   typedef typename MathBase::Vector3s Vector3s;
   typedef typename MathBase::MatrixXs MatrixXs;
-  // typedef typename Vector3MaskType = sobec::newcontacts::Vector3MaskType; // Vector3MaskType;
-
+  typedef typename sobec::Vector3MaskType Vector3MaskType; 
   /**
    * @brief Initialize the soft contact forward-dynamics action model
    *

@@ -95,16 +95,16 @@ ContactModel1DFactory::create(ContactModelMaskTypes::Type mask_type,
       if (reference_type == PinocchioReferenceTypes::LOCAL) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::x, pinocchio::LOCAL);
+            sobec::Vector3MaskType::x, pinocchio::LOCAL);
       } else if (reference_type == PinocchioReferenceTypes::WORLD) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::x, pinocchio::WORLD);
+            sobec::Vector3MaskType::x, pinocchio::WORLD);
       } else if (reference_type ==
                  PinocchioReferenceTypes::LOCAL_WORLD_ALIGNED) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::x,
+            sobec::Vector3MaskType::x,
             pinocchio::LOCAL_WORLD_ALIGNED);
       }
       break;
@@ -113,16 +113,16 @@ ContactModel1DFactory::create(ContactModelMaskTypes::Type mask_type,
       if (reference_type == PinocchioReferenceTypes::LOCAL) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::y, pinocchio::LOCAL);
+            sobec::Vector3MaskType::y, pinocchio::LOCAL);
       } else if (reference_type == PinocchioReferenceTypes::WORLD) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::y, pinocchio::WORLD);
+            sobec::Vector3MaskType::y, pinocchio::WORLD);
       } else if (reference_type ==
                  PinocchioReferenceTypes::LOCAL_WORLD_ALIGNED) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::y,
+            sobec::Vector3MaskType::y,
             pinocchio::LOCAL_WORLD_ALIGNED);
       }
       break;
@@ -131,16 +131,16 @@ ContactModel1DFactory::create(ContactModelMaskTypes::Type mask_type,
       if (reference_type == PinocchioReferenceTypes::LOCAL) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::z, pinocchio::LOCAL);
+            sobec::Vector3MaskType::z, pinocchio::LOCAL);
       } else if (reference_type == PinocchioReferenceTypes::WORLD) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::z, pinocchio::WORLD);
+            sobec::Vector3MaskType::z, pinocchio::WORLD);
       } else if (reference_type ==
                  PinocchioReferenceTypes::LOCAL_WORLD_ALIGNED) {
         contact = boost::make_shared<sobec::newcontacts::ContactModel1D>(
             state, frame_id, xref, nu, gains,
-            sobec::newcontacts::Vector3MaskType::z,
+            sobec::Vector3MaskType::z,
             pinocchio::LOCAL_WORLD_ALIGNED);
       }
       break;

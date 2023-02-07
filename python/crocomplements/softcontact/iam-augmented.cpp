@@ -30,7 +30,7 @@ void exposeIAMSoftContactAugmented() {
       "integrator) give a differential action model, i.e.:\n"
       "  [q+, v+, tau+] = StateLPF.integrate([q, v], [v + a * dt, a * dt] * "
       "dt, [alpha*tau + (1-alpha)*w]).",
-      bp::init<boost::shared_ptr<DAMSoftContact3DAugmentedFwdDynamics>,
+      bp::init<boost::shared_ptr<DAMSoftContactAbstractAugmentedFwdDynamics>,
                bp::optional<double, bool> >(
           bp::args("self", "diffModel", "stepTime",
                    "withCostResidual"),

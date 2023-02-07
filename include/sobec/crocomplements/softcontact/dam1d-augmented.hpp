@@ -141,16 +141,6 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
    * @return soft contact forward-dynamics data
    */
   virtual boost::shared_ptr<DifferentialActionDataAbstract> createData();
-  
-  // void set_force_cost(const VectorXs& force_des, const Scalar force_weight);
-
-  // void set_force_des(const VectorXs& inForceDes);
-
-  // void set_force_weight(const Scalar inForceWeight);
-
-  // const VectorXs& get_force_des() const;
-
-  // const Scalar get_force_weight() const;
 
   const Vector3MaskType& get_type() const;
 

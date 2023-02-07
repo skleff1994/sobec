@@ -230,6 +230,7 @@ template <typename Scalar>
 class IADSoftContactAugmentedTpl;
 typedef IADSoftContactAugmentedTpl<double> IADSoftContactAugmented;
 
+enum Vector3MaskType { x = 0, y = 1, z = 2 };
 
 }  // namespace sobec
 

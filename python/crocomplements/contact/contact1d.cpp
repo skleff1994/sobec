@@ -19,11 +19,11 @@ void exposeContact1D() {
   bp::register_ptr_to_python<
       boost::shared_ptr<sobec::newcontacts::ContactModel1D> >();
 
-  bp::enum_<sobec::newcontacts::Vector3MaskType>("Vector3MaskType")
-      .value("x", x)
-      .value("y", y)
-      .value("z", z)
-      .export_values();
+//   bp::enum_<sobec::Vector3MaskType>("Vector3MaskType")
+//       .value("x", x)
+//       .value("y", y)
+//       .value("z", z)
+//       .export_values();
 
   bp::class_<sobec::newcontacts::ContactModel1D,
              bp::bases<crocoddyl::ContactModel1D> >(
@@ -38,7 +38,7 @@ void exposeContact1D() {
       bp::init<
           boost::shared_ptr<crocoddyl::StateMultibody>, pinocchio::FrameIndex,
           Eigen::Vector3d, std::size_t,
-          bp::optional<Eigen::Vector2d, sobec::newcontacts::Vector3MaskType,
+          bp::optional<Eigen::Vector2d, sobec::Vector3MaskType,
                        pinocchio::ReferenceFrame> >(
           bp::args("self", "state", "id", "xref", "nu", "gains", "mask",
                    "type"),

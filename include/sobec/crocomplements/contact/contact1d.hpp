@@ -23,7 +23,6 @@
 namespace sobec {
 namespace newcontacts {
 
-enum Vector3MaskType { x = 0, y = 1, z = 2 };
 
 template <typename _Scalar>
 class ContactModel1DTpl : public crocoddyl::ContactModel1DTpl<_Scalar> {
@@ -40,6 +39,7 @@ class ContactModel1DTpl : public crocoddyl::ContactModel1DTpl<_Scalar> {
   typedef typename MathBase::VectorXs VectorXs;
   typedef typename MathBase::Matrix3s Matrix3s;
   typedef typename MathBase::Matrix6s Matrix6s;
+  typedef typename sobec::Vector3MaskType Vector3MaskType;
   /**
    * @brief Initialize the 1d contact model
    *
