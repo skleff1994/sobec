@@ -20,12 +20,6 @@ void exposeDAMSoftContact1DAugmentedFwdDyn() {
 
   bp::register_ptr_to_python<boost::shared_ptr<DAMSoftContact1DAugmentedFwdDynamics>>();
 
-//   bp::enum_<sobec::Vector3MaskType>("Vector3MaskType1")
-//       .value("x", x)
-//       .value("y", y)
-//       .value("z", z)
-//       .export_values();
-
   bp::class_<DAMSoftContact1DAugmentedFwdDynamics, bp::bases<sobec::DAMSoftContactAbstractAugmentedFwdDynamics>>(
       "DAMSoftContact1DAugmentedFwdDynamics", 
       "Differential action model for 1D visco-elastic contact forward dynamics in multibody systems.",

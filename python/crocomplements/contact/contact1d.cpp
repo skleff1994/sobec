@@ -19,12 +19,6 @@ void exposeContact1D() {
   bp::register_ptr_to_python<
       boost::shared_ptr<sobec::newcontacts::ContactModel1D> >();
 
-//   bp::enum_<sobec::Vector3MaskType>("Vector3MaskType")
-//       .value("x", x)
-//       .value("y", y)
-//       .value("z", z)
-//       .export_values();
-
   bp::class_<sobec::newcontacts::ContactModel1D,
              bp::bases<crocoddyl::ContactModel1D> >(
       "ContactModel1D",
