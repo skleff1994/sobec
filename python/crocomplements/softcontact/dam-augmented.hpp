@@ -26,8 +26,8 @@ class DAMSoftContactAbstractAugmentedFwdDynamics_wrap : public DAMSoftContactAbs
                                                   boost::shared_ptr<crocoddyl::ActuationModelAbstract> actuation,
                                                   boost::shared_ptr<crocoddyl::CostModelSum> costs,
                                                   const pinocchio::FrameIndex frameId,
-                                                  const double Kp,
-                                                  const double Kv,
+                                                  const Eigen::VectorXd& Kp,
+                                                  const Eigen::VectorXd& Kv,
                                                   const Eigen::Vector3d& oPc, 
                                                   const std::size_t nc,
                                                   const pinocchio::ReferenceFrame ref)

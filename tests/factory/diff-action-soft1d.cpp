@@ -169,8 +169,8 @@ DAMSoftContact1DFactory::create_augmentedDAMSoft1D(StateModelTypes::Type state_t
           CostModelTypes::CostModelResidualControl, state_type,
           ActivationModelTypes::ActivationModelQuad, actuation->get_nu()),
       0.1);
-  double Kp = 100;
-  double Kv = 10;
+  Eigen::VectorXd Kp = Eigen::VectorXd::Ones(1)*100;
+  Eigen::VectorXd Kv = Eigen::VectorXd::Ones(1)*10;
   Eigen::Vector3d oPc = Eigen::Vector3d::Zero();
   action = boost::make_shared<sobec::DAMSoftContact1DAugmentedFwdDynamics>(
       state, 

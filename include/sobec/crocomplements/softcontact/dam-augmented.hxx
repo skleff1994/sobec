@@ -26,8 +26,8 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
     boost::shared_ptr<ActuationModelAbstract> actuation,
     boost::shared_ptr<CostModelSum> costs,
     const pinocchio::FrameIndex frameId,
-    const Scalar Kp, 
-    const Scalar Kv,
+    const VectorXs& Kp, 
+    const VectorXs& Kv,
     const Vector3s& oPc,
     const std::size_t nc,
     const pinocchio::ReferenceFrame ref)
@@ -39,13 +39,13 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   Base::set_u_lb(Scalar(-1.) * this->get_pinocchio().effortLimit.tail(this->get_nu()));
   Base::set_u_ub(Scalar(+1.) * this->get_pinocchio().effortLimit.tail(this->get_nu()));
   // Soft contact model parameters
-  if(Kp < Scalar(0.)){
+  if(Kp.maxCoeff() < Scalar(0.) || Kv.maxCoeff() < Scalar(0.)){
      throw_pretty("Invalid argument: "
-                << "Kp must be positive "); 
+                << "Kp and Kv must be positive "); 
   }
-  if(Kv < Scalar(0.)){
+  if(Kv.size() != nc || Kv.size() != nc){
      throw_pretty("Invalid argument: "
-                << "Kv must be positive "); 
+                << "Kp and Kv must have size " << nc); 
   }
   Kp_ = Kp;
   Kv_ = Kv;
@@ -53,7 +53,7 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   frameId_ = frameId;
   ref_ = ref;
   // If gains are too small, set contact to inactive
-  if(Kp <= Scalar(1e-9) && Kv <= Scalar(1e-9)){
+  if(Kp.maxCoeff() <= Scalar(1e-9) && Kv.maxCoeff() <= Scalar(1e-9)){
     active_contact_ = false;
   } else {
     active_contact_ = true;
@@ -156,13 +156,13 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::createData() {
 
 
 template <typename Scalar>
-void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kp(const Scalar inKp) {
-  if (inKp < 0.) {
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kp(const VectorXs& inKp) {
+  if (inKp.maxCoeff() < 0.) {
     throw_pretty("Invalid argument: "
                  << "Stiffness should be positive");
   }
   Kp_ = inKp;
-  if(Kp_ <= Scalar(1e-9) && Kv_ <= Scalar(1e-9)){
+  if(Kp_.maxCoeff() <= Scalar(1e-9) && Kv_.maxCoeff() <= Scalar(1e-9)){
     active_contact_ = false;
   } else {
     active_contact_ = true;
@@ -170,13 +170,13 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kp(const Scalar 
 }
 
 template <typename Scalar>
-void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kv(const Scalar inKv) {
-  if (inKv < 0.) {
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_Kv(const VectorXs& inKv) {
+  if (inKv.maxCoeff() < 0.) {
     throw_pretty("Invalid argument: "
                  << "Damping should be positive");
   }
   Kv_ = inKv;
-  if(Kp_ <= Scalar(1e-9) && Kv_ <= Scalar(1e-9)){
+  if(Kp_.maxCoeff() <= Scalar(1e-9) && Kv_.maxCoeff() <= Scalar(1e-9)){
     active_contact_ = false;
   } else {
     active_contact_ = true;
@@ -204,12 +204,12 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_id(const pinocch
 }
 
 template <typename Scalar>
-const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_Kp() const {
+const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_Kp() const {
   return Kp_;
 }
 
 template <typename Scalar>
-const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_Kv() const {
+const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_Kv() const {
   return Kv_;
 }
 

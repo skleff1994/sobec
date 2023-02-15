@@ -26,8 +26,8 @@ DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContact3DAugmentedFwdDyn
     boost::shared_ptr<ActuationModelAbstract> actuation,
     boost::shared_ptr<CostModelSum> costs,
     const pinocchio::FrameIndex frameId,
-    const Scalar Kp, 
-    const Scalar Kv,
+    const VectorXs& Kp, 
+    const VectorXs& Kv,
     const Vector3s& oPc,
     const pinocchio::ReferenceFrame ref)
     : Base(state, actuation, costs, frameId, Kp, Kv, oPc, 3, ref) {}
@@ -93,13 +93,13 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
     pinocchio::forwardKinematics(this->get_pinocchio(), d->pinocchio, q, v, d->xout);
     d->la = pinocchio::getFrameAcceleration(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();     
     d->lv = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();
-    d->fout = -Kp_ * d->lv - Kv_ * d->la;
+    d->fout = -(Kp_.asDiagonal() * d->lv) - (Kv_.asDiagonal() * d->la);
     d->fout_copy = d->fout;
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->oa = pinocchio::getFrameAcceleration(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).linear();
         d->ov = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).linear();
-        d->fout = -Kp_* d->ov - Kv_ * d->oa;
+        d->fout = - (Kp_.asDiagonal()* d->ov) - (Kv_.asDiagonal() * d->oa);
     } 
   }
 
@@ -266,9 +266,9 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
     d->da_du.topRows(3) = d->a_da.topRows(3) * d->Fu;
     d->da_df.topRows(3) = d->a_da.topRows(3) * d->aba_df;
     // Derivatives of fdot w.r.t. (x,f,u)
-    d->dfdt_dx = -Kp_*d->lv_dx.topRows(3) - Kv_*d->da_dx.topRows(3);
-    d->dfdt_du = -Kv_*d->da_du.topRows(3);
-    d->dfdt_df = -Kv_*d->da_df.topRows(3);
+    d->dfdt_dx = -(Kp_.asDiagonal()*d->lv_dx.topRows(3)) - (Kv_.asDiagonal()*d->da_dx.topRows(3));
+    d->dfdt_du = -(Kv_.asDiagonal()*d->da_du.topRows(3));
+    d->dfdt_df = -(Kv_.asDiagonal()*d->da_df.topRows(3));
     d->dfdt_dx_copy = d->dfdt_dx;
     d->dfdt_du_copy = d->dfdt_du;
     d->dfdt_df_copy = d->dfdt_df;

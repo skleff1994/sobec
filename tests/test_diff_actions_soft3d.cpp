@@ -78,8 +78,8 @@ void test_attributes(DAMSoftContact3DTypes::Type action_type,
   double tol = sqrt(disturbance);
   // Test default values set for test 
     // Contact model
-  BOOST_CHECK(model->get_Kp() == 100 );
-  BOOST_CHECK(model->get_Kv() == 10 );
+  BOOST_CHECK( (model->get_Kp() - Eigen::VectorXd::Ones(model->get_nc()) * 100).isZero(NUMDIFF_MODIFIER*tol) );
+  BOOST_CHECK( (model->get_Kv() - Eigen::VectorXd::Ones(model->get_nc()) * 10 ).isZero(NUMDIFF_MODIFIER*tol) );
   BOOST_CHECK(model->get_oPc().isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_active_contact());
     // Gravity torque reg
@@ -96,13 +96,13 @@ void test_attributes(DAMSoftContact3DTypes::Type action_type,
   BOOST_CHECK(model->get_armature().isZero(NUMDIFF_MODIFIER * tol) );
 
   // Test setters 
-  double Kp = rand() % 100;
+  Eigen::VectorXd Kp = Eigen::VectorXd::Ones(model->get_nc()) * (rand() % 100);
   model->set_Kp(Kp);
-  BOOST_CHECK( model->get_Kp() == Kp );
+  BOOST_CHECK( (model->get_Kp() - Kp).isZero(NUMDIFF_MODIFIER*tol) );
 
-  double Kv = rand() % 100;
+  Eigen::VectorXd Kv = Eigen::VectorXd::Ones(model->get_nc()) * (rand() % 100);
   model->set_Kv(Kv);
-  BOOST_CHECK( model->get_Kv() == Kv );
+  BOOST_CHECK( (model->get_Kv() - Kv).isZero(NUMDIFF_MODIFIER*tol));
 
   Eigen::Vector3d oPc = Eigen::Vector3d::Random();
   model->set_oPc(oPc);
@@ -319,8 +319,8 @@ void test_calc_equivalent_free(DAMSoftContact3DTypes::Type action_type,
       factory.create(action_type, ref_type);
   
   // Set 0 stiffness and damping
-  modelsoft->set_Kp(0.);
-  modelsoft->set_Kv(0.);
+  modelsoft->set_Kp(Eigen::VectorXd::Zero(modelsoft->get_nc()));
+  modelsoft->set_Kv(Eigen::VectorXd::Zero(modelsoft->get_nc()));
   // Set active contact
   modelsoft->set_active_contact(true);
   // Test that freeFwdDyn = SoftContact(Kp=0;Kv=0), without armature
@@ -331,8 +331,8 @@ void test_calc_equivalent_free(DAMSoftContact3DTypes::Type action_type,
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft2 =
       factory.create(action_type, ref_type);
   // Set non-zero stiffness and damping
-  modelsoft2->set_Kp(100.);
-  modelsoft2->set_Kv(10.);
+  modelsoft2->set_Kp(Eigen::VectorXd::Ones(modelsoft->get_nc()) * 100.);
+  modelsoft2->set_Kv(Eigen::VectorXd::Ones(modelsoft->get_nc()) * 10.);
   // Set inactive contact
   modelsoft2->set_active_contact(false);
   // Test that freeFwdDyn = SoftContact(active=False) without armature
@@ -417,8 +417,8 @@ void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft =
       factory.create(action_type, ref_type);
   // Set 0 stiffness and damping
-  modelsoft->set_Kp(0.);
-  modelsoft->set_Kv(0.);
+  modelsoft->set_Kp(Eigen::VectorXd::Zero(modelsoft->get_nc()));
+  modelsoft->set_Kv(Eigen::VectorXd::Zero(modelsoft->get_nc()));
   // Set active contact
   modelsoft->set_active_contact(false);
   // Test that freeFwdDyn = SoftContact(Kp=0;Kv=0), without armature
@@ -428,8 +428,8 @@ void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
   boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDynamics> modelsoft2 =
       factory.create(action_type, ref_type);
   // Set non-zero stiffness and damping
-  modelsoft2->set_Kp(100.);
-  modelsoft2->set_Kv(10.);
+  modelsoft2->set_Kp(Eigen::VectorXd::Ones(modelsoft->get_nc()) * 100.);
+  modelsoft2->set_Kv(Eigen::VectorXd::Ones(modelsoft->get_nc()) * 10.);
   // // Set inactive contact
   modelsoft2->set_active_contact(false);
   // Test that freeFwdDyn = SoftContact(active=False) without armature

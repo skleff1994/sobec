@@ -73,8 +73,8 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
       boost::shared_ptr<ActuationModelAbstract> actuation,
       boost::shared_ptr<CostModelSum> costs,
       const pinocchio::FrameIndex frameId,
-      const Scalar Kp, 
-      const Scalar Kv,
+      const VectorXs& Kp, 
+      const VectorXs& Kv,
       const Vector3s& oPc,
       const std::size_t nc,
       const pinocchio::ReferenceFrame ref = pinocchio::LOCAL);
@@ -141,14 +141,14 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
    */
   virtual boost::shared_ptr<DifferentialActionDataAbstract> createData();
 
-  void set_Kp(const Scalar inKp);
-  void set_Kv(const Scalar inKv);
+  void set_Kp(const VectorXs& inKp);
+  void set_Kv(const VectorXs& inKv);
   void set_oPc(const Vector3s& oPc);
   void set_ref(const pinocchio::ReferenceFrame inRef);
   void set_id(const pinocchio::FrameIndex inId);
 
-  const Scalar get_Kp() const;
-  const Scalar get_Kv() const;
+  const VectorXs& get_Kp() const;
+  const VectorXs& get_Kv() const;
   const Vector3s& get_oPc() const;
   const pinocchio::ReferenceFrame& get_ref() const;
   const pinocchio::FrameIndex& get_id() const;
@@ -180,8 +180,8 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   void set_armature(const VectorXs& armature);
 
   protected:
-    Scalar Kp_;                             //!< Contact model stiffness
-    Scalar Kv_;                             //!< Contact model damping
+    VectorXs Kp_;                             //!< Contact model stiffness
+    VectorXs Kv_;                             //!< Contact model damping
     Vector3s oPc_;                          //!< Contact model anchor point
     pinocchio::FrameIndex frameId_;         //!< Frame id of the contact
     pinocchio::FrameIndex parentId_;        //!< Parent id of the contact

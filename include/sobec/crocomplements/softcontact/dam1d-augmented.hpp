@@ -74,8 +74,8 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
       boost::shared_ptr<ActuationModelAbstract> actuation,
       boost::shared_ptr<CostModelSum> costs,
       const pinocchio::FrameIndex frameId,
-      const double Kp, 
-      const double Kv,
+      const VectorXs& Kp, 
+      const VectorXs& Kv,
       const Vector3s& oPc,
       const pinocchio::ReferenceFrame ref = pinocchio::LOCAL,
       const Vector3MaskType& type = Vector3MaskType::z);

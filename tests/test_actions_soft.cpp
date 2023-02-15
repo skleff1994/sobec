@@ -204,8 +204,8 @@ void test_calc_equivalent_euler(
   const boost::shared_ptr<sobec::IAMSoftContactAugmented>& modelsoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelsoft->createData();
   // Set gains to 0
-  modelsoft->get_differential()->set_Kp(0.);
-  modelsoft->get_differential()->set_Kv(0.);
+  modelsoft->get_differential()->set_Kp(Eigen::VectorXd::Zero(modelsoft->get_differential()->get_nc()));
+  modelsoft->get_differential()->set_Kv(Eigen::VectorXd::Zero(modelsoft->get_differential()->get_nc()));
 
   // Create IAM Euler from DAMfree (incompatible with DAMSoft)
   boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_differential()->get_state()); 
@@ -244,8 +244,8 @@ void test_calcDiff_equivalent_euler(
   const boost::shared_ptr<sobec::IAMSoftContactAugmented>& modelsoft = factory_iam.create(iam_type, dam_type, ref_type, mask_type);
   const boost::shared_ptr<crocoddyl::ActionDataAbstract>& dataSoft = modelsoft->createData();
   // Set gains to 0
-  modelsoft->get_differential()->set_Kp(0.);
-  modelsoft->get_differential()->set_Kv(0.);
+  modelsoft->get_differential()->set_Kp(Eigen::VectorXd::Zero(modelsoft->get_differential()->get_nc()));
+  modelsoft->get_differential()->set_Kv(Eigen::VectorXd::Zero(modelsoft->get_differential()->get_nc()));
 
   // Create IAM Euler from DAMfree (incompatible with DAMSoft)
   boost::shared_ptr<crocoddyl::StateMultibody> statemb = boost::static_pointer_cast<crocoddyl::StateMultibody>(modelsoft->get_differential()->get_state()); 

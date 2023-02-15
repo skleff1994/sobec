@@ -28,7 +28,7 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
       bp::init<boost::shared_ptr<crocoddyl::StateMultibody>,
                boost::shared_ptr<crocoddyl::ActuationModelAbstract>,
                boost::shared_ptr<crocoddyl::CostModelSum>,
-               pinocchio::FrameIndex, double, double, Eigen::Vector3d, int, bp::optional<pinocchio::ReferenceFrame>>(
+               pinocchio::FrameIndex, Eigen::VectorXd, Eigen::VectorXd, Eigen::Vector3d, int, bp::optional<pinocchio::ReferenceFrame>>(
           bp::args("self", "state", "actuation", "costs", "frameId", "Kp", "Kv", "oPc", "nc", "ref"),
           "Initialize the constrained forward-dynamics action model.\n\n"
           ":param state: multibody state\n"
