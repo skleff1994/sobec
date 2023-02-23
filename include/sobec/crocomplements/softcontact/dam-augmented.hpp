@@ -165,6 +165,12 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   const Scalar get_force_weight() const;
   const bool get_with_force_cost() const;
 
+  // force rate regularization cost
+  void set_with_force_rate_reg_cost(const bool);
+  void set_force_rate_reg_weight(const Scalar inForceWeight);
+  const Scalar get_force_rate_reg_weight() const;
+  const bool get_with_force_rate_reg_cost() const;
+
   // Gravity cost
   const bool get_with_gravity_torque_reg() const;
   void set_with_gravity_torque_reg(const bool);
@@ -192,8 +198,10 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
     bool with_armature_;                    //!< Indicate if we have defined an armature
     VectorXs armature_;                     //!< Armature vector
     bool with_force_cost_;                  //!< Force cost ?
+    bool with_force_rate_reg_cost_;              //!< Force rate cost ?
     VectorXs force_des_;                    //!< Desired force 3D
     Scalar force_weight_;                   //!< Force cost weight
+    Scalar force_rate_reg_weight_;          //!< Force rate cost weight
     bool with_gravity_torque_reg_;          //!< Control regularization w.r.t. gravity torque
     Scalar tau_grav_weight_;                //!< Weight on regularization w.r.t. gravity torque
 };

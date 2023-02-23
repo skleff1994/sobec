@@ -306,6 +306,33 @@ const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_force_we
 }
 
 
+//Force rate reg cost 
+template <typename Scalar>
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_with_force_rate_reg_cost(const bool inBool) {
+  with_force_rate_reg_cost_ = inBool;
+}
+
+template <typename Scalar>
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_rate_reg_weight(const Scalar inForceRegWeight) {
+  if (inForceRegWeight < 0.) {
+    throw_pretty("Invalid argument: "
+                 << "Force rate cost weight should be positive");
+  }
+  force_rate_reg_weight_ = inForceRegWeight;
+}
+
+template <typename Scalar>
+const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_force_rate_reg_cost() const {
+  return with_force_rate_reg_cost_;
+}
+
+template <typename Scalar>
+const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_force_rate_reg_weight() const {
+  return force_rate_reg_weight_;
+}
+
+
+
 
 template <typename Scalar>
 const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_gravity_torque_reg() const {

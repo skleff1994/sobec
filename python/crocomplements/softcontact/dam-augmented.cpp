@@ -193,6 +193,18 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
             &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_force_cost,
           "Is the contact force cost active?")
       .add_property(
+          "f_rate_reg_weight",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_force_rate_reg_weight,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_force_rate_reg_weight,
+          "Force rate cost weight")
+      .add_property(
+          "with_force_rate_reg_cost",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_with_force_rate_reg_cost,
+                          bp::return_value_policy<bp::return_by_value>()),
+            &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_force_rate_reg_cost,
+          "Is the contact force rate cost active?")
+      .add_property(
           "with_armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_with_armature,
                             bp::return_value_policy<bp::return_by_value>()),

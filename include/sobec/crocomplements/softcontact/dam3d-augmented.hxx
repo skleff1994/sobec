@@ -142,6 +142,9 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
       d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
     }
+    if(with_force_rate_reg_cost_){
+      d->cost += 0.5* force_rate_reg_weight_ * d->fout.transpose() * d->fout;  // penalize time derivative of the force 
+    }
   }
 }
 
@@ -180,6 +183,9 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = -pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext);
       d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
+    }
+    if(with_force_rate_reg_cost_){
+      d->cost += 0.5* force_rate_reg_weight_ * d->fout.transpose() * d->fout;  // penalize time derivative of the force 
     }
   }
 }
@@ -354,6 +360,14 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lxu += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_u;
       d->Luu += tau_grav_weight_ * d->tau_grav_residual_u.transpose() * d->tau_grav_residual_u;
     }
+    if(with_force_rate_reg_cost_){
+      d->Lf += force_rate_reg_weight_ * d->fout.transpose() * d->dfdt_df ;    
+      d->Lff += force_rate_reg_weight_ * d->dfdt_df.transpose() * d->dfdt_df;  
+      d->Lx += force_rate_reg_weight_ * d->fout.transpose() * d->dfdt_dx;
+      d->Lxx += force_rate_reg_weight_ * d->dfdt_dx.transpose() * d->dfdt_dx;
+      d->Lu += force_rate_reg_weight_ * d->fout.transpose() * d->dfdt_du;
+      d->Luu += force_rate_reg_weight_ * d->dfdt_du.transpose() * d->dfdt_du;
+    }
   }
 }
 
@@ -410,6 +424,12 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lff += tau_grav_weight_ * d->tau_grav_residual_f.transpose() * d->tau_grav_residual_f; 
       d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
       d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
+    }
+    if(with_force_rate_reg_cost_){
+      d->Lf += force_rate_reg_weight_ * d->fout.transpose() * d->dfdt_df ;    
+      d->Lff += force_rate_reg_weight_ * d->dfdt_df.transpose() * d->dfdt_df;  
+      d->Lx += force_rate_reg_weight_ * d->fout.transpose() * d->dfdt_dx;
+      d->Lxx += force_rate_reg_weight_ * d->dfdt_dx.transpose() * d->dfdt_dx;
     }
   }
 }

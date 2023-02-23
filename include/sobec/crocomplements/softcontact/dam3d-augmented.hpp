@@ -157,6 +157,8 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
     using Base::force_des_;                    
     using Base::force_weight_;                   
     using Base::tau_grav_weight_;
+    using Base::with_force_rate_reg_cost_;
+    using Base::force_rate_reg_weight_;
     
 };
 
