@@ -90,7 +90,7 @@ void test_attributes(DAMSoftContact1DTypes::Type action_type,
   BOOST_CHECK(model->get_with_gravity_torque_reg());
   BOOST_CHECK(model->get_tau_grav_weight() - 0.01 <= NUMDIFF_MODIFIER * tol);
     // Force cost
-  BOOST_CHECK(model->get_force_weight() - 0.01 <= NUMDIFF_MODIFIER * tol);
+  BOOST_CHECK( (model->get_force_weight() - Eigen::VectorXd::Ones(1)*0.01).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_force_des().isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_with_force_cost());
   
@@ -124,9 +124,9 @@ void test_attributes(DAMSoftContact1DTypes::Type action_type,
   model->set_with_force_cost(with_force_cost);
   BOOST_CHECK(model->get_with_force_cost() == with_force_cost);
 
-  double force_weight = rand() % 100;
+  Eigen::VectorXd force_weight = rand() % 100 * Eigen::VectorXd::Ones(1);
   model->set_force_weight(force_weight);
-  BOOST_CHECK(model->get_force_weight() == force_weight);
+  BOOST_CHECK((model->get_force_weight() - force_weight).isZero(NUMDIFF_MODIFIER*tol));
 
   Eigen::VectorXd force_des = Eigen::VectorXd::Random(1);
   model->set_force_des(force_des);

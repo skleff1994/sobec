@@ -161,7 +161,7 @@ DAMSoftContact3DFactory::create_augmentedDAMSoft3D(StateModelTypes::Type state_t
       state->get_pinocchio()->getFrameId(frameName), 
       Kp, Kv, oPc, pinRefFrame);
   action->set_force_des(Eigen::Vector3d::Zero());
-  action->set_force_weight(1.);
+  action->set_force_weight(Eigen::Vector3d::Ones());
   action->set_with_force_cost(true);
   action->set_tau_grav_weight(0.01);
   action->set_with_gravity_torque_reg(true);

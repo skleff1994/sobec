@@ -140,7 +140,7 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
   if(active_contact_){
     if(with_force_cost_){
       d->f_residual = f - force_des_;
-      d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
+      d->cost += 0.5* force_weight_(0) * d->f_residual.transpose() * d->f_residual;
     }
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
@@ -179,7 +179,7 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
   else{
     if(with_force_cost_){
       d->f_residual = f - force_des_;
-      d->cost += 0.5* force_weight_ * d->f_residual.transpose() * d->f_residual;
+      d->cost += 0.5* force_weight_(0) * d->f_residual.transpose() * d->f_residual;
     }
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = -pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext);
@@ -343,8 +343,8 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   if(active_contact_){
     if(with_force_cost_){
       d->f_residual = f - force_des_;
-      d->Lf = force_weight_ * d->f_residual.transpose();
-      d->Lff(0,0) = force_weight_;
+      d->Lf = force_weight_(0) * d->f_residual.transpose();
+      d->Lff(0,0) = force_weight_(0);
     }
     if(with_gravity_torque_reg_){
       // Compute residual derivatives w.r.t. x, u and f
@@ -404,8 +404,8 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   if(active_contact_){
     if(with_force_cost_){
       d->f_residual = f - force_des_;
-      d->Lf = force_weight_ * d->f_residual.transpose();
-      d->Lff(0,0) = force_weight_;
+      d->Lf = force_weight_(0) * d->f_residual.transpose();
+      d->Lff(0,0) = force_weight_(0);
     }
     if(with_gravity_torque_reg_){
       // Compute residual derivatives w.r.t. x and f

@@ -52,6 +52,8 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   oPc_ = oPc;
   frameId_ = frameId;
   ref_ = ref;
+  // By default the cost is expressed in the same frame as the dynamics
+  cost_ref_ = ref_;
   // If gains are too small, set contact to inactive
   if(Kp.maxCoeff() <= Scalar(1e-9) && Kv.maxCoeff() <= Scalar(1e-9)){
     active_contact_ = false;
@@ -65,7 +67,8 @@ DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::DAMSoftContactAbstractAug
   armature_ = VectorXs::Zero(this->get_state()->get_nv());
   // Hard-coded cost on force and gravity reg
   with_force_cost_ = false;
-  force_weight_ = Scalar(0.);
+  force_weight_ = VectorXs::Zero(nc_);
+  force_rate_reg_weight_ = VectorXs::Zero(nc_);
   force_des_ = VectorXs::Zero(nc_);
   with_gravity_torque_reg_ = false;
   tau_grav_weight_ = Scalar(0.);
@@ -199,6 +202,11 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_ref(const pinocc
 }
 
 template <typename Scalar>
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_cost_ref(const pinocchio::ReferenceFrame inRef) {
+  cost_ref_ = inRef;
+}
+
+template <typename Scalar>
 void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_id(const pinocchio::FrameIndex inId) {
   frameId_ = inId;
 }
@@ -222,6 +230,12 @@ template <typename Scalar>
 const pinocchio::ReferenceFrame& DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_ref() const {
   return ref_;
 }
+
+template <typename Scalar>
+const pinocchio::ReferenceFrame& DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_cost_ref() const {
+  return cost_ref_;
+}
+
 
 template <typename Scalar>
 const pinocchio::FrameIndex& DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_id() const {
@@ -287,12 +301,12 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_des(const 
 }
 
 template <typename Scalar>
-void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_weight(const Scalar inForceWeight) {
-  if (inForceWeight < 0.) {
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_weight(const VectorXs& inForceWeights) {
+  if (inForceWeights.maxCoeff() < 0.) {
     throw_pretty("Invalid argument: "
-                 << "Force cost weight should be positive");
+                 << "Force cost weights should be positive");
   }
-  force_weight_ = inForceWeight;
+  force_weight_ = inForceWeights;
 }
 
 template <typename Scalar>
@@ -301,7 +315,7 @@ const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwd
 }
 
 template <typename Scalar>
-const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_force_weight() const {
+const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_force_weight() const {
   return force_weight_;
 }
 
@@ -313,12 +327,12 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_with_force_rate_
 }
 
 template <typename Scalar>
-void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_rate_reg_weight(const Scalar inForceRegWeight) {
-  if (inForceRegWeight < 0.) {
+void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_rate_reg_weight(const VectorXs& inForceRegWeights) {
+  if (inForceRegWeights.maxCoeff() < 0.) {
     throw_pretty("Invalid argument: "
-                 << "Force rate cost weight should be positive");
+                 << "Force rate cost weights should be positive");
   }
-  force_rate_reg_weight_ = inForceRegWeight;
+  force_rate_reg_weight_ = inForceRegWeights;
 }
 
 template <typename Scalar>
@@ -327,7 +341,7 @@ const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_force
 }
 
 template <typename Scalar>
-const Scalar DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_force_rate_reg_weight() const {
+const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_force_rate_reg_weight() const {
   return force_rate_reg_weight_;
 }
 
