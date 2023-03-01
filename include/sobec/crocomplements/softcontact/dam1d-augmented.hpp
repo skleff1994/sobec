@@ -164,6 +164,7 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
     using Base::force_weight_;                   
     using Base::tau_grav_weight_;
     sobec::Vector3MaskType type_;           //!< 1D contact mask type 
+    using Base::cost_ref_;
 };
 
 template <typename _Scalar>
@@ -273,6 +274,7 @@ struct DADSoftContact1DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::Lff;
   // Force residual for hard coded tracking cost
   using Base::f_residual;
+  using Base::f_residual_x;
   // Gravity reg residual
   using Base::tau_grav_residual;
   using Base::tau_grav_residual_x;

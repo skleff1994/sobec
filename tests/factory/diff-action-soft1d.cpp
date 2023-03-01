@@ -183,6 +183,8 @@ DAMSoftContact1DFactory::create_augmentedDAMSoft1D(StateModelTypes::Type state_t
   action->set_with_force_cost(true);
   action->set_tau_grav_weight(0.01);
   action->set_with_gravity_torque_reg(true);
+  pinocchio::ReferenceFrame cost_ref = pinocchio::LOCAL;
+  action->set_cost_ref(cost_ref);
   return action;
 }
 

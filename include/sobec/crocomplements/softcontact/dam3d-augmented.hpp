@@ -159,6 +159,7 @@ class DAMSoftContact3DAugmentedFwdDynamicsTpl
     using Base::tau_grav_weight_;
     using Base::with_force_rate_reg_cost_;
     using Base::force_rate_reg_weight_;
+    using Base::cost_ref_;
     
 };
 
@@ -232,6 +233,7 @@ struct DADSoftContact3DAugmentedFwdDynamicsTpl : public sobec::DADSoftContactAbs
   using Base::Lff;
   // Force residual for hard coded tracking cost
   using Base::f_residual;
+  using Base::f_residual_x;
   // Gravity reg residual
   using Base::tau_grav_residual;
   using Base::tau_grav_residual_x;

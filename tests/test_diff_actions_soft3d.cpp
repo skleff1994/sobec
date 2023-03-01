@@ -89,7 +89,11 @@ void test_attributes(DAMSoftContact3DTypes::Type action_type,
   BOOST_CHECK((model->get_force_weight() - Eigen::Vector3d::Ones()).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_force_des().isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_with_force_cost());
-  
+  BOOST_CHECK(model->get_cost_ref() == pinocchio::ReferenceFrame::LOCAL);
+    // Force rate cost
+  BOOST_CHECK((model->get_force_rate_reg_weight() - 1e-6*Eigen::Vector3d::Ones()).isZero(NUMDIFF_MODIFIER * tol));
+  BOOST_CHECK(model->get_with_force_rate_reg_cost());
+
   // Test class default values
   BOOST_CHECK(model->get_nc() == 3 );
   BOOST_CHECK(!model->get_with_armature() );
@@ -112,6 +116,10 @@ void test_attributes(DAMSoftContact3DTypes::Type action_type,
   model->set_ref(ref);
   BOOST_CHECK( model->get_ref() == ref);
 
+  pinocchio::ReferenceFrame cost_ref = pinocchio::LOCAL_WORLD_ALIGNED ;
+  model->set_cost_ref(cost_ref);
+  BOOST_CHECK( model->get_cost_ref() == cost_ref);
+
   bool active_contact = false;
   model->set_active_contact(active_contact);
   BOOST_CHECK(model->get_active_contact() == active_contact);
@@ -128,6 +136,10 @@ void test_attributes(DAMSoftContact3DTypes::Type action_type,
   model->set_force_des(force_des);
   BOOST_CHECK( (model->get_force_des() - force_des).isZero( NUMDIFF_MODIFIER * tol ) );
   
+  Eigen::Vector3d force_rate_reg_weight = rand() % 100 * Eigen::Vector3d::Ones();
+  model->set_force_rate_reg_weight(force_rate_reg_weight);
+  BOOST_CHECK( (model->get_force_rate_reg_weight() - force_rate_reg_weight).isZero(NUMDIFF_MODIFIER*tol) );
+
   bool with_grav_cost = false;
   model->set_with_gravity_torque_reg(with_grav_cost);
   BOOST_CHECK(model->get_with_gravity_torque_reg() == with_grav_cost);
@@ -232,9 +244,11 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
     du(iu) = 0.0;
   }
 
+  // Second-order cost derivatives 
+
   // Checking the partial derivatives against NumDiff
   boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> datacast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data);
-  double tol = 1e-2; //sqrt(disturbance);
+  double tol = 1e-3; //sqrt(disturbance);
   BOOST_CHECK((datacast->Fx - data_num_diff_cast->Fx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Fu - data_num_diff_cast->Fu).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->aba_df - data_num_diff_cast->aba_df).isZero(NUMDIFF_MODIFIER * tol));

@@ -135,7 +135,17 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   // Add hard-coded cost in contact
   if(active_contact_){
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose() * f - force_des_;
+        }
+        else{
+          d->f_residual = d->oRf * f - force_des_;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+      }
       d->cost += 0.5 * d->f_residual.transpose() * force_weight_.asDiagonal() * d->f_residual;
     }
     if(with_gravity_torque_reg_){
@@ -177,7 +187,17 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   }
   else{
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose() * f - force_des_;
+        }
+        else{
+          d->f_residual = d->oRf * f - force_des_;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+      }
       d->cost += 0.5 * d->f_residual.transpose() * force_weight_.asDiagonal() * d->f_residual;
     }
     if(with_gravity_torque_reg_){
@@ -334,9 +354,29 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   // Add hard-coded costs partials (in contact)
   if(active_contact_){
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
-      d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal();
-      d->Lff = force_weight_.asDiagonal() * Matrix3s::Identity();
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose() * f - force_des_;
+          d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal() * d->oRf.transpose();
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+          d->Lx += d->f_residual.transpose() * force_weight_.asDiagonal() * d->f_residual_x;
+          d->Lff = force_weight_.asDiagonal() * d->oRf * d->oRf.transpose();
+        }
+        else{
+          d->f_residual = d->oRf * f - force_des_;
+          d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal() * d->oRf;
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = pinocchio::skew(d->oRf * f) * d->oJ.bottomRows(3);
+          d->Lx += d->f_residual.transpose() * force_weight_.asDiagonal() * pinocchio::skew(d->oRf * f) * d->f_residual_x;
+          d->Lff = force_weight_.asDiagonal() * d->oRf.transpose() * d->oRf;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+        d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal();
+        d->Lff = force_weight_.asDiagonal() * Matrix3s::Identity();
+      }
     }
     if(with_gravity_torque_reg_){
       // Compute residual derivatives w.r.t. x, u and f
@@ -403,9 +443,29 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   // Add hard-coded costs partials (in contact) 
   if(active_contact_){
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
-      d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal();
-      d->Lff = force_weight_.asDiagonal() * Matrix3s::Identity();
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose() * f - force_des_;
+          d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal() * d->oRf.transpose();
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+          d->Lx += d->f_residual.transpose() * force_weight_.asDiagonal() * d->f_residual_x;
+          d->Lff = force_weight_.asDiagonal() * d->oRf * d->oRf.transpose();
+        }
+        else{
+          d->f_residual = d->oRf * f - force_des_;
+          d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal() * d->oRf;
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = pinocchio::skew(d->oRf * f) * d->oJ.bottomRows(3);
+          d->Lx += d->f_residual.transpose() * force_weight_.asDiagonal() * d->f_residual_x;
+          d->Lff = force_weight_.asDiagonal() * d->oRf.transpose() * d->oRf;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+        d->Lf = d->f_residual.transpose() * force_weight_.asDiagonal();
+        d->Lff = force_weight_.asDiagonal() * Matrix3s::Identity();
+      }
     }
     if(with_gravity_torque_reg_){
       // Compute residual derivatives w.r.t. x and f

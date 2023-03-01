@@ -205,6 +205,12 @@ void exposeDAMSoftContactAbstractAugmentedFwdDyn() {
             &DAMSoftContactAbstractAugmentedFwdDynamics::set_with_force_rate_reg_cost,
           "Is the contact force rate cost active?")
       .add_property(
+          "cost_ref_",
+          bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_cost_ref,
+                            bp::return_value_policy<bp::return_by_value>()),
+          &DAMSoftContactAbstractAugmentedFwdDynamics::set_cost_ref,
+          "Reference frame in which the contact force cost residual is expressed (LOCAL or LOCAL_WORLD_ALIGNED) ")
+      .add_property(
           "with_armature",
           bp::make_function(&DAMSoftContactAbstractAugmentedFwdDynamics::get_with_armature,
                             bp::return_value_policy<bp::return_by_value>()),

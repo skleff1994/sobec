@@ -256,6 +256,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         Lf(model->get_nc()),
         Lff(model->get_nc(), model->get_nc()),
         f_residual(model->get_nc()),
+        f_residual_x(model->get_nc(), model->get_state()->get_ndx()),
         tau_grav_residual(model->get_state()->get_nv()),
         tau_grav_residual_x(model->get_state()->get_nv(), model->get_state()->get_ndx()),
         tau_grav_residual_u(model->get_state()->get_nv(), model->get_actuation()->get_nu()),
@@ -297,6 +298,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     Lf.setZero();
     Lff.setZero();
     f_residual.setZero();
+    f_residual_x.setZero();
     tau_grav_residual.setZero();
     tau_grav_residual_x.setZero();
     tau_grav_residual_u.setZero();
@@ -358,6 +360,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   MatrixXs Lff;             //!< Hessian of the cost w.r.t. contact force
   // Force residual for hard coded tracking cost
   VectorXs f_residual;      //!< Contact force residual
+  MatrixXs f_residual_x;      //!< Contact force residual partial w.r.t. x
   // Gravity reg residual
   Scalar tau_grav_weight_;
   VectorXs tau_grav_residual;

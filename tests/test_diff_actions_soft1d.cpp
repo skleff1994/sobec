@@ -93,7 +93,8 @@ void test_attributes(DAMSoftContact1DTypes::Type action_type,
   BOOST_CHECK( (model->get_force_weight() - Eigen::VectorXd::Ones(1)*0.01).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_force_des().isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_with_force_cost());
-  
+  BOOST_CHECK(model->get_cost_ref() == pinocchio::ReferenceFrame::LOCAL);
+
   // Test class default values
   BOOST_CHECK(model->get_nc() == 1 );
   BOOST_CHECK(!model->get_with_armature() );
@@ -116,6 +117,10 @@ void test_attributes(DAMSoftContact1DTypes::Type action_type,
   model->set_ref(ref);
   BOOST_CHECK( model->get_ref() == ref);
 
+  pinocchio::ReferenceFrame cost_ref = pinocchio::LOCAL_WORLD_ALIGNED ;
+  model->set_cost_ref(cost_ref);
+  BOOST_CHECK( model->get_cost_ref() == cost_ref);
+  
   bool active_contact = false;
   model->set_active_contact(active_contact);
   BOOST_CHECK(model->get_active_contact() == active_contact);
