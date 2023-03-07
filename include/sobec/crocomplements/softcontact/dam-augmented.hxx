@@ -251,7 +251,7 @@ const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwd
 
 
 template <typename Scalar>
-const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_armature() const {
+bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_armature() const {
   return with_armature_;
 }
 
@@ -270,7 +270,7 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_armature(const V
 }
 
 template <typename Scalar>
-const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_active_contact() const {
+bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_active_contact() const {
   return active_contact_;
 }
 
@@ -282,7 +282,7 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_active_contact(c
 
 
 template <typename Scalar>
-const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_force_cost() const {
+bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_force_cost() const {
   return with_force_cost_;
 }
 
@@ -336,7 +336,7 @@ void DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::set_force_rate_reg_w
 }
 
 template <typename Scalar>
-const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_force_rate_reg_cost() const {
+bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_force_rate_reg_cost() const {
   return with_force_rate_reg_cost_;
 }
 
@@ -349,7 +349,7 @@ const typename MathBaseTpl<Scalar>::VectorXs& DAMSoftContactAbstractAugmentedFwd
 
 
 template <typename Scalar>
-const bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_gravity_torque_reg() const {
+bool DAMSoftContactAbstractAugmentedFwdDynamicsTpl<Scalar>::get_with_gravity_torque_reg() const {
   return with_gravity_torque_reg_;
 }
 

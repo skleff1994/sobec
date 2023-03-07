@@ -157,7 +157,7 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   const pinocchio::ReferenceFrame& get_cost_ref() const;
   void set_cost_ref(const pinocchio::ReferenceFrame inRef);
   
-  const bool get_active_contact() const;
+  bool get_active_contact() const;
   void set_active_contact(const bool);
 
   // Force cost
@@ -167,24 +167,25 @@ class DAMSoftContactAbstractAugmentedFwdDynamicsTpl
   void set_force_weight(const VectorXs& inForceWeights);
   const VectorXs& get_force_des() const;
   const VectorXs& get_force_weight() const;
-  const bool get_with_force_cost() const;
+  bool get_with_force_cost() const;
 
   // force rate regularization cost
   void set_with_force_rate_reg_cost(const bool);
   void set_force_rate_reg_weight(const VectorXs& inForceWeights);
   const VectorXs& get_force_rate_reg_weight() const;
-  const bool get_with_force_rate_reg_cost() const;
+  bool get_with_force_rate_reg_cost() const;
 
   // Gravity cost
-  const bool get_with_gravity_torque_reg() const;
+  bool get_with_gravity_torque_reg() const;
   void set_with_gravity_torque_reg(const bool);
   const Scalar get_tau_grav_weight() const;
   void set_tau_grav_weight(const Scalar);
 
   std::size_t get_nc() {return nc_;};
+  std::size_t get_nresidual() {return this->get_nr() + this->get_state()->get_nv() + 2*this->get_nc();};
 
   // armature 
-  const bool get_with_armature() const;
+  bool get_with_armature() const;
   void set_with_armature(const bool);
   const VectorXs& get_armature() const;
   void set_armature(const VectorXs& armature);
@@ -260,7 +261,9 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
         tau_grav_residual(model->get_state()->get_nv()),
         tau_grav_residual_x(model->get_state()->get_nv(), model->get_state()->get_ndx()),
         tau_grav_residual_u(model->get_state()->get_nv(), model->get_actuation()->get_nu()),
-        tau_grav_residual_f(model->get_state()->get_nv(), model->get_nc()) {
+        tau_grav_residual_f(model->get_state()->get_nv(), model->get_nc()),
+        residual(model->get_nresidual()) {
+          // costs residuals (nr) + grav reg (nv) + force (nc) + force rate reg (nc)
     costs->shareMemory(this);
     Minv.setZero();
     u_drift.setZero();
@@ -303,6 +306,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
     tau_grav_residual_x.setZero();
     tau_grav_residual_u.setZero();
     tau_grav_residual_f.setZero();
+    residual.setZero();
   }
 
   using Base::pinocchio;
@@ -367,6 +371,7 @@ struct DADSoftContactAbstractAugmentedFwdDynamicsTpl : public crocoddyl::Differe
   MatrixXs tau_grav_residual_x;
   MatrixXs tau_grav_residual_u;
   MatrixXs tau_grav_residual_f;
+  VectorXs residual;
 
   using Base::cost;
   using Base::Fu;

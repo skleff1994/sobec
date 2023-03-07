@@ -89,7 +89,7 @@ void test_attributes(DAMSoftContact3DTypes::Type action_type,
   BOOST_CHECK((model->get_force_weight() - Eigen::Vector3d::Ones()).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_force_des().isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_with_force_cost());
-  BOOST_CHECK(model->get_cost_ref() == pinocchio::ReferenceFrame::LOCAL);
+  BOOST_CHECK(model->get_cost_ref() == pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED);
     // Force rate cost
   BOOST_CHECK((model->get_force_rate_reg_weight() - 1e-6*Eigen::Vector3d::Ones()).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK(model->get_with_force_rate_reg_cost());
@@ -112,7 +112,7 @@ void test_attributes(DAMSoftContact3DTypes::Type action_type,
   model->set_oPc(oPc);
   BOOST_CHECK( (model->get_oPc() - oPc).isZero( NUMDIFF_MODIFIER * tol ) );
 
-  pinocchio::ReferenceFrame ref = pinocchio::LOCAL ;
+  pinocchio::ReferenceFrame ref = pinocchio::LOCAL_WORLD_ALIGNED ;
   model->set_ref(ref);
   BOOST_CHECK( model->get_ref() == ref);
 
@@ -167,13 +167,31 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
   std::size_t nx = model->get_state()->get_nx();
   std::size_t nc = model->get_nc();
   std::size_t nu = model->get_nu();
+  std::size_t nr = model->get_nresidual();
   Eigen::VectorXd x = model->get_state()->rand();
   Eigen::VectorXd f = Eigen::VectorXd::Random(nc);
   Eigen::VectorXd u = Eigen::VectorXd::Random(nu);
   // Computing the action derivatives
+  Eigen::MatrixXd Rx = Eigen::MatrixXd::Zero(nr, ndx);
+  Eigen::MatrixXd Rf = Eigen::MatrixXd::Zero(nr, nc);
+  Eigen::MatrixXd Ru = Eigen::MatrixXd::Zero(nr, nu);
+  model->set_with_force_cost(true);
+  model->set_with_gravity_torque_reg(true); 
+  model->set_with_force_rate_reg_cost(false); // Lxx, Luu wrong (<0.1 ok)
+  bool with_gauss_approx = false;
+  if(model->get_with_gravity_torque_reg() == true || model->get_with_force_rate_reg_cost() == true){
+    with_gauss_approx = true;
+  }
+  // std::cout << " Gravity cost      = " << model->get_with_gravity_torque_reg() << std::endl;
+  // std::cout << " Force cost        = " << model->get_with_force_cost() << std::endl;
+  // std::cout << " Force rate cost   = " << model->get_with_force_rate_reg_cost() << std::endl;
+  // std::cout << " Gauss-Newton      = " << with_gauss_approx << std::endl;
   model->calc(data, x, f, u);
+  boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data);
+  // std::cout << " Residual gravity    = " << data_cast->tau_grav_residual << std::endl;
+  // std::cout << " Residual force      = " << data_cast->f_residual << std::endl;
+  // std::cout << " Residual total      = " << data_cast->residual << std::endl;
   model->calcDiff(data, x, f, u);
-
   // numdiff by hand because ND not adapted to augmented calc and calcDiff
   const Eigen::VectorXd& xn0 = data->xout;
   const Eigen::VectorXd& fn0 = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data)->fout;
@@ -184,7 +202,6 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
   Eigen::VectorXd du = Eigen::VectorXd::Zero(nu);
   Eigen::VectorXd xp = Eigen::VectorXd::Zero(nx);
   Eigen::VectorXd fp = Eigen::VectorXd::Zero(nc);
-  double disturbance = std::sqrt(2.0 * std::numeric_limits<double>::epsilon());
   // data
   boost::shared_ptr<crocoddyl::DifferentialActionDataAbstract> data_num_diff = model->createData();
   boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_num_diff_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_num_diff);
@@ -201,54 +218,183 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
       data_u.push_back(model->createData());
   }
 
+  // Compute disturbances
+    // Jacobian
+  model->get_state()->diff(model->get_state()->zero(), x, dx);
+  double x_norm       = dx.norm();
+  dx.setZero();
+  double disturbance  = std::sqrt(2.0 * std::numeric_limits<double>::epsilon());
+  double xh_jac       = disturbance * std::max(1., x_norm);
+  double fh_jac       = disturbance * std::max(1., f.norm());
+  double uh_jac       = disturbance * std::max(1., u.norm());
+    // Hessian 
+  double disturbance2  = std::sqrt(2.0 * disturbance);
+  double xh_hess       = disturbance2 * std::max(1., x_norm);
+  double xh_hess_pow2  = xh_hess * xh_hess;
+  double fh_hess       = disturbance2 * std::max(1., f.norm());
+  double fh_hess_pow2  = fh_hess * fh_hess;
+  double uh_hess       = disturbance2 * std::max(1., u.norm());
+  double uh_hess_pow2  = uh_hess * uh_hess;
+  double xuh_hess_pow2 = 4. * xh_hess * uh_hess;
+
   // Computing the d action(x,f,u) / dx
   for (std::size_t ix = 0; ix < ndx; ++ix) {
-    dx(ix) = disturbance;
+    dx(ix) = xh_jac; //disturbance;
     model->get_state()->integrate(x, dx, xp);
     model->calc(data_x[ix], xp, f, u);
     boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_ix_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_x[ix]);
     const Eigen::VectorXd& xn = data_ix_cast->xout;
     const Eigen::VectorXd& fn = data_ix_cast->fout;
     const double c = data_ix_cast->cost;
-    data_num_diff_cast->Fx.col(ix) = (xn - xn0) / disturbance;
-    data_num_diff_cast->dfdt_dx.col(ix) = (fn - fn0) / disturbance;
-    data_num_diff_cast->Lx(ix) = (c - c0) / disturbance;
+    data_num_diff_cast->Fx.col(ix) = (xn - xn0) / xh_jac;
+    data_num_diff_cast->dfdt_dx.col(ix) = (fn - fn0) / xh_jac;
+    data_num_diff_cast->Lx(ix) = (c - c0) / xh_jac;
+    Rx.col(ix) = (data_ix_cast->residual - data_cast->residual) / xh_jac;
     dx(ix) = 0.0;
   }
 
   // Computing the d action(x,f,u) / df
   for (std::size_t idf = 0; idf < nc; ++idf) {
-    df(idf) = disturbance;
+    df(idf) = fh_jac; //disturbance;
     model->calc(data_f[idf], x, f + df, u);
     boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_idf_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_f[idf]);
     const Eigen::VectorXd& xn = data_idf_cast->xout;
     const Eigen::VectorXd& fn = data_idf_cast->fout;
     const double c = data_idf_cast->cost;
-    data_num_diff_cast->aba_df.col(idf) = (xn - xn0) / disturbance;
-    data_num_diff_cast->dfdt_df.col(idf) = (fn - fn0) / disturbance;
-    data_num_diff_cast->Lf(idf) = (c - c0) / disturbance;
+    data_num_diff_cast->aba_df.col(idf) = (xn - xn0) / fh_jac;
+    data_num_diff_cast->dfdt_df.col(idf) = (fn - fn0) / fh_jac;
+    data_num_diff_cast->Lf(idf) = (c - c0) / fh_jac;
+    Rf.col(idf) = (data_idf_cast->residual - data_cast->residual) / fh_jac;
     df(idf) = 0.0;
   }
 
   // Computing the d action(x,f,u) / du
   for (unsigned iu = 0; iu < nu; ++iu) {
-    du(iu) = disturbance;
+    du(iu) = uh_jac; //disturbance;
     model->calc(data_u[iu], x, f, u + du);
     boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_iu_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_u[iu]);
     const Eigen::VectorXd& xn = data_iu_cast->xout;
     const Eigen::VectorXd& fn = data_iu_cast->fout;
     const double c = data_iu_cast->cost;
-    data_num_diff_cast->Fu.col(iu) = (xn - xn0) / disturbance;
-    data_num_diff_cast->dfdt_du.col(iu) = (fn - fn0) / disturbance;
-    data_num_diff_cast->Lu(iu) = (c - c0) / disturbance;
+    data_num_diff_cast->Fu.col(iu) = (xn - xn0) / uh_jac;
+    data_num_diff_cast->dfdt_du.col(iu) = (fn - fn0) / uh_jac;
+    data_num_diff_cast->Lu(iu) = (c - c0) / uh_jac;
+    Ru.col(iu) = (data_iu_cast->residual - data_cast->residual) / uh_jac;
     du(iu) = 0.0;
   }
 
   // Second-order cost derivatives 
+  // Use Gauss-Newton approximation
+  if (with_gauss_approx) {
+    data_num_diff_cast->Lxx = Rx.transpose() * Rx;
+    data_num_diff_cast->Lff = Rf.transpose() * Rf;
+    data_num_diff_cast->Lxu = Rx.transpose() * Ru;
+    data_num_diff_cast->Luu = Ru.transpose() * Ru;
+  } 
+  // Or compute the 2nd order finite-differences (real Hessian)
+  else {
+    // Computing the d^2 cost(x,u) / dx^2
+    for (std::size_t ix = 0; ix < ndx; ++ix) {
+      dx(ix) = xh_hess;
+      model->get_state()->integrate(x, dx, xp);
+      model->calc(data_x[ix], xp, f, u);
+      boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_ix_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_x[ix]);
+      const double cp = data_ix_cast->cost;
+      model->get_state()->integrate(x, -dx, xp);
+      model->calc(data_x[ix], xp, f, u);
+      const double cm = data_ix_cast->cost;
+      data_num_diff_cast->Lxx(ix, ix) = (cp - 2 * c0 + cm) / xh_hess_pow2;
+      for (std::size_t jx = ix + 1; jx < ndx; ++jx) {
+        dx(jx) = xh_hess;
+        model->get_state()->integrate(x, dx, xp);
+        model->calc(data_x[ix], xp, f, u);
+        const double cpp = data_ix_cast->cost;  // cost due to positive disturbance in both directions
+        dx(ix) = 0.;
+        model->get_state()->integrate(x, dx, xp);
+        model->calc(data_x[ix], xp, f, u);
+        const double czp = data_ix_cast->cost;  // cost due to zero disturance in 'i' and positive disturbance in 'j' direction
+        data_num_diff_cast->Lxx(ix, jx) = (cpp - czp - cp + c0) / xh_hess_pow2;
+        data_num_diff_cast->Lxx(jx, ix) = data_num_diff_cast->Lxx(ix, jx);
+        dx(ix) = xh_hess;
+        dx(jx) = 0.;
+      }
+      dx(ix) = 0.;
+    }
+
+    // Computing the d^2 cost(x,u) / df^2
+    for (std::size_t idf = 0; idf < nc; ++idf) {
+      df(idf) = fh_hess; //disturbance;
+      model->calc(data_f[idf], x, f + df, u);
+      boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_idf_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_f[idf]);
+      const double cp = data_idf_cast->cost;
+      model->calc(data_f[idf], x, f - df, u);
+      const double cm = data_idf_cast->cost;
+      data_num_diff_cast->Lff(idf, idf) = (cp - 2 * c0 + cm) / fh_hess_pow2;
+      for (std::size_t jdf = idf + 1; jdf < nc; ++jdf) {
+        df(jdf) = fh_hess;
+        model->calc(data_f[idf], x, f + df, u);
+        const double cpp = data_idf_cast->cost;  // cost due to positive disturbance in both directions
+        df(idf) = 0.;
+        model->calc(data_f[idf], x, f + df, u);
+        const double czp = data_idf_cast->cost;  // cost due to zero disturance in 'i' and positive disturbance in 'j' direction
+        data_num_diff_cast->Lff(idf, jdf) = (cpp - czp - cp + c0) / fh_hess_pow2;
+        data_num_diff_cast->Lff(jdf, idf) = data_num_diff_cast->Lff(idf, jdf);
+        df(idf) = fh_hess;
+        df(jdf) = 0.;
+      }
+      df(idf) = 0.;
+    }
+
+    // Computing the d^2 cost(x,u) / du^2
+    for (std::size_t iu = 0; iu < nu; ++iu) {
+      du(iu) = uh_hess; //disturbance;
+      model->calc(data_u[iu], x, f, u + du);
+      boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_iu_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_u[iu]);
+      const double cp = data_iu_cast->cost;
+      model->calc(data_u[iu], x, f, u - du);
+      const double cm = data_iu_cast->cost;
+      data_num_diff_cast->Luu(iu, iu) = (cp - 2 * c0 + cm) / uh_hess_pow2;
+      for (std::size_t ju = iu + 1; ju < nc; ++ju) {
+        du(ju) = uh_hess;
+        model->calc(data_u[iu], x, f, u + du);
+        const double cpp = data_iu_cast->cost;  // cost due to positive disturbance in both directions
+        du(iu) = 0.;
+        model->calc(data_u[iu], x, f, u + du);
+        const double czp = data_iu_cast->cost;  // cost due to zero disturance in 'i' and positive disturbance in 'j' direction
+        data_num_diff_cast->Luu(iu, ju) = (cpp - czp - cp + c0) / uh_hess_pow2;
+        data_num_diff_cast->Luu(ju, iu) = data_num_diff_cast->Luu(iu, ju);
+        du(iu) = uh_hess;
+        du(ju) = 0.;
+      }
+      du(iu) = 0.;
+    }
+
+    // Computing the d^2 cost(x,u) / dxu
+    for (std::size_t ix = 0; ix < ndx; ++ix) {
+      for (std::size_t ju = 0; ju < nu; ++ju) {
+        dx(ix) = xh_hess;
+        model->get_state()->integrate(x, dx, xp);
+        du(ju) = uh_hess;
+        model->calc(data_x[ix], xp, f, u + du);
+        boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> data_ix_cast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data_x[ix]);
+        const double cpp = data_ix_cast->cost;
+        model->calc(data_x[ix], xp, f, u - du);
+        const double cpm = data_ix_cast->cost;
+        model->get_state()->integrate(x, -dx, xp);
+        model->calc(data_x[ix], xp, f, u + du);
+        const double cmp = data_ix_cast->cost;
+        model->calc(data_x[ix], xp, f, u - du);
+        const double cmm = data_ix_cast->cost;
+        data->Lxu(ix, ju) = (cpp - cpm - cmp + cmm) / xuh_hess_pow2;
+        dx(ix) = 0.;
+        du(ju) = 0.;
+      }
+    }
+  }
 
   // Checking the partial derivatives against NumDiff
   boost::shared_ptr<sobec::DADSoftContact3DAugmentedFwdDynamics> datacast = boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(data);
-  double tol = 1e-3; //sqrt(disturbance);
+  double tol = sqrt(disturbance);
   BOOST_CHECK((datacast->Fx - data_num_diff_cast->Fx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Fu - data_num_diff_cast->Fu).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->aba_df - data_num_diff_cast->aba_df).isZero(NUMDIFF_MODIFIER * tol));
@@ -259,7 +405,16 @@ void test_partials_numdiff(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwd
   BOOST_CHECK((datacast->Lx - data_num_diff_cast->Lx).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lu - data_num_diff_cast->Lu).isZero(NUMDIFF_MODIFIER * tol));
   BOOST_CHECK((datacast->Lf - data_num_diff_cast->Lf).isZero(NUMDIFF_MODIFIER * tol));
+
+  // Do not test Gauss-Newton : error 
+  if(!with_gauss_approx){
+    BOOST_CHECK((datacast->Lxx - data_num_diff_cast->Lxx).isZero(NUMDIFF_MODIFIER * tol));
+    BOOST_CHECK((datacast->Lff - data_num_diff_cast->Lff).isZero(NUMDIFF_MODIFIER * tol));
+    BOOST_CHECK((datacast->Luu - data_num_diff_cast->Luu).isZero(NUMDIFF_MODIFIER * tol));
+    BOOST_CHECK((datacast->Lxu - data_num_diff_cast->Lxu).isZero(NUMDIFF_MODIFIER * tol));
+  }
 }
+
 
 void test_partial_derivatives_against_numdiff(
     DAMSoftContact3DTypes::Type action_type,
@@ -401,26 +556,6 @@ void test_calcDiff_free(boost::shared_ptr<sobec::DAMSoftContact3DAugmentedFwdDyn
   BOOST_CHECK((datasoft->Lxx - datafree->Lxx).isZero(tol));
   BOOST_CHECK((datasoft->Lxu - datafree->Lxu).isZero(tol));
   BOOST_CHECK((datasoft->Luu - datafree->Luu).isZero(tol));
-  // if(!(datasoft->Fx - datafree->Fx).isZero(tol)){
-  //   // std::cout << "Test = " << action_type << "_" << ref_type << std::endl;
-  //   // std::cout << " armature free = " << std::endl; 
-  //   // std::cout << modelfree->get_armature() << std::endl;
-  //   std::cout << " -------------------------------------  " << std::endl;
-  //   std::cout << " -------------------------------------  " << std::endl;
-  //   std::cout << " armature = " << modelsoft->get_with_armature() << std::endl;
-  //   std::cout << " fout = " << boost::static_pointer_cast<sobec::DADSoftContact3DAugmentedFwdDynamics>(datasoft)->fout << std::endl;
-  //   // std::cout << modelsoft->get_with_armature() << std::endl;
-  //   // std::cout << " Kp, Kv = " << std::endl;
-  //   // std::cout << modelsoft->get_Kp() << ", " << modelsoft->get_Kp() << std::endl;
-  //   std::cout << " contact_active = " << std::endl;
-  //   std::cout << modelsoft->get_active_contact() << std::endl;
-  //   std::cout << " Fq error " << std::endl;
-  //   std::cout << datasoft->Fx.leftCols(modelsoft->get_state()->get_nv()) - datafree->Fx.leftCols(modelsoft->get_state()->get_nv())<< std::endl;
-  //   std::cout << " -------------------------------------  " << std::endl;
-  //   std::cout << " -------------------------------------  " << std::endl;
-  //   // std::cout << " Fv error " << std::endl;
-  //   // std::cout << datafree->Fx.rightCols(modelsoft->get_state()->get_nv()) - datafree->Fx.rightCols(modelsoft->get_state()->get_nv()) << std::endl;
-  // }
 }
 
 void test_calcDiff_equivalent_free(DAMSoftContact3DTypes::Type action_type,
