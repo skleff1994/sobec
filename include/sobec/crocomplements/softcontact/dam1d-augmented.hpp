@@ -165,6 +165,8 @@ class DAMSoftContact1DAugmentedFwdDynamicsTpl
     using Base::tau_grav_weight_;
     sobec::Vector3MaskType type_;           //!< 1D contact mask type 
     using Base::cost_ref_;
+    using Base::with_force_rate_reg_cost_;
+    using Base::force_rate_reg_weight_;
 };
 
 template <typename _Scalar>
