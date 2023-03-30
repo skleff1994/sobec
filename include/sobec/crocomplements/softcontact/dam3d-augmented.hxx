@@ -67,12 +67,11 @@ void DAMSoftContact3DAugmentedFwdDynamicsTpl<Scalar>::calc(
   if(active_contact_){
     // Compute external wrench for LOCAL f
     d->pinForce = pinocchio::ForceTpl<Scalar>(f, Vector3s::Zero());
-    d->fext[parentId_] = jMf_.act(d->pinForce);
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->pinForce = pinocchio::ForceTpl<Scalar>(d->oRf.transpose() * f, Vector3s::Zero());
-        d->fext[parentId_] = jMf_.act(d->pinForce);
     }
+    d->fext[parentId_] = jMf_.act(d->pinForce);
 
     // ABA with armature
     if(with_armature_){

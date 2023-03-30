@@ -70,12 +70,11 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
     d->f3d = Vector3s::Zero();
     d->f3d(this->get_type()) = f(0);
     d->pinForce = pinocchio::ForceTpl<Scalar>(d->f3d, Vector3s::Zero());
-    d->fext[parentId_] = jMf_.act(d->pinForce);
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->pinForce = pinocchio::ForceTpl<Scalar>(d->oRf.transpose() * d->f3d, Vector3s::Zero());
-        d->fext[parentId_] = jMf_.act(d->pinForce);
     }
+    d->fext[parentId_] = jMf_.act(d->pinForce);
 
     // ABA with armature
     if(with_armature_){
@@ -136,15 +135,29 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
     }
   }
 
+
   // Add hard-coded cost in contact
   if(active_contact_){
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
-      d->cost += 0.5* force_weight_(0) * d->f_residual.transpose() * d->f_residual;
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose()(this->get_type(), this->get_type())*f - force_des_;
+        }
+        else{
+          d->f_residual = d->oRf(this->get_type(), this->get_type())*f - force_des_;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+      }
+      d->cost += 0.5 * force_weight_(0) * d->f_residual.transpose() * d->f_residual;
     }
     if(with_gravity_torque_reg_){
       d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
       d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
+    }
+    if(with_force_rate_reg_cost_){
+      d->cost += 0.5 * force_rate_reg_weight_(0) * d->fout.transpose() * d->fout;  // penalize time derivative of the force 
     }
   }
 }
@@ -178,12 +191,25 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calc(
   }
   else{
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
-      d->cost += 0.5* force_weight_(0) * d->f_residual.transpose() * d->f_residual;
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose()(this->get_type(), this->get_type())*f - force_des_;
+        }
+        else{
+          d->f_residual = d->oRf(this->get_type(), this->get_type())*f - force_des_;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+      }
+      d->cost += 0.5 * force_weight_(0) * d->f_residual.transpose() * d->f_residual;
     }
     if(with_gravity_torque_reg_){
-      d->tau_grav_residual = -pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext);
+      d->tau_grav_residual = (d->multibody.actuation->tau - pinocchio::computeStaticTorque(this->get_pinocchio(), d->pinocchio, q, d->fext));
       d->cost += 0.5*tau_grav_weight_*d->tau_grav_residual.transpose()*d->tau_grav_residual;
+    }
+    if(with_force_rate_reg_cost_){
+      d->cost += 0.5 * force_rate_reg_weight_(0) * d->fout.transpose() * d->fout;  // penalize time derivative of the force 
     }
   }
 }
@@ -342,9 +368,31 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   // add hard-coded cost
   if(active_contact_){
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
-      d->Lf = force_weight_(0) * d->f_residual.transpose();
-      d->Lff(0,0) = force_weight_(0);
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose()(this->get_type(), this->get_type())*f - force_des_;
+          d->f_residual_f(0,0) = d->oRf.transpose()(this->get_type(), this->get_type());
+          d->Lf = d->f_residual.transpose() * force_weight_(0) * d->f_residual_f;
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = (pinocchio::skew(d->oRf.transpose() * d->f3d) * d->lJ.bottomRows(3) ).row(this->get_type());
+          d->Lx += d->f_residual.transpose() * force_weight_(0) * d->f_residual_x;
+          d->Lff = force_weight_(0) * d->f_residual_f.transpose() * d->f_residual_f;
+        }
+        else{
+          d->f_residual = d->oRf(this->get_type(), this->get_type()) * f - force_des_;
+          d->f_residual_f(0,0) = d->oRf(this->get_type(), this->get_type());
+          d->Lf = d->f_residual.transpose() * force_weight_(0) * d->f_residual_f;
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = (pinocchio::skew(d->oRf * d->f3d) * d->oJ.bottomRows(3)).row(this->get_type());
+          d->Lx += d->f_residual.transpose() * force_weight_(0) * (pinocchio::skew(d->oRf * d->f3d).row(this->get_type())) * d->f_residual_x;
+          d->Lff = force_weight_(0)  * d->f_residual_f.transpose() * d->f_residual_f;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+        d->Lf = force_weight_(0) * d->f_residual.transpose();
+        d->Lff(0,0) = force_weight_(0);
+      }
     }
     if(with_gravity_torque_reg_){
       // Compute residual derivatives w.r.t. x, u and f
@@ -367,6 +415,14 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
       d->Lxu += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_u;
       d->Luu += tau_grav_weight_ * d->tau_grav_residual_u.transpose() * d->tau_grav_residual_u;
+    }
+    if(with_force_rate_reg_cost_){
+      d->Lf += d->fout.transpose() * force_rate_reg_weight_(0) * d->dfdt_df ;    
+      d->Lff +=  d->dfdt_df.transpose() * force_rate_reg_weight_(0) * d->dfdt_df;  
+      d->Lx += d->fout.transpose() * force_rate_reg_weight_(0) * d->dfdt_dx;
+      d->Lxx +=  d->dfdt_dx.transpose() * force_rate_reg_weight_(0) * d->dfdt_dx;
+      d->Lu += d->fout.transpose() * force_rate_reg_weight_(0) * d->dfdt_du;
+      d->Luu +=  d->dfdt_du.transpose() * force_rate_reg_weight_(0) * d->dfdt_du;
     }
   }
 }
@@ -403,9 +459,31 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
   // Add hard-coded costs partials (in contact) 
   if(active_contact_){
     if(with_force_cost_){
-      d->f_residual = f - force_des_;
-      d->Lf = force_weight_(0) * d->f_residual.transpose();
-      d->Lff(0,0) = force_weight_(0);
+      if(cost_ref_ != ref_){
+        if(cost_ref_ == pinocchio::LOCAL){
+          d->f_residual = d->oRf.transpose()(this->get_type(), this->get_type())*f - force_des_;
+          d->f_residual_f(0,0) = d->oRf.transpose()(this->get_type(), this->get_type());
+          d->Lf = d->f_residual.transpose() * force_weight_(0) * d->f_residual_f;
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = (pinocchio::skew(d->oRf.transpose() * d->f3d) * d->lJ.bottomRows(3)).row(this->get_type());
+          d->Lx += d->f_residual.transpose() * force_weight_(0) * d->f_residual_x;
+          d->Lff = force_weight_(0) * d->f_residual_f.transpose() * d->f_residual_f;
+        }
+        else{
+          d->f_residual = d->oRf(this->get_type(), this->get_type()) * f - force_des_;
+          d->f_residual_f(0,0) = d->oRf(this->get_type(), this->get_type());
+          d->Lf = d->f_residual.transpose() * force_weight_(0) * d->f_residual_f;
+          Eigen::Block<MatrixXs, Eigen::Dynamic, Eigen::Dynamic, false> Rq = d->f_residual_x.topLeftCorner(nc_, nv);
+          Rq = (pinocchio::skew(d->oRf * d->f3d) * d->oJ.bottomRows(3)).row(this->get_type());
+          d->Lx += d->f_residual.transpose() * force_weight_(0) * (pinocchio::skew(d->oRf * d->f3d).row(this->get_type())) * d->f_residual_x;
+          d->Lff = force_weight_(0)  * d->f_residual_f.transpose() * d->f_residual_f;
+        }
+      }
+      else{
+        d->f_residual = f - force_des_;
+        d->Lf = force_weight_(0) * d->f_residual.transpose();
+        d->Lff(0,0) = force_weight_(0);
+      }
     }
     if(with_gravity_torque_reg_){
       // Compute residual derivatives w.r.t. x and f
@@ -424,6 +502,12 @@ void DAMSoftContact1DAugmentedFwdDynamicsTpl<Scalar>::calcDiff(
       d->Lff += tau_grav_weight_ * d->tau_grav_residual_f.transpose() * d->tau_grav_residual_f; 
       d->Lx += tau_grav_weight_ * d->tau_grav_residual.transpose() * d->tau_grav_residual_x;
       d->Lxx += tau_grav_weight_ * d->tau_grav_residual_x.transpose() * d->tau_grav_residual_x;
+    }
+    if(with_force_rate_reg_cost_){
+      d->Lf += d->fout.transpose() * force_rate_reg_weight_(0) * d->dfdt_df ;    
+      d->Lff +=  d->dfdt_df.transpose() * force_rate_reg_weight_(0) * d->dfdt_df;  
+      d->Lx += d->fout.transpose() * force_rate_reg_weight_(0) * d->dfdt_dx;
+      d->Lxx +=  d->dfdt_dx.transpose() * force_rate_reg_weight_(0) * d->dfdt_dx;
     }
   }
 }
