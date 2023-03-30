@@ -16,6 +16,7 @@
 
 #include "common.hpp"
 #include "factory/contact3d.hpp"
+#include "sobec/crocomplements/contact/contact3d.hpp"
 
 using namespace sobec::unittest;
 using namespace boost::unit_test;
@@ -215,6 +216,50 @@ void test_partial_derivatives_against_numdiff(
   BOOST_CHECK((data->da0_dx - data_num_diff->da0_dx).isZero(tol));
 }
 
+void test_equivalent_crocoddyl(
+    PinocchioModelTypes::Type model_type,
+    PinocchioReferenceTypes::Type reference_type) {
+#if BOOST_VERSION / 100 % 1000 >= 60
+  using namespace boost::placeholders;
+#endif
+  // create the model in sobec and crocoddyl
+  ContactModel3DFactory factory;
+  Eigen::Vector2d gains = Eigen::Vector2d::Random();
+  boost::shared_ptr<crocoddyl::ContactModelAbstract> model_sobec =
+      factory.create(model_type, reference_type, gains);
+  boost::shared_ptr<crocoddyl::ContactModelAbstract> model_croco =
+      factory.create_crocoddyl(model_type, reference_type, gains);
+  // create the corresponding data object
+  pinocchio::Model& pinocchio_model = *model_sobec->get_state()->get_pinocchio().get();
+  pinocchio::Data pinocchio_data(pinocchio_model);
+  boost::shared_ptr<crocoddyl::ContactDataAbstract> data_sobec = model_sobec->createData(&pinocchio_data);
+  boost::shared_ptr<crocoddyl::ContactDataAbstract> data_croco = model_croco->createData(&pinocchio_data);
+  // Generating random values for the state
+  const Eigen::VectorXd& x = model_sobec->get_state()->rand();
+  // Compute all the pinocchio function needed for the models.
+  sobec::unittest::updateAllPinocchio(&pinocchio_model, &pinocchio_data, x);
+  // Computing the contact derivatives
+  model_sobec->calc(data_sobec, x);
+  model_croco->calc(data_croco, x);
+  // Computing the contact derivatives via numerical differentiation
+  model_sobec->calcDiff(data_sobec, x);
+  model_croco->calcDiff(data_croco, x);
+  // Checking the partial derivatives against NumDiff
+  double tol = 1e-6;
+  boost::shared_ptr<sobec::newcontacts::ContactModel3D> model3d_sobec = boost::static_pointer_cast<sobec::newcontacts::ContactModel3D>(model_sobec);
+  boost::shared_ptr<crocoddyl::ContactModel3D> model3d_croco = boost::static_pointer_cast<crocoddyl::ContactModel3D>(model_croco);
+  // Check that initialization is indeed the same
+  BOOST_CHECK((model3d_croco->get_type() == model3d_sobec->get_type())); 
+  BOOST_CHECK((model3d_croco->get_gains() - model3d_sobec->get_gains()).isZero(tol)); 
+  BOOST_CHECK((data_sobec->Jc - data_croco->Jc).isZero(tol));
+  BOOST_CHECK((data_sobec->a0 - data_croco->a0).isZero(tol));
+  BOOST_CHECK((data_sobec->f - data_croco->f).isZero(tol));
+  BOOST_CHECK((data_sobec->da0_dx - data_croco->da0_dx).isZero(tol));
+  BOOST_CHECK((boost::static_pointer_cast<sobec::newcontacts::ContactData3D>(data_sobec)->drnea_skew_term_ - data_croco->dtau_dq).isZero(tol));
+  BOOST_CHECK((data_sobec->df_dx - data_croco->df_dx).isZero(tol));
+  BOOST_CHECK((data_sobec->df_du - data_croco->df_du).isZero(tol));
+}
+
 //----------------------------------------------------------------------------//
 
 void register_contact_model_unit_tests(
@@ -235,6 +280,8 @@ void register_contact_model_unit_tests(
   ts->add(BOOST_TEST_CASE(
       boost::bind(&test_update_force_diff, model_type, reference_type)));
   ts->add(BOOST_TEST_CASE(boost::bind(&test_partial_derivatives_against_numdiff,
+                                      model_type, reference_type)));
+  ts->add(BOOST_TEST_CASE(boost::bind(&test_equivalent_crocoddyl,
                                       model_type, reference_type)));
   framework::master_test_suite().add(ts);
 }

@@ -36,10 +36,7 @@ ContactModel3DFactory::create(PinocchioModelTypes::Type model_type,
   if (nu == std::numeric_limits<std::size_t>::max()) {
     nu = state->get_nv();
   }
-  // std::cout << "created contact3D for frame id = " << frame_name <<
-  // std::endl;
 
-  // Eigen::Vector2d gains = Eigen::Vector2d::Random();
   Eigen::Vector3d xref = Eigen::Vector3d::Zero();
   if (reference_type == PinocchioReferenceTypes::LOCAL) {
     contact = boost::make_shared<sobec::newcontacts::ContactModel3D>(
@@ -50,6 +47,40 @@ ContactModel3DFactory::create(PinocchioModelTypes::Type model_type,
   } else if (reference_type == PinocchioReferenceTypes::LOCAL_WORLD_ALIGNED) {
     contact = boost::make_shared<sobec::newcontacts::ContactModel3D>(
         state, frame_id, xref, nu, gains, pinocchio::LOCAL_WORLD_ALIGNED);
+  }
+  return contact;
+}
+
+boost::shared_ptr<crocoddyl::ContactModelAbstract>
+ContactModel3DFactory::create_crocoddyl(PinocchioModelTypes::Type model_type,
+                                        PinocchioReferenceTypes::Type reference_type,
+                                        Eigen::Vector2d gains,
+                                        const std::string frame_name,
+                                        std::size_t nu) const {
+  PinocchioModelFactory model_factory(model_type);
+  boost::shared_ptr<crocoddyl::StateMultibody> state =
+      boost::make_shared<crocoddyl::StateMultibody>(model_factory.create());
+  boost::shared_ptr<crocoddyl::ContactModelAbstract> contact;
+  std::size_t frame_id = 0;
+  if (frame_name == "") {
+    frame_id = model_factory.get_frame_id();
+  } else {
+    frame_id = state->get_pinocchio()->getFrameId(frame_name);
+  }
+  if (nu == std::numeric_limits<std::size_t>::max()) {
+    nu = state->get_nv();
+  }
+
+  Eigen::Vector3d xref = Eigen::Vector3d::Zero();
+  if (reference_type == PinocchioReferenceTypes::LOCAL) {
+    contact = boost::make_shared<crocoddyl::ContactModel3D>(
+        state, frame_id, xref, pinocchio::LOCAL, nu, gains);
+  } else if (reference_type == PinocchioReferenceTypes::WORLD) {
+    contact = boost::make_shared<crocoddyl::ContactModel3D>(
+        state, frame_id, xref, pinocchio::WORLD, nu, gains);
+  } else if (reference_type == PinocchioReferenceTypes::LOCAL_WORLD_ALIGNED) {
+    contact = boost::make_shared<crocoddyl::ContactModel3D>(
+        state, frame_id, xref, pinocchio::LOCAL_WORLD_ALIGNED, nu, gains);
   }
   return contact;
 }

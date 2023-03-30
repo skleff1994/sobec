@@ -36,8 +36,6 @@ ContactModel6DFactory::create(PinocchioModelTypes::Type model_type,
   if (nu == std::numeric_limits<std::size_t>::max()) {
     nu = state->get_nv();
   }
-  // std::cout << "created contact6D for frame id = " << frame_name <<
-  // std::endl;
 
   pinocchio::SE3 xref = pinocchio::SE3::Identity();
   if (reference_type == PinocchioReferenceTypes::LOCAL) {
@@ -52,6 +50,41 @@ ContactModel6DFactory::create(PinocchioModelTypes::Type model_type,
   }
   return contact;
 }
+
+boost::shared_ptr<crocoddyl::ContactModelAbstract>
+ContactModel6DFactory::create_crocoddyl(PinocchioModelTypes::Type model_type,
+                                        PinocchioReferenceTypes::Type reference_type,
+                                        Eigen::Vector2d gains,
+                                        const std::string frame_name,
+                                        std::size_t nu) const {
+  PinocchioModelFactory model_factory(model_type);
+  boost::shared_ptr<crocoddyl::StateMultibody> state =
+      boost::make_shared<crocoddyl::StateMultibody>(model_factory.create());
+  boost::shared_ptr<crocoddyl::ContactModelAbstract> contact;
+  std::size_t frame_id = 0;
+  if (frame_name == "") {
+    frame_id = model_factory.get_frame_id();
+  } else {
+    frame_id = state->get_pinocchio()->getFrameId(frame_name);
+  }
+  if (nu == std::numeric_limits<std::size_t>::max()) {
+    nu = state->get_nv();
+  }
+
+  pinocchio::SE3 xref = pinocchio::SE3::Identity();
+  if (reference_type == PinocchioReferenceTypes::LOCAL) {
+    contact = boost::make_shared<crocoddyl::ContactModel6D>(
+        state, frame_id, xref, pinocchio::LOCAL, nu, gains);
+  } else if (reference_type == PinocchioReferenceTypes::WORLD) {
+    contact = boost::make_shared<crocoddyl::ContactModel6D>(
+        state, frame_id, xref, pinocchio::WORLD, nu, gains);
+  } else if (reference_type == PinocchioReferenceTypes::LOCAL_WORLD_ALIGNED) {
+    contact = boost::make_shared<crocoddyl::ContactModel6D>(
+        state, frame_id, xref, pinocchio::LOCAL_WORLD_ALIGNED, nu, gains);
+  }
+  return contact;
+}
+
 
 boost::shared_ptr<crocoddyl::ContactModelAbstract> create_random_contact6d() {
   static bool once = true;

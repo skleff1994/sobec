@@ -13,6 +13,7 @@
 #include <limits>
 
 #include "contact1d.hpp"
+#include "contact6d.hpp"
 #include "crocoddyl/multibody/contact-base.hpp"
 #include "crocoddyl/multibody/numdiff/contact.hpp"
 #include "state.hpp"
@@ -28,6 +29,13 @@ class ContactModel6DFactory {
   ~ContactModel6DFactory();
 
   boost::shared_ptr<crocoddyl::ContactModelAbstract> create(
+      PinocchioModelTypes::Type model_type,
+      PinocchioReferenceTypes::Type reference_type,
+      Eigen::Vector2d gains = Eigen::Vector2d::Zero(),
+      const std::string frame_name = std::string(""),
+      const std::size_t nu = std::numeric_limits<std::size_t>::max()) const;
+
+  boost::shared_ptr<crocoddyl::ContactModelAbstract> create_crocoddyl(
       PinocchioModelTypes::Type model_type,
       PinocchioReferenceTypes::Type reference_type,
       Eigen::Vector2d gains = Eigen::Vector2d::Zero(),
