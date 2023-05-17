@@ -34,6 +34,7 @@ void exposeDAMSoftContact3DFwdDyn();
 void exposeDAMSoftContact1DFwdDyn();
 void exposeDAMSoftContactAbstractAugmentedFwdDyn();
 void exposeDAMSoftContact3DAugmentedFwdDyn();
+void exposeDAMSoftContact3DAugmentedFrictionFwdDyn();
 void exposeDAMSoftContact1DAugmentedFwdDyn();
 void exposeStateSoftContact();
 void exposeIAMSoftContactAugmented();

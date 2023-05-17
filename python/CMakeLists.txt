@@ -25,6 +25,7 @@ set(${PY_NAME}_SOURCES
     crocomplements/softcontact/dam-augmented.cpp
     # crocomplements/softcontact/dam-augmented.hpp
     crocomplements/softcontact/dam3d-augmented.cpp
+    crocomplements/softcontact/dam3d-augmented-friction.cpp
     crocomplements/softcontact/dam1d-augmented.cpp
     crocomplements/softcontact/iam-augmented.cpp
     crocomplements/softcontact/state.cpp

@@ -35,6 +35,7 @@ BOOST_PYTHON_MODULE(sobec_pywrap) {
   sobec::python::exposeDAMSoftContactAbstractAugmentedFwdDyn();
   sobec::python::exposeDAMSoftContact3DAugmentedFwdDyn();
   sobec::python::exposeDAMSoftContact1DAugmentedFwdDyn();
+  sobec::python::exposeDAMSoftContact3DAugmentedFrictionFwdDyn();
   sobec::python::exposeStateSoftContact();
   sobec::python::exposeIAMSoftContactAugmented();
   

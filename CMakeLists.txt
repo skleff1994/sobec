@@ -85,6 +85,7 @@ set(${PROJECT_NAME}_HEADERS
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented-friction.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/state.hpp
@@ -102,6 +103,7 @@ set(${PROJECT_NAME}_HEADERS
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented-friction.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/state.hxx
