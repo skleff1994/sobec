@@ -66,6 +66,7 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calc(
   // If contact is active, compute aq = ABA(q,v,tau,fext)
   if(active_contact_){
     // Compute external wrench for LOCAL f
+    d->f3d = f;
     d->pinForce = pinocchio::ForceTpl<Scalar>(f, Vector3s::Zero());
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
@@ -92,16 +93,19 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calc(
     pinocchio::forwardKinematics(this->get_pinocchio(), d->pinocchio, q, v, d->xout);
     d->la = pinocchio::getFrameAcceleration(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();     
     d->lv = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL).linear();
-    d->fout[2] = -Kp_(2,2) * d->lv[2] - Kv_(2,2) * d->la[2];
+    d->fout3d = -(Kp_.asDiagonal() * d->lv) - (Kv_.asDiagonal() * d->la);
+    d->fout[2] = d->fout3d[2];
     // Dynamic friction on (x,y) tangential components
     d->fout[0] = -mu_*( sign_smooth(d->lv[0])*d->fout[2] + sign_smooth_diff(d->lv[0])*d->la[0]*f[2] );
     d->fout[1] = -mu_*( sign_smooth(d->lv[1])*d->fout[2] + sign_smooth_diff(d->lv[1])*d->la[1]*f[2] );
     d->fout_copy = d->fout;
+    d->fout3d_copy = d->fout3d;
     // Rotate if not f not in LOCAL
     if(ref_ != pinocchio::LOCAL){
         d->oa = pinocchio::getFrameAcceleration(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).linear();
         d->ov = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).linear();
-        d->fout[2] = -Kp_(2,2) * d->ov[2] - Kv_(2,2) * d->oa[2];
+        d->fout3d = -(Kp_.asDiagonal() * d->ov) - (Kv_.asDiagonal() * d->oa);
+        d->fout[2] = d->fout3d[2];
         // Dynamic friction on (x,y) tangential components
         d->fout[0] = -mu_*( sign_smooth(d->ov[0])*d->fout[2] + sign_smooth_diff(d->ov[0])*d->oa[0]*f[2] );
         d->fout[1] = -mu_*( sign_smooth(d->ov[1])*d->fout[2] + sign_smooth_diff(d->ov[1])*d->oa[1]*f[2] );
@@ -260,10 +264,10 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
       d->Fx += d->aba_dtau * d->multibody.actuation->dtau_dx;
       d->Fu = d->aba_dtau * d->multibody.actuation->dtau_du;
       // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
-      d->aba_df = d->aba_dtau * d->lJ.topRows(3).transpose();
+      d->aba_df = d->aba_dtau * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
       // Skew term added to RNEA derivatives when force is expressed in LWA
       if(ref_ != pinocchio::LOCAL){
-          d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+          d->Fx.leftCols(nv)+= d->aba_dtau * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d) * d->lJ.bottomRows(3);
           // Rotate dABA/df
           d->aba_df = d->aba_df * d->oRf.transpose();
       }
@@ -275,10 +279,10 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
         d->Fx.noalias() = d->Minv * d->dtau_dx;
         d->Fu.noalias() = d->Minv * d->multibody.actuation->dtau_du;
         // Compute derivatives of d->xout (ABA) w.r.t. f in LOCAL 
-        d->aba_df = d->Minv * d->lJ.topRows(3).transpose();
+        d->aba_df = d->Minv * d->lJ.topRows(3).transpose() * jMf_.rotation() * Matrix3s::Identity();
         // Skew term added to RNEA derivatives when force is expressed in LWA
         if(ref_ != pinocchio::LOCAL){
-            d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * f) * d->lJ.bottomRows(3);
+            d->Fx.leftCols(nv)+= d->Minv * d->lJ.topRows(3).transpose() * pinocchio::skew(d->oRf.transpose() * d->f3d) * d->lJ.bottomRows(3);
             // Rotate dABA/df
             d->aba_df = d->aba_df * d->oRf.transpose();
         }
@@ -297,30 +301,68 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
     d->da_du.topRows(3) = d->a_da.topRows(3) * d->Fu;
     d->da_df.topRows(3) = d->a_da.topRows(3) * d->aba_df;
     // Derivatives of fdot w.r.t. (x,f,u)
-    d->dfdt_dx.row(2) = -Kp_(2,2)*d->lv_dx.row(2) - Kv_(2,2)*d->da_dx.row(2);
+    d->dfdt3d_dx = -(Kp_.asDiagonal()*d->lv_dx.topRows(3)) - (Kv_.asDiagonal()*d->da_dx.topRows(3));
+    d->dfdt3d_du = -(Kv_.asDiagonal()*d->da_du.topRows(3));
+    d->dfdt3d_df = -(Kv_.asDiagonal()*d->da_df.topRows(3));
+    d->dfdt3d_dx_copy = d->dfdt3d_dx;
+    d->dfdt3d_du_copy = d->dfdt3d_du;
+    d->dfdt3d_df_copy = d->dfdt3d_df;
+    d->dfdt_dx.row(2) = d->dfdt3d_dx_copy.row(2);
+    d->dfdt_du.row(2) = d->dfdt3d_du_copy.row(2);
+    d->dfdt_df.row(2) = d->dfdt3d_df_copy.row(2);
+
+    // Derivatives of fdot w.r.t. (x,f,u)
     d->dfdt_dx.row(0) = mu_*f[2]*(2*eps_tanh_*sign_smooth_diff(d->lv[0])*sign_smooth(d->lv[0])*d->lv_dx.row(0)*d->la[0] - sign_smooth_diff(d->lv[0])*d->da_dx.row(0)) 
-                      - mu_*(sign_smooth_diff(d->lv[0])*d->lv_dx.row(0)*d->fout_copy[2] + sign_smooth(d->lv[0])*d->dfdt_dx.row(2));
+                      - mu_*(sign_smooth_diff(d->lv[0])*d->lv_dx.row(0)*d->fout_copy[2] + sign_smooth(d->lv[0])*d->dfdt3d_dx_copy.row(2));
     d->dfdt_dx.row(1) = mu_*f[2]*(2*eps_tanh_*sign_smooth_diff(d->lv[1])*sign_smooth(d->lv[1])*d->lv_dx.row(1)*d->la[1] - sign_smooth_diff(d->lv[1])*d->da_dx.row(1)) 
-                      - mu_*(sign_smooth_diff(d->lv[1])*d->lv_dx.row(1)*d->fout_copy[2] + sign_smooth(d->lv[1])*d->dfdt_dx.row(2));
-    d->dfdt_du.row(2) = -Kv_(2,2) * d->da_du.row(2);
-    d->dfdt_du.row(0) = -mu_*f[2]*sign_smooth_diff(d->lv[0])*d->da_du.row(0) - mu_*sign_smooth(d->lv[0])*d->dfdt_du.row(2);
-    d->dfdt_du.row(1) = -mu_*f[2]*sign_smooth_diff(d->lv[1])*d->da_du.row(1) - mu_*sign_smooth(d->lv[1])*d->dfdt_du.row(2);
-    d->dfdt_df.row(2) = -Kv_(2,2) * d->da_df.row(2);
-    d->dfdt_df.row(0) = -mu_*f[2]*sign_smooth_diff(d->lv[0])*d->da_df.row(0) - mu_*sign_smooth(d->lv[0])*d->dfdt_df.row(2);
-    d->dfdt_df.row(1) = -mu_*f[2]*sign_smooth_diff(d->lv[1])*d->da_df.row(1) - mu_*sign_smooth(d->lv[1])*d->dfdt_df.row(2);
-    d->dfdt_dx_copy = d->dfdt_dx;
-    d->dfdt_du_copy = d->dfdt_du;
-    d->dfdt_df_copy = d->dfdt_df;
+                      - mu_*(sign_smooth_diff(d->lv[1])*d->lv_dx.row(1)*d->fout_copy[2] + sign_smooth(d->lv[1])*d->dfdt3d_dx_copy.row(2));
+    d->dfdt_du.row(0) = -mu_*f[2]*sign_smooth_diff(d->lv[0])*d->da_du.row(0) - mu_*sign_smooth(d->lv[0])*d->dfdt3d_dx_copy.row(2);
+    d->dfdt_du.row(1) = -mu_*f[2]*sign_smooth_diff(d->lv[1])*d->da_du.row(1) - mu_*sign_smooth(d->lv[1])*d->dfdt3d_dx_copy.row(2);
+    d->dfdt_df.row(0) = -mu_*f[2]*sign_smooth_diff(d->lv[0])*d->da_df.row(0) - mu_*sign_smooth(d->lv[0])*d->dfdt3d_dx_copy.row(2);
+    d->dfdt_df.row(1) = -mu_*f[2]*sign_smooth_diff(d->lv[1])*d->da_df.row(1) - mu_*sign_smooth(d->lv[1])*d->dfdt3d_dx_copy.row(2);
+
     //Rotate dfout_dx if not LOCAL 
     if(ref_ != pinocchio::LOCAL){
+      // Only for z
         pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, d->oJ);
-        d->dfdt_dx.leftCols(nv) = d->oRf * d->dfdt_dx_copy.leftCols(nv)- pinocchio::skew(d->oRf * d->fout_copy) * d->oJ.bottomRows(3);
-        d->dfdt_dx.rightCols(nv) = d->oRf * d->dfdt_dx_copy.rightCols(nv);
-        d->dfdt_du = d->oRf * d->dfdt_du_copy;
-        d->dfdt_df = d->oRf * d->dfdt_df_copy;
-        // The tangential force derivatives are NOT a rotation of the local ones : they are defined from f[2] !!!
-        // Need derivatives of the velocity and acceleration in the LWA frame... 
-        // Or should we simply rotate the local fT_x,y in calc ? 
+        d->dfdt3d_dx.leftCols(nv) = d->oRf * d->dfdt3d_dx_copy.leftCols(nv)- pinocchio::skew(d->oRf * d->fout3d_copy) * d->oJ.bottomRows(3);
+        d->dfdt3d_dx.rightCols(nv) = d->oRf * d->dfdt3d_dx_copy.rightCols(nv);
+        d->dfdt3d_du = d->oRf * d->dfdt3d_du_copy;
+        d->dfdt3d_df = d->oRf * d->dfdt3d_df_copy;
+        d->dfdt_dx.row(2) = d->dfdt3d_dx.row(2);
+        d->dfdt_du.row(2) = d->dfdt3d_du.row(2);
+        d->dfdt_df.row(2) = d->dfdt3d_df.row(2);
+        // // For tangential directions x,y we need frame derivatives in LWA
+        // pinocchio::getFrameVelocityDerivatives(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, 
+        //                                                 d->lv_dq, d->lv_dv);
+        // d->lv_dx.leftCols(nv) = d->lv_dq;
+        // d->lv_dx.rightCols(nv) = d->lv_dv;
+        // // d->lv_dx.leftCols(nv) = d->oRf * d->lv_dq - pinocchio::skew(d->ov) * d->oJ.bottomRows(3);
+        // // d->lv_dx.rightCols(nv) = d->oRf * d->lv_dv;
+        // // Derivatives of frame acc w.r.t. q in LWA is not correct in Pin : rotate LOCAL & add skew term
+        // // Derivatives of spatial acc w.r.t. (x, f, u)
+        // // pinocchio::getFrameAccelerationDerivatives(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, 
+        // //                                                 d->v_dv, d->a_dq, d->a_dv, d->a_da);
+        // // d->da_dx.topRows(3).leftCols(nv) = d->a_dq.topRows(3) + d->a_da.topRows(3) * d->Fx.leftCols(nv); 
+        // // d->da_dx.topRows(3).rightCols(nv) = d->a_dv.topRows(3) + d->a_da.topRows(3) * d->Fx.rightCols(nv); 
+        // // d->da_du.topRows(3) = d->a_da.topRows(3) * d->Fu;
+        // // d->da_df.topRows(3) = d->a_da.topRows(3) * d->aba_df;
+        // d->da_dx.topRows(3).leftCols(nv) = d->oRf * (d->a_dq.topRows(3) + d->a_da.topRows(3) * d->Fx.leftCols(nv)) - pinocchio::skew(d->oa) * d->oJ.bottomRows(3); 
+        // d->da_dx.topRows(3).rightCols(nv) = d->oRf * (d->a_dv.topRows(3) + d->a_da.topRows(3) * d->Fx.rightCols(nv)); 
+        // d->da_du.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->Fu);
+        // d->da_df.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->aba_df);
+        // // Derivatives of fdot w.r.t. (x,f,u)
+        // // d->dfdt_dx.row(2) = -Kp_(2,2)*d->lv_dx.row(2) - Kv_(2,2)*d->da_dx.row(2);
+        // d->dfdt_dx.row(0) = mu_*f[2]*(2*eps_tanh_*sign_smooth_diff(d->ov[0])*sign_smooth(d->ov[0])*d->lv_dx.row(0)*d->oa[0] - sign_smooth_diff(d->ov[0])*d->da_dx.row(0)) 
+        //                   - mu_*(sign_smooth_diff(d->ov[0])*d->lv_dx.row(0)*d->fout[2] + sign_smooth(d->ov[0])*d->dfdt_dx.row(2));
+        // d->dfdt_dx.row(1) = mu_*f[2]*(2*eps_tanh_*sign_smooth_diff(d->ov[1])*sign_smooth(d->ov[1])*d->lv_dx.row(1)*d->oa[1] - sign_smooth_diff(d->ov[1])*d->da_dx.row(1)) 
+        //                   - mu_*(sign_smooth_diff(d->ov[1])*d->lv_dx.row(1)*d->fout[2] + sign_smooth(d->ov[1])*d->dfdt_dx.row(2));
+        // // d->dfdt_du.row(2) = -Kv_(2,2) * d->da_du.row(2);
+        // d->dfdt_du.row(0) = -mu_*f[2]*sign_smooth_diff(d->ov[0])*d->da_du.row(0) - mu_*sign_smooth(d->ov[0])*d->dfdt_du.row(2);
+        // d->dfdt_du.row(1) = -mu_*f[2]*sign_smooth_diff(d->ov[1])*d->da_du.row(1) - mu_*sign_smooth(d->ov[1])*d->dfdt_du.row(2);
+        // // d->dfdt_df.row(2) = -Kv_(2,2) * d->da_df.row(2);
+        // d->dfdt_df.row(0) = -mu_*f[2]*sign_smooth_diff(d->ov[0])*d->da_df.row(0) - mu_*sign_smooth(d->ov[0])*d->dfdt_df.row(2);
+        // d->dfdt_df.row(1) = -mu_*f[2]*sign_smooth_diff(d->ov[1])*d->da_df.row(1) - mu_*sign_smooth(d->ov[1])*d->dfdt_df.row(2);
     }
   }
   else {

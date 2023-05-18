@@ -188,7 +188,31 @@ struct DADSoftContact3DAugmentedFrictionFwdDynamicsTpl : public sobec::DADSoftCo
 
   template <template <typename Scalar> class Model>
   explicit DADSoftContact3DAugmentedFrictionFwdDynamicsTpl(Model<Scalar>* const model)
-      : Base(model) {}
+      : Base(model),
+        aba_df3d(model->get_state()->get_nv(), 3),
+        aba_df3d_copy(model->get_state()->get_nv(), 3),
+        da_df3d(6,3),
+        dfdt3d_dx(3, model->get_state()->get_ndx()),
+        dfdt3d_du(3, model->get_nu()),
+        dfdt3d_df(3, 1),
+        dfdt3d_dx_copy(3, model->get_state()->get_ndx()),
+        dfdt3d_du_copy(3, model->get_nu()),
+        dfdt3d_df_copy(3, 1)
+        {
+    aba_df3d.setZero();
+    aba_df3d_copy.setZero();
+    da_df3d.setZero();
+    f3d.setZero();
+    f3d_copy.setZero();
+    fout3d.setZero();
+    fout3d_copy.setZero();
+    dfdt3d_dx.setZero();
+    dfdt3d_du.setZero();
+    dfdt3d_df.setZero();
+    dfdt3d_dx_copy.setZero();
+    dfdt3d_du_copy.setZero();
+    dfdt3d_df_copy.setZero();
+  }
 
   using Base::pinocchio;
   using Base::multibody;
@@ -208,6 +232,8 @@ struct DADSoftContact3DAugmentedFrictionFwdDynamicsTpl : public sobec::DADSoftCo
   using Base::aba_dx;
   using Base::aba_dtau;
   using Base::aba_df;
+  MatrixXs aba_df3d;          //!< Partial derivative of ABA w.r.t. 3D contact force 
+  MatrixXs aba_df3d_copy;     //!< Partial derivative of ABA w.r.t. 3D contact force (copy)
   // Frame linear velocity and acceleration in LOCAL and LOCAL_WORLD_ALIGNED frames
   using Base::lv;
   using Base::la;
@@ -226,8 +252,13 @@ struct DADSoftContact3DAugmentedFrictionFwdDynamicsTpl : public sobec::DADSoftCo
   using Base::da_dx;
   using Base::da_du;
   using Base::da_df;
+  MatrixXs da_df3d;
   // Time-derivative of contact force
-  using Base::fout;
+  Vector3s f3d;             //!< 3D contact force 
+  Vector3s f3d_copy;        //!< 3D contact force (copy)
+  Vector3s fout3d;          //!< Time-derivative of 3D contact force ()
+  Vector3s fout3d_copy;     //!< Time-derivative of 3D contact force (copy)
+  using Base::fout;   
   using Base::fout_copy;
   // Spatial wrench due to contact force
   using Base::pinForce;
@@ -240,6 +271,12 @@ struct DADSoftContact3DAugmentedFrictionFwdDynamicsTpl : public sobec::DADSoftCo
   using Base::dfdt_dx_copy;
   using Base::dfdt_du_copy;
   using Base::dfdt_df_copy;
+  MatrixXs dfdt3d_dx;         //!< Partial derivative of fout3d w.r.t. joint state (positions, velocities)
+  MatrixXs dfdt3d_du;         //!< Partial derivative of fout3d w.r.t. joint torquess
+  MatrixXs dfdt3d_df;         //!< Partial derivative of fout3d w.r.t. contact force
+  MatrixXs dfdt3d_dx_copy;    //!< Partial derivative of fout3d w.r.t. joint state  (positions, velocities) (copy)
+  MatrixXs dfdt3d_du_copy;    //!< Partial derivative of fout3d w.r.t. joint torques (copy)
+  MatrixXs dfdt3d_df_copy;    //!< Partial derivative of fout3d w.r.t. contact force (copy)
   // Partials of cost w.r.t. force 
   using Base::Lf;
   using Base::Lff;
