@@ -169,8 +169,8 @@ DAMSoftContact3DFrictionFactory::create_augmentedDAMSoft3DFriction(StateModelTyp
   action->set_force_rate_reg_weight(1e-6*Eigen::Vector3d::Ones());
   pinocchio::ReferenceFrame cost_ref = pinocchio::LOCAL;
   action->set_cost_ref(cost_ref);
-  action->set_mu(0.);
-  action->set_eps(0.);
+  action->set_mu(0.1);
+  action->set_eps(10.);
   return action;
 }
 
