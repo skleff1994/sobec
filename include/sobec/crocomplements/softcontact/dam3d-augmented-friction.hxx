@@ -312,7 +312,6 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
     d->dfdt_df.row(2) = d->dfdt3d_df_copy.row(2);
 
     // Derivatives of fdot w.r.t. (x,f,u)
-    // unexplained error in dfdt_df LOCAL : fout_x,y w.r.t. fz
     d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*eps_tanh_*sign_smooth_diff(d->lv[0])*sign_smooth(d->lv[0])*d->lv_dx.row(0)*d->la[0] - sign_smooth_diff(d->lv[0])*d->da_dx.row(0)) 
                       - mu_*(sign_smooth_diff(d->lv[0])*d->lv_dx.row(0)*d->fout_copy[2] + sign_smooth(d->lv[0])*d->dfdt3d_dx_copy.row(2));
     d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*eps_tanh_*sign_smooth_diff(d->lv[1])*sign_smooth(d->lv[1])*d->lv_dx.row(1)*d->la[1] - sign_smooth_diff(d->lv[1])*d->da_dx.row(1)) 
@@ -326,7 +325,7 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
 
     //Rotate dfout_dx if not LOCAL 
     if(ref_ != pinocchio::LOCAL){
-      // Only for z
+        // Only for z
         pinocchio::getFrameJacobian(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, d->oJ);
         d->dfdt3d_dx.leftCols(nv) = d->oRf * d->dfdt3d_dx_copy.leftCols(nv)- pinocchio::skew(d->oRf * d->fout3d_copy) * d->oJ.bottomRows(3);
         d->dfdt3d_dx.rightCols(nv) = d->oRf * d->dfdt3d_dx_copy.rightCols(nv);
@@ -338,18 +337,12 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
         // For tangential directions x,y we need frame derivatives in LWA
         pinocchio::getFrameVelocityDerivatives(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, 
                                                         d->lv_dq, d->lv_dv);
+        d->ovw = pinocchio::getFrameVelocity(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED).angular();
         d->lv_dx.leftCols(nv) = d->lv_dq;
         d->lv_dx.rightCols(nv) = d->lv_dv;
-        // // Derivatives of frame acc w.r.t. q in LWA is not correct in Pin : rotate LOCAL & add skew term
-        // pinocchio::getFrameAccelerationDerivatives(this->get_pinocchio(), d->pinocchio, frameId_, pinocchio::LOCAL_WORLD_ALIGNED, 
-        //                                                 d->v_dv, d->a_dq, d->a_dv, d->a_da);
-        // d->da_dx.topRows(3).leftCols(nv) = d->a_dq.topRows(3) + d->a_da.topRows(3) * d->Fx.leftCols(nv); 
-        // d->da_dx.topRows(3).rightCols(nv) = d->a_dv.topRows(3) + d->a_da.topRows(3) * d->Fx.rightCols(nv); 
-        // d->da_du.topRows(3) = d->a_da.topRows(3) * d->Fu;
-        // d->da_df.topRows(3) = d->a_da.topRows(3) * d->aba_df;
-        // Both are wrong, yet different... in dfdtdx
-        d->da_dx.topRows(3).leftCols(nv) = d->oRf * (d->a_dq.topRows(3) + d->a_da.topRows(3) * d->Fx.leftCols(nv)) - pinocchio::skew(d->oa) * d->oJ.bottomRows(3); 
-        d->da_dx.topRows(3).rightCols(nv) = d->oRf * (d->a_dv.topRows(3) + d->a_da.topRows(3) * d->Fx.rightCols(nv)); 
+        d->lv_dx.leftCols(nv).topRows(3) += pinocchio::skew(d->ovw) * d->oJ.topRows(3); // need correction term !
+        d->da_dx.topRows(3).leftCols(nv) =  d->oRf * (d->a_dq.topRows(3) + d->a_da.topRows(3) * d->Fx.leftCols(nv)) - pinocchio::skew(d->oa) * d->oJ.bottomRows(3); // need correction term !
+        d->da_dx.topRows(3).rightCols(nv) = d->oRf * (d->a_dv.topRows(3) + d->a_da.topRows(3) * d->Fx.rightCols(nv));  
         d->da_du.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->Fu);
         d->da_df.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->aba_df);
         // Derivatives of fdot w.r.t. (x,f,u)

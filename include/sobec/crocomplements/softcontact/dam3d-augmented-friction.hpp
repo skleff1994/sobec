@@ -197,7 +197,13 @@ struct DADSoftContact3DAugmentedFrictionFwdDynamicsTpl : public sobec::DADSoftCo
         dfdt3d_df(3, 1),
         dfdt3d_dx_copy(3, model->get_state()->get_ndx()),
         dfdt3d_du_copy(3, model->get_nu()),
-        dfdt3d_df_copy(3, 1)
+        dfdt3d_df_copy(3, 1),
+        tmp_v_dv(6,model->get_state()->get_nv()),
+        tmp_a_dq(6,model->get_state()->get_nv()),
+        tmp_a_dv(6,model->get_state()->get_nv()),
+        tmp_a_da(6,model->get_state()->get_nv())
+        // skew_dv_dq(6, model->get_state()->get_nv()),
+        // skew_da_dq(6, model->get_state()->get_nv())
         {
     aba_df3d.setZero();
     aba_df3d_copy.setZero();
@@ -212,6 +218,14 @@ struct DADSoftContact3DAugmentedFrictionFwdDynamicsTpl : public sobec::DADSoftCo
     dfdt3d_dx_copy.setZero();
     dfdt3d_du_copy.setZero();
     dfdt3d_df_copy.setZero();
+    tmp_v_dv.setZero();
+    tmp_a_dq.setZero();
+    tmp_a_dv.setZero();
+    tmp_a_da.setZero();
+    // skew_dv_dq.setZero();
+    // skew_da_dq.setZero();
+    ovw.setZero();
+    oaw.setZero();
   }
 
   using Base::pinocchio;
@@ -239,10 +253,18 @@ struct DADSoftContact3DAugmentedFrictionFwdDynamicsTpl : public sobec::DADSoftCo
   using Base::la;
   using Base::ov;
   using Base::oa;
+  Vector3s ovw;
+  Vector3s oaw;
   // Partials of frame spatial velocity w.r.t. joint pos, vel, acc
   using Base::lv_dq;
   using Base::lv_dv;
   using Base::lv_dx;
+  MatrixXs tmp_v_dv;
+  MatrixXs tmp_a_dq;
+  MatrixXs tmp_a_dv;
+  MatrixXs tmp_a_da;
+  // MatrixXs skew_dv_dq;
+  // MatrixXs skew_da_dq;
   // Partials of frame spatial acceleration w.r.t. joint pos, vel, acc
   using Base::v_dv;
   using Base::a_dq;
