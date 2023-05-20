@@ -147,8 +147,8 @@ class DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl
   void set_eps(const Scalar inEps) { eps_tanh_ = inEps; };
 
   int sign(const Scalar inVal) { return (int)( (inVal > Scalar(0)) - (inVal < Scalar(0)) ); };
-  Scalar sign_smooth(const Scalar inVal) { return std::tanh(eps_tanh_*inVal) ; };
-  Scalar sign_smooth_diff(const Scalar inVal) { return eps_tanh_*(Scalar(1) - sign_smooth(inVal)*sign_smooth(inVal)) ; };
+  Scalar sign_smooth(const Scalar inVal) { return std::tanh((eps_tanh_*inVal)/std::sqrt(2)) ; };
+  Scalar sign_smooth_diff(const Scalar inVal) { return (eps_tanh_/std::sqrt(2))*(Scalar(1) - sign_smooth(inVal)*sign_smooth(inVal)) ; };
   
   protected:
     Scalar mu_;

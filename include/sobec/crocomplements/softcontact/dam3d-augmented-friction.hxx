@@ -312,9 +312,9 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
     d->dfdt_df.row(2) = d->dfdt3d_df_copy.row(2);
 
     // Derivatives of fdot w.r.t. (x,f,u)
-    d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*eps_tanh_*sign_smooth_diff(d->lv[0])*sign_smooth(d->lv[0])*d->lv_dx.row(0)*d->la[0] - sign_smooth_diff(d->lv[0])*d->da_dx.row(0)) 
+    d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->lv[0])*sign_smooth(d->lv[0])*d->lv_dx.row(0)*d->la[0] - sign_smooth_diff(d->lv[0])*d->da_dx.row(0)) 
                       - mu_*(sign_smooth_diff(d->lv[0])*d->lv_dx.row(0)*d->fout_copy[2] + sign_smooth(d->lv[0])*d->dfdt3d_dx_copy.row(2));
-    d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*eps_tanh_*sign_smooth_diff(d->lv[1])*sign_smooth(d->lv[1])*d->lv_dx.row(1)*d->la[1] - sign_smooth_diff(d->lv[1])*d->da_dx.row(1)) 
+    d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->lv[1])*sign_smooth(d->lv[1])*d->lv_dx.row(1)*d->la[1] - sign_smooth_diff(d->lv[1])*d->da_dx.row(1)) 
                       - mu_*(sign_smooth_diff(d->lv[1])*d->lv_dx.row(1)*d->fout_copy[2] + sign_smooth(d->lv[1])*d->dfdt3d_dx_copy.row(2));
     d->dfdt_du.row(0) = -mu_*d->f3d[2]*sign_smooth_diff(d->lv[0])*d->da_du.row(0) - mu_*sign_smooth(d->lv[0])*d->dfdt3d_du_copy.row(2);
     d->dfdt_du.row(1) = -mu_*d->f3d[2]*sign_smooth_diff(d->lv[1])*d->da_du.row(1) - mu_*sign_smooth(d->lv[1])*d->dfdt3d_du_copy.row(2);
@@ -346,9 +346,9 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
         d->da_du.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->Fu);
         d->da_df.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->aba_df);
         // Derivatives of fdot w.r.t. (x,f,u)
-        d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*eps_tanh_*sign_smooth_diff(d->ov[0])*sign_smooth(d->ov[0])*d->lv_dx.row(0)*d->oa[0] - sign_smooth_diff(d->ov[0])*d->da_dx.row(0)) 
+        d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->ov[0])*sign_smooth(d->ov[0])*d->lv_dx.row(0)*d->oa[0] - sign_smooth_diff(d->ov[0])*d->da_dx.row(0)) 
                           - mu_*(sign_smooth_diff(d->ov[0])*d->lv_dx.row(0)*d->fout[2] + sign_smooth(d->ov[0])*d->dfdt3d_dx.row(2));
-        d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*eps_tanh_*sign_smooth_diff(d->ov[1])*sign_smooth(d->ov[1])*d->lv_dx.row(1)*d->oa[1] - sign_smooth_diff(d->ov[1])*d->da_dx.row(1)) 
+        d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->ov[1])*sign_smooth(d->ov[1])*d->lv_dx.row(1)*d->oa[1] - sign_smooth_diff(d->ov[1])*d->da_dx.row(1)) 
                           - mu_*(sign_smooth_diff(d->ov[1])*d->lv_dx.row(1)*d->fout[2] + sign_smooth(d->ov[1])*d->dfdt3d_dx.row(2));
         d->dfdt_du.row(0) = -mu_*d->f3d[2]*sign_smooth_diff(d->ov[0])*d->da_du.row(0) - mu_*sign_smooth(d->ov[0])*d->dfdt3d_du.row(2);
         d->dfdt_du.row(1) = -mu_*d->f3d[2]*sign_smooth_diff(d->ov[1])*d->da_du.row(1) - mu_*sign_smooth(d->ov[1])*d->dfdt3d_du.row(2);
