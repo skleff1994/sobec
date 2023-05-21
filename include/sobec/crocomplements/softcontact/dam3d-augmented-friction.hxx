@@ -96,8 +96,8 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calc(
     d->fout3d = -(Kp_.asDiagonal() * d->lv) - (Kv_.asDiagonal() * d->la);
     d->fout[2] = d->fout3d[2];
     // Dynamic friction on (x,y) tangential components
-    d->fout[0] = -mu_*( sign_smooth(d->lv[0])*d->fout[2] + sign_smooth_diff(d->lv[0])*d->la[0]*d->f3d[2] );
-    d->fout[1] = -mu_*( sign_smooth(d->lv[1])*d->fout[2] + sign_smooth_diff(d->lv[1])*d->la[1]*d->f3d[2] );
+    d->fout[0] = -mu_*(1./std::sqrt(2))*( sign_smooth(d->lv[0])*d->fout[2] + sign_smooth_diff(d->lv[0])*d->la[0]*d->f3d[2] );
+    d->fout[1] = -mu_*(1./std::sqrt(2))*( sign_smooth(d->lv[1])*d->fout[2] + sign_smooth_diff(d->lv[1])*d->la[1]*d->f3d[2] );
     d->fout_copy = d->fout;
     d->fout3d_copy = d->fout3d;
     // Rotate if not f not in LOCAL
@@ -107,8 +107,8 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calc(
         d->fout3d = -(Kp_.asDiagonal() * d->ov) - (Kv_.asDiagonal() * d->oa);
         d->fout[2] = d->fout3d[2];
         // Dynamic friction on (x,y) tangential components
-        d->fout[0] = -mu_*( sign_smooth(d->ov[0])*d->fout[2] + sign_smooth_diff(d->ov[0])*d->oa[0]*d->f3d[2] );
-        d->fout[1] = -mu_*( sign_smooth(d->ov[1])*d->fout[2] + sign_smooth_diff(d->ov[1])*d->oa[1]*d->f3d[2] );
+        d->fout[0] = -mu_*(1./std::sqrt(2))*( sign_smooth(d->ov[0])*d->fout[2] + sign_smooth_diff(d->ov[0])*d->oa[0]*d->f3d[2] );
+        d->fout[1] = -mu_*(1./std::sqrt(2))*( sign_smooth(d->ov[1])*d->fout[2] + sign_smooth_diff(d->ov[1])*d->oa[1]*d->f3d[2] );
     } 
   }
 
@@ -312,16 +312,16 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
     d->dfdt_df.row(2) = d->dfdt3d_df_copy.row(2);
 
     // Derivatives of fdot w.r.t. (x,f,u)
-    d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->lv[0])*sign_smooth(d->lv[0])*d->lv_dx.row(0)*d->la[0] - sign_smooth_diff(d->lv[0])*d->da_dx.row(0)) 
-                      - mu_*(sign_smooth_diff(d->lv[0])*d->lv_dx.row(0)*d->fout_copy[2] + sign_smooth(d->lv[0])*d->dfdt3d_dx_copy.row(2));
-    d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->lv[1])*sign_smooth(d->lv[1])*d->lv_dx.row(1)*d->la[1] - sign_smooth_diff(d->lv[1])*d->da_dx.row(1)) 
-                      - mu_*(sign_smooth_diff(d->lv[1])*d->lv_dx.row(1)*d->fout_copy[2] + sign_smooth(d->lv[1])*d->dfdt3d_dx_copy.row(2));
-    d->dfdt_du.row(0) = -mu_*d->f3d[2]*sign_smooth_diff(d->lv[0])*d->da_du.row(0) - mu_*sign_smooth(d->lv[0])*d->dfdt3d_du_copy.row(2);
-    d->dfdt_du.row(1) = -mu_*d->f3d[2]*sign_smooth_diff(d->lv[1])*d->da_du.row(1) - mu_*sign_smooth(d->lv[1])*d->dfdt3d_du_copy.row(2);
-    d->dfdt_df.row(0) = -mu_*d->f3d[2]*sign_smooth_diff(d->lv[0])*d->da_df.row(0) - mu_*sign_smooth(d->lv[0])*d->dfdt3d_df_copy.row(2);
-    d->dfdt_df.row(1) = -mu_*d->f3d[2]*sign_smooth_diff(d->lv[1])*d->da_df.row(1) - mu_*sign_smooth(d->lv[1])*d->dfdt3d_df_copy.row(2);
-    d->dfdt_df.row(0)[2] += -mu_*sign_smooth_diff(d->lv[0])*d->la[0];
-    d->dfdt_df.row(1)[2] += -mu_*sign_smooth_diff(d->lv[1])*d->la[1];
+    d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*eps_tanh_*(1./std::sqrt(2))*sign_smooth_diff(d->lv[0])*sign_smooth(d->lv[0])*d->lv_dx.row(0)*d->la[0] - (1./std::sqrt(2))*sign_smooth_diff(d->lv[0])*d->da_dx.row(0)) 
+                      - mu_*(1./std::sqrt(2))*(sign_smooth_diff(d->lv[0])*d->lv_dx.row(0)*d->fout_copy[2] + sign_smooth(d->lv[0])*d->dfdt3d_dx_copy.row(2));
+    d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*eps_tanh_*(1./std::sqrt(2))*sign_smooth_diff(d->lv[1])*sign_smooth(d->lv[1])*d->lv_dx.row(1)*d->la[1] - (1./std::sqrt(2))*sign_smooth_diff(d->lv[1])*d->da_dx.row(1)) 
+                      - mu_*(1./std::sqrt(2))*(sign_smooth_diff(d->lv[1])*d->lv_dx.row(1)*d->fout_copy[2] + sign_smooth(d->lv[1])*d->dfdt3d_dx_copy.row(2));
+    d->dfdt_du.row(0) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->lv[0])*d->da_du.row(0) + sign_smooth(d->lv[0])*d->dfdt3d_du_copy.row(2));
+    d->dfdt_du.row(1) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->lv[1])*d->da_du.row(1) + sign_smooth(d->lv[1])*d->dfdt3d_du_copy.row(2));
+    d->dfdt_df.row(0) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->lv[0])*d->da_df.row(0) + sign_smooth(d->lv[0])*d->dfdt3d_df_copy.row(2));
+    d->dfdt_df.row(1) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->lv[1])*d->da_df.row(1) + sign_smooth(d->lv[1])*d->dfdt3d_df_copy.row(2));
+    d->dfdt_df.row(0)[2] += -mu_*(1./std::sqrt(2))*sign_smooth_diff(d->lv[0])*d->la[0];
+    d->dfdt_df.row(1)[2] += -mu_*(1./std::sqrt(2))*sign_smooth_diff(d->lv[1])*d->la[1];
 
     //Rotate dfout_dx if not LOCAL 
     if(ref_ != pinocchio::LOCAL){
@@ -346,16 +346,16 @@ void DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<Scalar>::calcDiff(
         d->da_du.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->Fu);
         d->da_df.topRows(3) = d->oRf * (d->a_da.topRows(3) * d->aba_df);
         // Derivatives of fdot w.r.t. (x,f,u)
-        d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->ov[0])*sign_smooth(d->ov[0])*d->lv_dx.row(0)*d->oa[0] - sign_smooth_diff(d->ov[0])*d->da_dx.row(0)) 
-                          - mu_*(sign_smooth_diff(d->ov[0])*d->lv_dx.row(0)*d->fout[2] + sign_smooth(d->ov[0])*d->dfdt3d_dx.row(2));
-        d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*(eps_tanh_/std::sqrt(2))*sign_smooth_diff(d->ov[1])*sign_smooth(d->ov[1])*d->lv_dx.row(1)*d->oa[1] - sign_smooth_diff(d->ov[1])*d->da_dx.row(1)) 
-                          - mu_*(sign_smooth_diff(d->ov[1])*d->lv_dx.row(1)*d->fout[2] + sign_smooth(d->ov[1])*d->dfdt3d_dx.row(2));
-        d->dfdt_du.row(0) = -mu_*d->f3d[2]*sign_smooth_diff(d->ov[0])*d->da_du.row(0) - mu_*sign_smooth(d->ov[0])*d->dfdt3d_du.row(2);
-        d->dfdt_du.row(1) = -mu_*d->f3d[2]*sign_smooth_diff(d->ov[1])*d->da_du.row(1) - mu_*sign_smooth(d->ov[1])*d->dfdt3d_du.row(2);
-        d->dfdt_df.row(0) = -mu_*d->f3d[2]*sign_smooth_diff(d->ov[0])*d->da_df.row(0) - mu_*sign_smooth(d->ov[0])*d->dfdt3d_df.row(2);
-        d->dfdt_df.row(1) = -mu_*d->f3d[2]*sign_smooth_diff(d->ov[1])*d->da_df.row(1) - mu_*sign_smooth(d->ov[1])*d->dfdt3d_df.row(2);
-        d->dfdt_df.row(0)[2] += -mu_*sign_smooth_diff(d->ov[0])*d->oa[0];
-        d->dfdt_df.row(1)[2] += -mu_*sign_smooth_diff(d->ov[1])*d->oa[1];
+        d->dfdt_dx.row(0) = mu_*d->f3d[2]*(2*eps_tanh_*(1./std::sqrt(2))*sign_smooth_diff(d->ov[0])*sign_smooth(d->ov[0])*d->lv_dx.row(0)*d->oa[0] - (1./std::sqrt(2))*sign_smooth_diff(d->ov[0])*d->da_dx.row(0)) 
+                          - mu_*(1./std::sqrt(2))*(sign_smooth_diff(d->ov[0])*d->lv_dx.row(0)*d->fout[2] + sign_smooth(d->ov[0])*d->dfdt3d_dx.row(2));
+        d->dfdt_dx.row(1) = mu_*d->f3d[2]*(2*eps_tanh_*(1./std::sqrt(2))*sign_smooth_diff(d->ov[1])*sign_smooth(d->ov[1])*d->lv_dx.row(1)*d->oa[1] - (1./std::sqrt(2))*sign_smooth_diff(d->ov[1])*d->da_dx.row(1)) 
+                          - mu_*(1./std::sqrt(2))*(sign_smooth_diff(d->ov[1])*d->lv_dx.row(1)*d->fout[2] + sign_smooth(d->ov[1])*d->dfdt3d_dx.row(2));
+        d->dfdt_du.row(0) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->ov[0])*d->da_du.row(0) + sign_smooth(d->ov[0])*d->dfdt3d_du.row(2));
+        d->dfdt_du.row(1) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->ov[1])*d->da_du.row(1) + sign_smooth(d->ov[1])*d->dfdt3d_du.row(2));
+        d->dfdt_df.row(0) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->ov[0])*d->da_df.row(0) + sign_smooth(d->ov[0])*d->dfdt3d_df.row(2));
+        d->dfdt_df.row(1) = -mu_*(1./std::sqrt(2))*(d->f3d[2]*sign_smooth_diff(d->ov[1])*d->da_df.row(1) + sign_smooth(d->ov[1])*d->dfdt3d_df.row(2));
+        d->dfdt_df.row(0)[2] += -mu_*(1./std::sqrt(2))*sign_smooth_diff(d->ov[0])*d->oa[0];
+        d->dfdt_df.row(1)[2] += -mu_*(1./std::sqrt(2))*sign_smooth_diff(d->ov[1])*d->oa[1];
     }
   }
   else {
