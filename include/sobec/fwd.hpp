@@ -218,6 +218,13 @@ typedef DAMSoftContact1DAugmentedFwdDynamicsTpl<double> DAMSoftContact1DAugmente
 template <typename Scalar>
 class DADSoftContact1DAugmentedFwdDynamicsTpl;
 typedef DADSoftContact1DAugmentedFwdDynamicsTpl<double> DADSoftContact1DAugmentedFwdDynamics;
+    // 3D
+template <typename Scalar>
+class DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl;
+typedef DAMSoftContact3DAugmentedFrictionFwdDynamicsTpl<double> DAMSoftContact3DAugmentedFrictionFwdDynamics;
+template <typename Scalar>
+class DADSoftContact3DAugmentedFrictionFwdDynamicsTpl;
+typedef DADSoftContact3DAugmentedFrictionFwdDynamicsTpl<double> DADSoftContact3DAugmentedFrictionFwdDynamics;
 // State soft contact
 template <typename Scalar>
 class StateSoftContactTpl;

@@ -149,7 +149,12 @@ void exposeContact3D() {
           "oRf",
           bp::make_getter(&sobec::newcontacts::ContactData3D::oRf,
                           bp::return_internal_reference<>()),
-          "Rotation matrix of the contact body expressed in the world frame");
+          "Rotation matrix of the contact body expressed in the world frame")
+      .add_property(
+          "drnea_skew_term",
+          bp::make_getter(&sobec::newcontacts::ContactData3D::drnea_skew_term_,
+                          bp::return_internal_reference<>()),
+          "Skew term to be added to RNEA derivatives in DAM.calcDiff");
 }
 
 }  // namespace python
