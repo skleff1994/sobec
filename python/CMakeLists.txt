@@ -25,6 +25,7 @@ set(${PY_NAME}_SOURCES
     crocomplements/softcontact/dam-augmented.cpp
     # crocomplements/softcontact/dam-augmented.hpp
     crocomplements/softcontact/dam3d-augmented.cpp
+    crocomplements/softcontact/dam3d-augmented-friction.cpp
     crocomplements/softcontact/dam1d-augmented.cpp
     crocomplements/softcontact/iam-augmented.cpp
     crocomplements/softcontact/state.cpp
@@ -58,7 +59,8 @@ set(${PY_NAME}_PYTHON
 
 if(GENERATE_PYTHON_STUBS)
   load_stubgen()
-  generate_stubs(${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_NAME} ${PYTHON_SITELIB})
+  generate_stubs(${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_NAME} ${PYTHON_SITELIB}
+                 ${PY_NAME}_pywrap)
 endif(GENERATE_PYTHON_STUBS)
 
 foreach(python ${${PY_NAME}_PYTHON})

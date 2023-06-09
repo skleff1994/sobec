@@ -9,6 +9,7 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/lpf.hpp
   factory/diff-action-soft-abstract.hpp
   factory/diff-action-soft3d.hpp
+  factory/diff-action-soft3d-friction.hpp
   factory/diff-action-soft1d.hpp
   factory/diff-action.hpp
   factory/action-soft.hpp
@@ -26,6 +27,7 @@ set(${PROJECT_NAME}_FACTORY_TEST
   factory/diff-action.cpp
   factory/diff-action-soft-abstract.cpp
   factory/diff-action-soft3d.cpp
+  factory/diff-action-soft3d-friction.cpp
   factory/diff-action-soft1d.cpp
   factory/action-soft.cpp
   factory/actuation.cpp
@@ -35,8 +37,9 @@ set(${PROJECT_NAME}_FACTORY_TEST
   )
 
 add_library(${PROJECT_NAME}_unittest SHARED ${${PROJECT_NAME}_FACTORY_TEST})
-target_link_libraries(${PROJECT_NAME}_unittest PUBLIC ${PROJECT_NAME}
-                                                      crocoddyl::crocoddyl)
+target_link_libraries(
+  ${PROJECT_NAME}_unittest PUBLIC ${PROJECT_NAME}
+                                  example-robot-data::example-robot-data)
 
 add_unit_test(test_costs test_costs.cpp)
 target_link_libraries(test_costs PUBLIC ${PROJECT_NAME}_unittest yaml-cpp)
@@ -67,6 +70,9 @@ target_link_libraries(test_diff_actions PUBLIC ${PROJECT_NAME}_unittest)
 
 ADD_UNIT_TEST(test_diff_actions_soft3d test_diff_actions_soft3d.cpp)
 target_link_libraries(test_diff_actions_soft3d PUBLIC ${PROJECT_NAME}_unittest)
+
+ADD_UNIT_TEST(test_diff_actions_soft3d_friction test_diff_actions_soft3d_friction.cpp)
+target_link_libraries(test_diff_actions_soft3d_friction PUBLIC ${PROJECT_NAME}_unittest)
 
 ADD_UNIT_TEST(test_diff_actions_soft1d test_diff_actions_soft1d.cpp)
 target_link_libraries(test_diff_actions_soft1d PUBLIC ${PROJECT_NAME}_unittest)

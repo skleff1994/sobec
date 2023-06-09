@@ -38,12 +38,15 @@ endif()
 include("${JRL_CMAKE_MODULES}/base.cmake")
 include("${JRL_CMAKE_MODULES}/boost.cmake")
 include("${JRL_CMAKE_MODULES}/stubs.cmake")
+include("${JRL_CMAKE_MODULES}/apple.cmake")
 
 # Project definition
 compute_project_args(PROJECT_ARGS LANGUAGES CXX)
 project(${PROJECT_NAME} ${PROJECT_ARGS})
 
 add_compile_options(-Wno-error)
+
+apply_default_apple_configuration()
 
 # Project dependencies
 if(BUILD_PYTHON_INTERFACE)
@@ -85,6 +88,7 @@ set(${PROJECT_NAME}_HEADERS
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hpp
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented-friction.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hpp
     include/${PROJECT_NAME}/crocomplements/softcontact/state.hpp
@@ -102,6 +106,7 @@ set(${PROJECT_NAME}_HEADERS
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/dam-augmented.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented.hxx
+    include/${PROJECT_NAME}/crocomplements/softcontact/dam3d-augmented-friction.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/dam1d-augmented.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/iam-augmented.hxx
     include/${PROJECT_NAME}/crocomplements/softcontact/state.hxx
