@@ -394,9 +394,9 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
     // Partial blocks of LPF dimensions due y+ dependency on tau
 #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
     d->Fy.block(0, ndx, nv, ntau_).noalias() =
-        da_du(Eigen::all, lpf_torque_ids_) * time_step2_;
+        da_du(Eigen::indexing::all, lpf_torque_ids_) * time_step2_;
     d->Fy.block(nv, ndx, nv, ntau_).noalias() =
-        da_du(Eigen::all, lpf_torque_ids_) * time_step_;
+        da_du(Eigen::indexing::all, lpf_torque_ids_) * time_step_;
 #else
     for (std::size_t i = 0; i < lpf_torque_ids_.size(); i++) {
       d->Fy.block(0, ndx, nv, ntau_).col(i).noalias() =
@@ -420,11 +420,11 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
     // fill the partials w.r.t. w accordingly
     d->Fw.setZero();
 #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
-    d->Fw.topRows(nv)(Eigen::all, non_lpf_torque_ids_).noalias() =
-        da_du(Eigen::all, non_lpf_torque_ids_) * time_step2_;
-    d->Fw.block(nv, 0, nv, nw_)(Eigen::all, non_lpf_torque_ids_).noalias() =
-        da_du(Eigen::all, non_lpf_torque_ids_) * time_step_;
-    d->Fw.bottomRows(ntau_)(Eigen::all, lpf_torque_ids_).diagonal().array() +=
+    d->Fw.topRows(nv)(Eigen::indexing::all, non_lpf_torque_ids_).noalias() =
+        da_du(Eigen::indexing::all, non_lpf_torque_ids_) * time_step2_;
+    d->Fw.block(nv, 0, nv, nw_)(Eigen::indexing::all, non_lpf_torque_ids_).noalias() =
+        da_du(Eigen::indexing::all, non_lpf_torque_ids_) * time_step_;
+    d->Fw.bottomRows(ntau_)(Eigen::indexing::all, lpf_torque_ids_).diagonal().array() +=
         Scalar(1 - alpha_);
 #else
     for (std::size_t i = 0; i < non_lpf_torque_ids_.size(); i++) {
@@ -450,10 +450,10 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
     d->Ly.tail(ntau_).noalias() =
         time_step_ * d->differential->Lu(lpf_torque_ids_);
     d->Lyy.block(0, ndx, ndx, ntau_).noalias() =
-        time_step_ * d->differential->Lxu(Eigen::all, lpf_torque_ids_);
+        time_step_ * d->differential->Lxu(Eigen::indexing::all, lpf_torque_ids_);
     d->Lyy.block(ndx, 0, ntau_, ndx).noalias() =
         time_step_ *
-        d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::all);
+        d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::indexing::all);
     d->Lyy.bottomRightCorner(ntau_, ntau_).noalias() =
         time_step_ * d->differential->Luu(lpf_torque_ids_, lpf_torque_ids_);
 #else
@@ -479,9 +479,9 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
 #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
     d->Lw(non_lpf_torque_ids_).noalias() =
         time_step_ * d->differential->Lu(non_lpf_torque_ids_);
-    d->Lyw.topRows(ndx)(Eigen::all, non_lpf_torque_ids_).noalias() =
-        time_step_ * d->differential->Lxu(Eigen::all, non_lpf_torque_ids_);
-    d->Lyw.bottomRows(ntau_)(Eigen::all, non_lpf_torque_ids_).noalias() =
+    d->Lyw.topRows(ndx)(Eigen::indexing::all, non_lpf_torque_ids_).noalias() =
+        time_step_ * d->differential->Lxu(Eigen::indexing::all, non_lpf_torque_ids_);
+    d->Lyw.bottomRows(ntau_)(Eigen::indexing::all, non_lpf_torque_ids_).noalias() =
         time_step_ * d->differential->Luu(lpf_torque_ids_, non_lpf_torque_ids_);
     d->Lww(non_lpf_torque_ids_, non_lpf_torque_ids_).noalias() =
         time_step_ *
@@ -561,10 +561,10 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
   //       d->Fy.block(nv, 0, nv, ndx).noalias() = da_dx * time_step_;
   // #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
   //       d->Fy.block(0, ndx, nv, ntau_).noalias() =
-  //           alpha_ * alpha_ * da_du(Eigen::all, lpf_torque_ids_) *
+  //           alpha_ * alpha_ * da_du(Eigen::indexing::all, lpf_torque_ids_) *
   //           time_step2_;
   //       d->Fy.block(nv, ndx, nv, ntau_).noalias() =
-  //           alpha_ * da_du(Eigen::all, lpf_torque_ids_) * time_step_;
+  //           alpha_ * da_du(Eigen::indexing::all, lpf_torque_ids_) * time_step_;
   // #else
   //       for (std::size_t i = 0; i < lpf_torque_ids_.size(); i++) {
   //         d->Fy.block(0, ndx, nv, ntau_).col(i).noalias() =
@@ -583,7 +583,7 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
   //       (1 - alpha_);
   // #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
   //       d->Fw.block(nv, 0, nv, ntau_).noalias() =
-  //           da_du(Eigen::all, lpf_torque_ids_) * time_step_ * (1 - alpha_);
+  //           da_du(Eigen::indexing::all, lpf_torque_ids_) * time_step_ * (1 - alpha_);
   // #else
   //       for (std::size_t i = 0; i < lpf_torque_ids_.size(); i++) {
   //         d->Fw.block(nv, 0, nv, ntau_).col(i).noalias() =
@@ -616,16 +616,16 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
   // #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
   //       d->Lyy.block(0, ndx, ndx, ntau_).noalias() =
   //           alpha_ * time_step_ *
-  //           d->differential->Lxu(Eigen::all, lpf_torque_ids_);
+  //           d->differential->Lxu(Eigen::indexing::all, lpf_torque_ids_);
   //       d->Lyy.block(ndx, 0, ntau_, ndx).noalias() =
   //           alpha_ * time_step_ *
-  //           d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::all);
+  //           d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::indexing::all);
   //       d->Lyy.bottomRightCorner(ntau_, ntau_).noalias() =
   //           alpha_ * alpha_ * time_step_ *
   //           d->differential->Luu(lpf_torque_ids_, lpf_torque_ids_);
   //       d->Lyw.topRows(ndx).noalias() =
   //           (1 - alpha_) * time_step_ *
-  //           d->differential->Lxu(Eigen::all, lpf_torque_ids_);
+  //           d->differential->Lxu(Eigen::indexing::all, lpf_torque_ids_);
   //       d->Lyw.bottomRows(ntau_).noalias() =
   //           (1 - alpha_) * alpha_ * time_step_ *
   //           d->differential->Luu(lpf_torque_ids_, lpf_torque_ids_);
@@ -679,10 +679,10 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
   //       d->Lw.noalias() = (1 - alpha_) * d->differential->Lu;
   //       d->Lyy.topLeftCorner(ndx, ndx).noalias() = d->differential->Lxx;
   //       d->Lyy.block(0, ndx, ndx, ntau_).noalias() =
-  //           alpha_ * d->differential->Lxu(Eigen::all, lpf_torque_ids_);
+  //           alpha_ * d->differential->Lxu(Eigen::indexing::all, lpf_torque_ids_);
   //       d->Lyy.block(ndx, 0, ntau_, ndx).noalias() =
   //           alpha_ *
-  //           d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::all);
+  //           d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::indexing::all);
   //       d->Lyy.bottomRightCorner(ntau_, ntau_).noalias() =
   //           alpha_ * alpha_ *
   //           d->differential->Luu(lpf_torque_ids_, lpf_torque_ids_);
@@ -762,9 +762,9 @@ void IntegratedActionModelLPFTpl<Scalar>::calcDiff(
 #if EIGEN_VERSION_AT_LEAST(3, 4, 0)
   d->Ly.tail(ntau_).noalias() = d->differential->Lu(lpf_torque_ids_);
   d->Lyy.block(0, ndx, ndx, ntau_).noalias() =
-      d->differential->Lxu(Eigen::all, lpf_torque_ids_);
+      d->differential->Lxu(Eigen::indexing::all, lpf_torque_ids_);
   d->Lyy.block(ndx, 0, ntau_, ndx).noalias() =
-      d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::all);
+      d->differential->Lxu.transpose()(lpf_torque_ids_, Eigen::indexing::all);
   d->Lyy.bottomRightCorner(ntau_, ntau_).noalias() =
       d->differential->Luu(lpf_torque_ids_, lpf_torque_ids_);
 #else

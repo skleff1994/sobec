@@ -16,7 +16,8 @@ ContactModel6DTpl<Scalar>::ContactModel6DTpl(
     boost::shared_ptr<StateMultibody> state, const pinocchio::FrameIndex id,
     const SE3& xref, const std::size_t nu, const Vector2s& gains,
     const pinocchio::ReferenceFrame type)
-    : Base(state, id, SE3::Identity(), type, nu, Vector2s::Zero()),
+    // : Base(state, id, SE3::Identity(), type, nu, Vector2s::Zero()), // for croco/devel
+    : Base(state, id, SE3::Identity(), nu, Vector2s::Zero()),
       xref_(xref),
       gains_(gains),
       type_(type) {}
